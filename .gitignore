@@ -9,6 +9,12 @@
 .env
 .env.local
 .env.*.local
+*google-drive-key*.json
+*credentials*.json
+service-account*.json
+*client_secret*.json
+*token*.json
+
 
 # Dependencies and build output.
 node_modules/

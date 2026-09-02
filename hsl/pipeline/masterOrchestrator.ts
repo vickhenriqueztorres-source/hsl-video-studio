@@ -14,6 +14,7 @@ import { validateBeforeRender } from '../core/hslValidationGatekeeper';
 import { inspectMediaWithFfprobe } from '../core/hslPathResolver';
 import { HslRunManifest } from '../core/hslRunManifest';
 import { HslComplianceChecker } from '../../spec/hsl-compliance-checker';
+import { HslDriveStorage } from '../core/hslDriveStorage';
 import {
   HSL_EPISODE_TARGET_DURATION_SECONDS,
   HSL_EPISODE_MIN_DURATION_SECONDS,
@@ -560,6 +561,23 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
     totalRules: complianceReport.totalRules,
     passedRules: complianceReport.passedRules
   });
+
+  // ---------------------------------------------------------------------------
+  // 12. CLOUD ARCHIVE & AUTO-CLEANUP (GOOGLE DRIVE SYNC & DISK HYGIENE)
+  // ---------------------------------------------------------------------------
+  manifest.startStage('STAGE_12_CLOUD_ARCHIVE');
+  console.log('\n☁️ [12/12] Cloud Archive & Auto-Cleanup: Salvando no Google Drive e liberando disco...');
+  try {
+    HslDriveStorage.syncDeliveries();
+    HslDriveStorage.syncSaves();
+    HslDriveStorage.pruneRenderIntermediates(topicInput.episodeId);
+    manifest.completeStage('STAGE_12_CLOUD_ARCHIVE', { driveSynced: true, localPruned: true });
+    console.log('✅ [12/12] Entregáveis protegidos na nuvem e intermediários limpos do disco.');
+  } catch (err: any) {
+    console.warn(`⚠️ [Cloud Archive] Aviso no arquivamento: ${err.message}`);
+    manifest.completeStage('STAGE_12_CLOUD_ARCHIVE', { driveSynced: false, error: err.message });
+  }
+
   manifest.completeRun();
   await assetServer.close();
 
