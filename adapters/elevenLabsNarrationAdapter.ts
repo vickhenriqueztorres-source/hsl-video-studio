@@ -73,13 +73,20 @@ export class ElevenLabsNarrationAdapter {
 
     // Fallback automático para Edge-TTS Neural (Christopher) caso a cota do ElevenLabs esteja esgotada
     console.warn(`[ElevenLabsNarration] Chaves ElevenLabs sem cota disponível. Ativando síntese neural de alta definição via Edge-TTS (voz Christopher)...`);
-    const edgeRes = spawnSync('edge-tts', [
-      '--voice', 'en-US-ChristopherNeural',
-      '--text', options.text,
-      '--write-media', destPath
-    ], { encoding: 'utf8', shell: true });
+    const tempTextPath = path.resolve(process.cwd(), 'runs', `temp_tts_${Date.now()}.txt`);
+    fs.mkdirSync(path.dirname(tempTextPath), { recursive: true });
+    fs.writeFileSync(tempTextPath, options.text, 'utf8');
 
-    if (edgeRes.status === 0 && fs.existsSync(destPath) && fs.statSync(destPath).size > 1000) {
+    const edgeRes = spawnSync('python', [
+      '-m', 'edge_tts',
+      '--voice', 'en-US-ChristopherNeural',
+      '--file', tempTextPath,
+      '--write-media', destPath
+    ], { encoding: 'utf8' });
+
+    try { fs.unlinkSync(tempTextPath); } catch {}
+
+    if (fs.existsSync(destPath) && fs.statSync(destPath).size > 1000) {
       console.log(`✅ [EdgeTTS] Narração master gerada com sucesso via voz Christopher neural em: ${destPath}`);
       return destPath;
     }
@@ -89,7 +96,7 @@ export class ElevenLabsNarrationAdapter {
       return destPath;
     }
 
-    throw lastError || new Error('ELEVENLABS_AND_EDGETTS_FAILED');
+    throw lastError || new Error(`ELEVENLABS_AND_EDGETTS_FAILED: ${edgeRes.stderr || edgeRes.stdout || 'unknown error'}`);
   }
 
   private async generateChunkedSpeech(
@@ -140,11 +147,30 @@ export class ElevenLabsNarrationAdapter {
     }
 
     if (chunkFiles.length === 0) {
+      console.warn(`[ElevenLabsNarration] Chaves ElevenLabs sem cota para blocos. Sintetizando narração completa via Edge-TTS (voz Christopher)...`);
+      const tempTextPath = path.resolve(process.cwd(), 'runs', `temp_tts_${Date.now()}.txt`);
+      fs.mkdirSync(path.dirname(tempTextPath), { recursive: true });
+      fs.writeFileSync(tempTextPath, fullText, 'utf8');
+
+      const edgeRes = spawnSync('python', [
+        '-m', 'edge_tts',
+        '--voice', 'en-US-ChristopherNeural',
+        '--file', tempTextPath,
+        '--write-media', finalDest
+      ], { encoding: 'utf8' });
+
+      try { fs.unlinkSync(tempTextPath); } catch {}
+
+      if (fs.existsSync(finalDest) && fs.statSync(finalDest).size > 1000) {
+        console.log(`✅ [EdgeTTS] Narração master gerada com sucesso via voz Christopher neural em: ${finalDest}`);
+        return finalDest;
+      }
+
       if (fs.existsSync(finalDest) && fs.statSync(finalDest).size > 1000) {
         console.warn(`[ElevenLabsNarration] Reutilizando áudio master final existente: ${finalDest}`);
         return finalDest;
       }
-      throw new Error('ELEVENLABS_NO_CHUNKS_GENERATED');
+      throw new Error(`ELEVENLABS_NO_CHUNKS_GENERATED: ${edgeRes.stderr || edgeRes.stdout || 'unknown error'}`);
     }
 
     // Concatena com FFmpeg

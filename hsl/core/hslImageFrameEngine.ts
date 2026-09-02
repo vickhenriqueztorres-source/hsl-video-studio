@@ -50,10 +50,21 @@ type MegashipSceneKind =
   | 'global_maritime_chokepoints'
   | 'maritime_commons_thesis';
 
+type TaipeiTmdSceneKind =
+  | 'tmd_sphere_660t'
+  | 'suspension_cables_42mm'
+  | 'hydraulic_dampers_300bar'
+  | 'vortex_shedding_015hz'
+  | 'seismic_overstroke_limit'
+  | 'thermal_viscosity_silicone'
+  | 'megatall_resilience_blueprint'
+  | 'anti_phase_master_thesis';
+
 const GRID_FREQUENCY_ID_PATTERN = /grid|frequency|hertz|blackout|power/i;
 const AI_COOLING_ID_PATTERN = /ai[_ -]?cooling|datacenter|thermal|gpu|evaporat/i;
 const KESSLER_ID_PATTERN = /kessler|debris|satellite|orbit|space|paint|28,000/i;
 const MEGASHIP_ID_PATTERN = /megaship|ship|suez|monstro|240000|240_000|container|frear|canal/i;
+const TAIPEI_TMD_ID_PATTERN = /taipei|tmd|damper|boliche|660|amortecedor/i;
 
 const esc = (value: string): string =>
   value
@@ -1277,11 +1288,328 @@ const universalThemeSceneSvg = (beat: HslSceneBeat, index: number, base64Image?:
 </svg>`;
 };
 
+// -----------------------------------------------------------------------------
+// TAIPEI 101 TUNED MASS DAMPER SVG SCENE TEMPLATES (EPISODE 012)
+// -----------------------------------------------------------------------------
+const taipeiTmdSceneKindForBeat = (beat: HslSceneBeat, index: number): TaipeiTmdSceneKind => {
+  const act = beat.actNumber;
+  if (act === 1) return 'tmd_sphere_660t';
+  if (act === 2) return 'suspension_cables_42mm';
+  if (act === 3) return 'hydraulic_dampers_300bar';
+  if (act === 4) return 'vortex_shedding_015hz';
+  if (act === 5) return 'seismic_overstroke_limit';
+  if (act === 6) return 'thermal_viscosity_silicone';
+  if (act === 7) return 'megatall_resilience_blueprint';
+  return 'anti_phase_master_thesis';
+};
+
+const getTaipeiTmdBaseImageBase64 = (actNumber: number): string => {
+  const root = process.cwd();
+  const candidatePaths = [
+    path.resolve(root, 'public', 'images', 'taipei101_tmd', `act${actNumber}.jpg`),
+    path.resolve(root, 'public', 'images', 'taipei101_tmd', `act${actNumber}.png`),
+    path.resolve(root, 'runs', 'HSL_EPISODE_012_TAIPEI_TMD', 'images', `act${actNumber}.jpg`)
+  ];
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        return fs.readFileSync(p).toString('base64');
+      } catch {}
+    }
+  }
+  return '';
+};
+
+const taipeiTmdSvgShell = (beat: HslSceneBeat, index: number, body: string, isDiagram: boolean = false): string => {
+  const seed = hashString(`${beat.beatId}:${beat.graphicHeadline}:${beat.telemetryLabel}`);
+  const glowX = 240 + (seed % 1440);
+  const glowY = 180 + ((seed >> 8) % 650);
+  const isAlert = beat.actNumber >= 4 && beat.actNumber <= 5;
+  const accent = isAlert ? '#FF2E00' : '#FFE500';
+  const base64 = getTaipeiTmdBaseImageBase64(beat.actNumber);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <!-- Cinematic Chiaroscuro Overlay -->
+    <linearGradient id="leftRightDark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#05070D" stop-opacity="${isDiagram ? '0.94' : '0.40'}"/>
+      <stop offset="35%" stop-color="#05070D" stop-opacity="${isDiagram ? '0.75' : '0.12'}"/>
+      <stop offset="65%" stop-color="#05070D" stop-opacity="${isDiagram ? '0.25' : '0.04'}"/>
+      <stop offset="100%" stop-color="#05070D" stop-opacity="${isDiagram ? '0.70' : '0.30'}"/>
+    </linearGradient>
+    <linearGradient id="topBottomDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#030408" stop-opacity="${isDiagram ? '0.88' : '0.30'}"/>
+      <stop offset="22%" stop-color="#030408" stop-opacity="0.04"/>
+      <stop offset="72%" stop-color="#030408" stop-opacity="${isDiagram ? '0.45' : '0.08'}"/>
+      <stop offset="100%" stop-color="#030408" stop-opacity="${isDiagram ? '0.95' : '0.45'}"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${accent}" stop-opacity="0.4"/>
+      <stop offset="45%" stop-color="${accent}" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="${accent}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glowFilter" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="heavyShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.95"/>
+    </filter>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#F4F4F0" stroke-opacity="0.03" stroke-width="1"/>
+      <circle cx="80" cy="80" r="1.5" fill="${accent}" opacity="0.25"/>
+    </pattern>
+    <style>
+      .mono { font-family: Consolas, 'Courier New', monospace; font-weight: 700; }
+      .sans { font-family: Impact, 'Arial Black', -apple-system, sans-serif; font-weight: 900; }
+    </style>
+  </defs>
+
+  ${base64 ? `<image href="data:image/jpeg;base64,${base64}" x="0" y="0" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"/>` : `<rect width="1920" height="1080" fill="#080A12"/>`}
+  <rect width="1920" height="1080" fill="url(#leftRightDark)"/>
+  <rect width="1920" height="1080" fill="url(#topBottomDark)"/>
+
+  ${isDiagram ? `
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+  <circle cx="${glowX}" cy="${glowY}" r="450" fill="url(#glow)"/>
+
+  <!-- Technical Schematic & Infographic Layer -->
+  ${body}
+
+  <!-- Header Branding & Stage Progress -->
+  <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="${accent}" stroke-opacity="0.16" stroke-width="2"/>
+  <text x="80" y="90" class="mono" font-size="20" fill="${accent}" letter-spacing="4">HSL // ACT 0${beat.actNumber} // ${esc(beat.stage.toUpperCase())}</text>
+  <text x="1840" y="90" class="mono" font-size="20" fill="#F4F4F0" text-anchor="end" opacity="0.6">BEAT ${esc(beat.beatId)}</text>
+  <line x1="80" y1="110" x2="1840" y2="110" stroke="#F4F4F0" stroke-opacity="0.12" stroke-width="1"/>
+
+  <!-- Lower Left Telemetry HUD -->
+  <g transform="translate(80 970)">
+    <rect width="700" height="60" rx="6" fill="#0A0E18" fill-opacity="0.90" stroke="${accent}" stroke-width="2"/>
+    <circle cx="25" cy="30" r="8" fill="${accent}"/>
+    <text x="50" y="38" class="mono" font-size="20" fill="${accent}">${esc(beat.telemetryLabel || 'TAIPEI 101 TMD // 660,000 KG')}</text>
+  </g>
+  ` : ''}
+</svg>`;
+};
+
+const drawTaipeiTmdSphere660t = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#0E121E" stroke="#FFE500" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#FFE500">660-TON PENDULUM INERTIA GRID</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">PENDULUM MASS: 660,000 KG (4X B747)</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">PEAK TOWER DEFLECTION: 1.5 METERS</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">RESONANT SWAY REDUCTION: -42%</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#FFE500">508 METERS</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">88TH FLOOR SUSPENDED ATRIUM</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">660 TONS</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#FFE500">INERTIAL BALLAST</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#F4F4F0" opacity="0.8">5.5M DIAMETER // 41 CONCENTRIC PLATES</text>
+  </g>`;
+
+const drawTaipeiSuspensionCables = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#0E121E" stroke="#0038FF" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#00D8FF">8X 42MM BRAIDED STEEL MATRIX</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">8X DUAL-INCH HIGH-TENSILE ROPES</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">SAFETY FACTOR: 4.2X MAXIMUM LOAD</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">ANCHOR LEVEL: FLOOR 92 BOX GIRDERS</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#00D8FF">6.5 MN TENSION</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">TOTAL SUSPENSION CAPACITY</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">8 CABLES</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#00D8FF">COLD-DRAWN ALLOY</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#F4F4F0" opacity="0.8">ZERO CABLE FATIGUE TOLERANCE</text>
+  </g>`;
+
+const drawTaipeiHydraulicDampers = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#0E121E" stroke="#FFE500" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#FFE500">RADIAL HYDRAULIC DISSIPATION GRID</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">8X VISCOUS DAMPERS (RADIAL ARRAY)</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">OPERATING PRESSURE: 300 BAR (4,350 PSI)</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">DISSIPATION: KINETIC -> THERMAL FLUID</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#FFE500">F = C · V²</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">NON-LINEAR VELOCITY BRAKING</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">300 BAR</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#FFE500">HYDRAULIC BRAKE</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#F4F4F0" opacity="0.8">8 RADIAL PISTONS UNDER SPHERE BASE</text>
+  </g>`;
+
+const drawTaipeiVortexShedding = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#140808" stroke="#FF2E00" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#FF2E00">AERODYNAMIC RESONANCE TRAP</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">VON KÁRMÁN VORTICES: 0.15 HZ</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FF2E00">CROSS-WIND SUCTION LOCK</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">PAGODA NOTCHED CORNERS: -25% DRAG</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#FF2E00">0.15 HZ LOCK</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">COUNTER-HARMONIC SUPPRESSION</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#FF2E00">VORTEX TRAP</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#F4F4F0">250 KM/H CROSS-WIND</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#FFE500" opacity="0.8">PERPENDICULAR SUCTION DESTROYED</text>
+  </g>`;
+
+const drawTaipeiSeismicOverstroke = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#140808" stroke="#FF2E00" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#FF2E00">SEISMIC STRAIN &amp; FAIL-SAFE LIMIT</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">RYUKYU TRENCH: M7.4 EARTHQUAKE</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FF2E00">3 KM/S GROUND SHOCKWAVE</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#200606"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">STAGE 2 THROTTLING: 300% BRAKE</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#FF2E00">1.5M BUMPER</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">ELASTOMERIC OVER-STROKE ARRESTOR</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#FF2E00">M7.4 QUAKE</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#F4F4F0">ZERO DAMAGE</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#FFE500" opacity="0.8">HISTORIC 1.0M SWAY IN TYPHOON SOUDELOR</text>
+  </g>`;
+
+const drawTaipeiThermalViscosity = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#0E121E" stroke="#FFE500" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#FFE500">THERMODYNAMIC FLUID EQUILIBRIUM</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">PDMS SILICONE: -40°C TO +200°C</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">14,000 STROKE CYCLES / 8H TYPHOON</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">ALUMINUM CONVECTIVE COOLING FINS</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#FFE500">48.6 MJ</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">TOTAL STORM HEAT DISSIPATION</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">SILICONE</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#FFE500">THERMAL BUFFER</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#F4F4F0" opacity="0.8">ZERO VISCOSITY DEGRADATION UNDER LOAD</text>
+  </g>`;
+
+const drawTaipeiMegatallResilience = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <g transform="translate(1080 240)">
+      <rect width="720" height="580" rx="10" fill="#0E121E" stroke="#0038FF" stroke-width="3"/>
+      <text x="40" y="60" class="mono" font-size="24" fill="#00D8FF">GLOBAL MEGATALL ADOPTION BLUEPRINT</text>
+      <g transform="translate(40 100)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#FFE500">25 MAJOR GLOBAL FINANCIAL HUBS</text>
+      </g>
+      <g transform="translate(40 210)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#F4F4F0">-18,000 TONS CONCRETE SAVINGS</text>
+      </g>
+      <g transform="translate(40 320)">
+        <rect width="640" height="85" rx="6" fill="#141B2D"/>
+        <text x="25" y="52" class="mono" font-size="22" fill="#00D8FF">SLENDERNESS RATIO: 1:8 ASPECT</text>
+      </g>
+      <text x="40" y="470" class="sans" font-size="52" fill="#00D8FF">PACIFIC RIM</text>
+      <text x="40" y="520" class="mono" font-size="22" fill="#F4F4F0">VERTICAL CIVILIZATION SURVIVAL</text>
+    </g>
+    <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">VERTICAL</text>
+    <text x="125" y="430" class="mono" font-size="44" fill="#00D8FF">CIVILIZATION</text>
+    <text x="125" y="490" class="mono" font-size="28" fill="#F4F4F0" opacity="0.8">INERTIAL CONTROL REPLACES MASS</text>
+  </g>`;
+
+const drawTaipeiAntiPhaseThesis = (beat: HslSceneBeat, index: number): string => `
+  <g>
+    <path d="M 80 540 Q 400 260 960 260 T 1840 540" fill="none" stroke="#FFE500" stroke-width="12" filter="url(#glowFilter)"/>
+    <text x="960" y="420" class="sans" font-size="80" fill="#F4F4F0" text-anchor="middle">SURVIVAL THROUGH ANTI-PHASE INERTIA</text>
+    <text x="960" y="500" class="mono" font-size="34" fill="#FFE500" text-anchor="middle">NOT BRUTE RESISTANCE — A DANCE OF CONTRARY MASS</text>
+    <g transform="translate(660 640)">
+      <rect width="600" height="120" rx="10" fill="#101424" stroke="#FFE500" stroke-width="3"/>
+      <text x="300" y="48" class="mono" font-size="20" fill="#00D8FF" text-anchor="middle">HIDDEN SYSTEMS LAB</text>
+      <text x="300" y="92" class="sans" font-size="32" fill="#F4F4F0" text-anchor="middle">SYSTEMS MOVE MODERN LIFE</text>
+    </g>
+  </g>`;
+
+const taipeiTmdSceneSvg = (beat: HslSceneBeat, index: number): string => {
+  const isDiagram = Boolean(beat.infographicArchetype);
+  if (isDiagram) {
+    const kind = taipeiTmdSceneKindForBeat(beat, index);
+    const body = {
+      tmd_sphere_660t: drawTaipeiTmdSphere660t,
+      suspension_cables_42mm: drawTaipeiSuspensionCables,
+      hydraulic_dampers_300bar: drawTaipeiHydraulicDampers,
+      vortex_shedding_015hz: drawTaipeiVortexShedding,
+      seismic_overstroke_limit: drawTaipeiSeismicOverstroke,
+      thermal_viscosity_silicone: drawTaipeiThermalViscosity,
+      megatall_resilience_blueprint: drawTaipeiMegatallResilience,
+      anti_phase_master_thesis: drawTaipeiAntiPhaseThesis
+    }[kind](beat, index);
+
+    return taipeiTmdSvgShell(beat, index, body, true);
+  }
+
+  return taipeiTmdSvgShell(beat, index, '', false);
+};
+
 export class HslImageFrameEngine {
   public static async generateFramesForEpisode(
     episodeId: string,
     beats: readonly HslSceneBeat[]
   ): Promise<ImageFrameEngineResult> {
+    if (TAIPEI_TMD_ID_PATTERN.test(episodeId)) {
+      return this.generateTaipeiTmdFrames(episodeId, beats);
+    }
+
     if (MEGASHIP_ID_PATTERN.test(episodeId)) {
       return this.generateMegaShipFrames(episodeId, beats);
     }
@@ -1643,6 +1971,69 @@ export class HslImageFrameEngine {
     }
 
     console.log(`[HslImageFrameEngine] ${generatedFrames.length} frames 100% INEDITOS da Rede Eletrica validados com sucesso.`);
+
+    return {
+      totalGenerated: generatedFrames.length,
+      outputDirectory: framesDir,
+      generatedFrames
+    };
+  }
+
+  public static generateTaipeiTmdFrames(
+    episodeId: string,
+    beats: readonly HslSceneBeat[]
+  ): ImageFrameEngineResult {
+    const root = process.cwd();
+    const framesDir = path.resolve(root, 'public', 'runs', episodeId, 'frames');
+    const localFramesDir = path.resolve(root, 'runs', episodeId, 'frames');
+    const tempDir = path.resolve(root, 'runs', episodeId, 'temp-taipei-svg-frames');
+    fs.mkdirSync(framesDir, {recursive: true});
+    fs.mkdirSync(localFramesDir, {recursive: true});
+    fs.mkdirSync(tempDir, {recursive: true});
+
+    console.log(`\n[HslImageFrameEngine] Gerando ${beats.length} frames 100% INEDITOS para o episodio de Taipei 101 TMD em: ${framesDir}`);
+
+    const generatedFrames: string[] = [];
+    const missingFrames: string[] = [];
+
+    for (let i = 0; i < beats.length; i++) {
+      const beat = beats[i];
+      const targetFileName = `${beat.beatId}.png`;
+      const targetFile = path.join(framesDir, targetFileName);
+      const localTargetFile = path.join(localFramesDir, targetFileName);
+
+      const svg = taipeiTmdSceneSvg(beat, i);
+      const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
+      fs.writeFileSync(svgPath, svg, 'utf8');
+
+      try {
+        const png = new Resvg(svg, {
+          fitTo: {mode: 'width', value: 1920},
+          font: {
+            loadSystemFonts: true
+          }
+        }).render().asPng();
+        fs.writeFileSync(targetFile, png);
+      } catch (err: any) {
+        missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
+        continue;
+      }
+
+      fs.copyFileSync(targetFile, localTargetFile);
+      const errorCount = missingFrames.length;
+      this.validateGeneratedFrame(targetFile, i, beat, missingFrames);
+      if (missingFrames.length === errorCount) {
+        generatedFrames.push(`runs/${episodeId}/frames/${targetFileName}`);
+      }
+    }
+
+    if (missingFrames.length > 0) {
+      throw new Error(
+        `IMAGE_ENGINE_GATE_FATAL: Falha ao gerar ${missingFrames.length}/${beats.length} frames de Taipei 101 TMD:\n${missingFrames.join('\n')}`
+      );
+    }
+
+    console.log(`[HslImageFrameEngine] ${generatedFrames.length} frames 100% INEDITOS de Taipei 101 TMD validados com sucesso.`);
 
     return {
       totalGenerated: generatedFrames.length,

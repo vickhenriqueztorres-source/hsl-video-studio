@@ -3038,5 +3038,569 @@ export function getMegaShipHydrodynamicsBeatData(actNumber: number, beatIndex: n
   }
 }
 
+/**
+ * Storyboard canônico para o Episódio 012: Taipei 101 Tuned Mass Damper
+ * "THE 660-TON STEEL SPHERE THAT STOPS SKYSCRAPERS FROM TOPPLING"
+ * Matriz de Mídia Especial (40% Fotos 35mm / 30% Diagramas IA / 30% Motion Graphics / 0% Firefly)
+ */
+export function getTaipeiTmdBeatData(actNumber: number, beatIndex: number, input: EpisodeTopicInput): BeatStoryboardData {
+  if (actNumber === 1) {
+    // ATO 01: THE HOOK & THE VISIBLE MONSTER (12 beats // 75s)
+    // 5x 35mm (0, 1, 5, 6, 11), 4x Diagram (3, 4, 8, 10), 3x Vector Remotion (2, 7, 9)
+    const roles: HslNarrativeRole[] = [
+      'MONUMENTAL_HOOK', 'PHYSICAL_SCALE', 'KINETIC_FLOW', 'MATHEMATICAL_MODEL',
+      'TECHNICAL_ANATOMY', 'SYSTEM_ARCHITECTURE', 'CRITICAL_METRIC', 'BOUNDARY_LIMIT',
+      'MATHEMATICAL_MODEL', 'SYSTEM_ARCHITECTURE', 'TECHNICAL_ANATOMY', 'CORE_THESIS'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 5 || beatIndex === 6 || beatIndex === 11)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 4 || beatIndex === 8 || beatIndex === 10)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 8) ? 'CUTAWAY' : (beatIndex === 4 || beatIndex === 10) ? 'MACRO_HUD' : undefined;
+
+    const scripts = [
+      `Five hundred meters above the streets of Taipei, a 660-ton solid steel sphere hangs suspended in open air.`,
+      `When category-5 typhoons strike with winds exceeding 250 kilometers per hour, skyscrapers act as vertical cantilever beams.`,
+      `The top of Taipei 101 can deflect up to 1.5 meters from center.`,
+      `Without intervention, structural resonance would tear internal elevator shafts and shatter reinforced concrete cores.`,
+      `The secret to survival is not rigid brute force; it is dynamic mass dampening.`,
+      `Suspended between the 87th and 92nd floors, this massive golden pendulum weighs as much as four Boeing 747 airliners.`,
+      `As the tower sways violently to the left, the sphere's immense inertia pulls it to the right.`,
+      `Eight hydraulic viscous shock absorbers convert the kinetic energy directly into fluid heat.`,
+      `This single mechanism eliminates over forty percent of the building's dynamic sway.`,
+      `Civilization does not defeat nature by standing rigid; it survives by dancing in anti-phase.`,
+      `This is the engineering that allows megatall towers to exist in the world's most violent typhoon corridor.`,
+      `This is the Tuned Mass Damper of Taipei 101.`
+    ];
+
+    const headlines = [
+      '660 TONS', '250 KM/H WINDS', '1.5M DEFLECTION', 'RESONANCE CRISIS',
+      'TUNED MASS DAMPER', '88TH FLOOR ATRIUM', 'ANTI-PHASE INERTIA', '8 HYDRAULIC PISTONS',
+      '-40% SWAY REDUCTION', 'KINETIC DISSIPATION', 'TYPHOON CORRIDOR', 'TAIPEI 101 TMD'
+    ];
+
+    const telemetry = [
+      'MASS // 660,000 KG', 'WIND VELOCITY // 250 KM/H', 'DISPLACEMENT // 1,500 MM', 'NATURAL FREQ // 0.15 HZ',
+      'SYSTEM // TUNED MASS DAMPER', 'ELEVATION // 392 METERS', 'PHASE LAG // 90 DEGREES', 'DISSIPATION // 8X PISTONS',
+      'SWAY REDUCTION // 42%', 'THERMAL CONVERSION // SILICONE', 'SEISMIC ZONE // PACIFIC RING', 'EPISODE 012 // HSL'
+    ];
+
+    const prompts = [
+      `Cinematic 35mm documentary photography of the iconic 660-ton golden spherical tuned mass damper in Taipei 101 atrium, museum lighting, 8k`,
+      `Dramatic exterior shot of Taipei 101 skyscraper standing tall against dark swirling typhoon storm clouds and monsoon rain sheets`,
+      `High-contrast kinetic motion graphics showing building deflection vector curve and 1.5m displacement marker in acid yellow`,
+      `3D architectural cutaway diagram showing the pendulum sphere suspended on floor 88 inside the central structural core`,
+      `Macro schematic HUD overlay of the 8 radial hydraulic damper pistons with pressure telemetry bars in electric blue`,
+      `Wide 35mm photo of tourists and engineers standing on observation walkway looking up at the monumental golden steel sphere`,
+      `Technical telemetry visualization showing phase lag curves between tower velocity and pendulum inertia force`,
+      `Close up macro shot of thick chrome piston rods compressing under heavy mechanical load during high wind simulation`,
+      `3D isometric graph comparing resonant vibration amplitude with and without tuned mass damping in real time`,
+      `Kinetic diagram card showing energy conversion pathway: Wind Kinetic Energy -> Mechanical Shear -> Hydraulic Heat`,
+      `Atmospheric night shot of Taipei city skyline illuminated under stormy clouds with Taipei 101 glowing at center`,
+      `Monumental identity card: THE 660-TON DAMPER // HIDDEN SYSTEMS LAB in bold typography on dark obsidian matte background`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 2) {
+    // ATO 02: PHYSICAL ANATOMY & SUSPENSION (14 beats // 90s)
+    // 6x 35mm (0, 1, 4, 6, 10, 13), 4x Diagram (3, 7, 9, 12), 4x Vector Remotion (2, 5, 8, 11)
+    const roles: HslNarrativeRole[] = [
+      'TECHNICAL_ANATOMY', 'STRUCTURAL_DYNAMICS', 'KINETIC_FLOW', 'MECHANICAL_BLUEPRINT',
+      'TECHNICAL_ANATOMY', 'KINETIC_FLOW', 'CRITICAL_METRIC', 'MECHANICAL_BLUEPRINT',
+      'KINETIC_FLOW', 'MECHANICAL_BLUEPRINT', 'TECHNICAL_ANATOMY', 'KINETIC_FLOW',
+      'MECHANICAL_BLUEPRINT', 'SYSTEM_ARCHITECTURE'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 4 || beatIndex === 6 || beatIndex === 10 || beatIndex === 13)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 7 || beatIndex === 9 || beatIndex === 12)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 7 || beatIndex === 9 || beatIndex === 12) ? 'CUTAWAY' : undefined;
+
+    const scripts = [
+      `To suspend 660 metric tons without catastrophic material fatigue requires extreme metallurgy.`,
+      `The sphere is constructed from forty-one circular steel plates, each twelve and a half centimeters thick.`,
+      `These concentric plates are fused into a solid sphere five and a half meters in diameter.`,
+      `Suspending this deadweight are eight two-inch braided steel cables anchored to the 92nd floor.`,
+      `Each cable consists of thousands of cold-drawn high-tensile steel strands bundled into a 42-millimeter rope.`,
+      `The total cable assembly provides a safety factor four times higher than the maximum dynamic storm load.`,
+      `At the base of the sphere sits a massive steel pin joint connecting to eight radial hydraulic dampers.`,
+      `These shock absorbers are filled with high-viscosity silicone fluid engineered not to vaporize under friction.`,
+      `When the pendulum swings, fluid is forced through calibrated internal orifices at thousands of PSI.`,
+      `This hydraulic resistance acts as a giant velocity brake, opposing any sudden structural acceleration.`,
+      `Beneath the dampers lies an emergency ring bumper lined with elastomeric shock pads.`,
+      `If an apocalyptic earthquake forces the sphere past its maximum design stroke, the bumper absorbs the impact.`,
+      `Every single component is tuned to a precise natural frequency of 0.15 Hertz.`,
+      `This exact frequency match is what unlocks the physics of resonant cancellation.`
+    ];
+
+    const headlines = [
+      '41 STEEL PLATES', '12.5CM THICKNESS', '5.5M DIAMETER', '8 SUSPENSION CABLES',
+      '42MM STEEL ROPES', '4X SAFETY FACTOR', 'RADIAL PIN JOINT', 'SILICONE FLUID',
+      'INTERNAL ORIFICES', 'HYDRAULIC BRAKE', 'RING BUMPER', 'OVER-STROKE LIMIT',
+      '0.15 HZ FREQUENCY', 'RESONANT TUNING'
+    ];
+
+    const telemetry = [
+      'STEEL PLATES // 41 LAYERS', 'PLATE THICKNESS // 125 MM', 'SPHERE DIAMETER // 5.5 METERS', 'CABLE COUNT // 8X ROPES',
+      'ROPE DIAMETER // 42 MM', 'TENSILE RATING // 4.2X LOAD', 'BASE JOINT // FORGED ALLOY', 'DAMPING FLUID // SILICONE',
+      'RESTRICTION // CALIBRATED', 'BRAKING FORCE // HYDRAULIC', 'BUMPER // ELASTOMERIC PAD', 'MAX STROKE // 1,500 MM',
+      'TUNED FREQ // 0.15 HZ', 'SYSTEM // SINTONIZED'
+    ];
+
+    const prompts = [
+      `Macro close up 35mm photo showing the laminated steel layers of the 41 plates forming the damper sphere`,
+      `Technical schematic diagram showing concentric circular steel plates stacked and bolted into spherical geometry`,
+      `Kinetic vector animation showing tension stress distribution across the 8 suspension cable anchor points`,
+      `3D cutaway engineering drawing of floor 92 structural steel box girders holding cable clevis assemblies`,
+      `Extreme close-up macro shot of braided 42mm high-tensile steel wire strands under extreme tension`,
+      `Infographic telemetry card displaying safety factor multiplier graph: Actual Load vs Breaking Strain`,
+      `Macro industrial shot of the lower spherical pin joint connecting sphere base to radial shock absorbers`,
+      `3D cutaway diagram of a high-pressure viscous damper cylinder showing silicone oil flowing through internal restriction ports`,
+      `Vector flow telemetry showing viscous drag force vs velocity curve in exponential damping equations`,
+      `Technical cutaway schematic of the steel ring bumper and reinforced polyurethane shock arrestor pads`,
+      `Close-up photo of high-pressure silicone oil reservoir hoses and stainless steel fluid manifold`,
+      `Dynamic motion graphics showing pendulum trajectory vector inside the circular perimeter bumper zone`,
+      `Frequency spectrum graph showing sharp peak at 0.15 Hz aligned perfectly with building sway harmonics`,
+      `Wide 35mm engineering photo of the entire 5-story pendulum assembly illuminated by industrial work lights`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 3) {
+    // ATO 03: HYDRO-MECHANICAL DISSIPATION & PISTON PHYSICS (16 beats // 105s)
+    // 6x 35mm (0, 1, 5, 6, 10, 15), 5x Diagram (3, 4, 8, 11, 13), 5x Vector Remotion (2, 7, 9, 12, 14)
+    const roles: HslNarrativeRole[] = [
+      'HYDRO_MECHANICS', 'MATHEMATICAL_MODEL', 'KINETIC_FLOW', 'TECHNICAL_ANATOMY',
+      'THERMODYNAMICS', 'HYDRO_MECHANICS', 'CRITICAL_METRIC', 'KINETIC_FLOW',
+      'TECHNICAL_ANATOMY', 'KINETIC_FLOW', 'THERMODYNAMICS', 'MECHANICAL_BLUEPRINT',
+      'KINETIC_FLOW', 'MATHEMATICAL_MODEL', 'KINETIC_FLOW', 'CORE_THESIS'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 5 || beatIndex === 6 || beatIndex === 10 || beatIndex === 15)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 4 || beatIndex === 8 || beatIndex === 11 || beatIndex === 13)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 8 || beatIndex === 11 || beatIndex === 13) ? 'CUTAWAY' : beatIndex === 4 ? 'MACRO_HUD' : undefined;
+
+    const scripts = [
+      `How does pushing oil through a tiny hole stop a skyscraper from collapsing?`,
+      `When wind strikes the building, energy cannot simply vanish; the First Law of Thermodynamics demands it transform.`,
+      `As the tower accelerates sideways, the damper pendulum lags ninety degrees out of phase.`,
+      `This lag forces the chrome piston rods inside the eight hydraulic dampers to compress and extend.`,
+      `Inside each cylinder, pure silicone fluid is forced through microscopic throttling ports at three hundred bar.`,
+      `Turbulent shear forces inside the fluid tear kinetic energy apart at the molecular level.`,
+      `The kinetic energy of a 250-kilometer-per-hour typhoon is converted directly into thermal heat within the oil.`,
+      `During a major storm, the temperature of the damping fluid rises by tens of degrees Celsius.`,
+      `The viscous resistance force is proportional to the square of the piston velocity.`,
+      `The faster the building sways, the harder the hydraulic dampers push back against the motion.`,
+      `This non-linear damping profile prevents resonant runaway without creating brittle structural shocks.`,
+      `Cooling jackets around each cylinder radiate heat away before the silicone fluid loses viscosity.`,
+      `Over sixty percent of the building's peak vibration energy is absorbed before reaching the foundation.`,
+      `Without this fluid shear, building occupants on upper floors would suffer severe motion sickness and panic.`,
+      `With it, the massive structure remains stable, comfortable, and structurally intact.`,
+      `This is hydraulic dissipation engineering in its purest physical form.`
+    ];
+
+    const headlines = [
+      'ENERGY CONVERSION', 'FIRST LAW OF THERMO', '90° PHASE LAG', 'PISTON COMPRESSION',
+      '300 BAR PRESSURE', 'MOLECULAR SHEAR', 'THERMAL TRANSFORMATION', '+45°C TEMPERATURE',
+      'VELOCITY SQUARED', 'EXPONENTIAL BRAKE', 'NON-LINEAR DAMPING', 'COOLING JACKETS',
+      '-60% VIBRATION ENERGY', 'HUMAN COMFORT', 'STRUCTURAL INTEGRITY', 'HYDRO-MECHANICAL MASTER'
+    ];
+
+    const telemetry = [
+      'CONVERSION // KINETIC TO HEAT', 'THERMODYNAMICS // DELTA E = 0', 'PHASE ANGLE // 90.0 DEG', 'STROKE // +/- 1.2 METERS',
+      'CYLINDER PRESSURE // 300 BAR', 'VISCOUS SHEAR // HIGH RATE', 'ENERGY FLUX // 4.2 MEGAJOULES', 'OIL TEMP // 65 DEGREES C',
+      'FORCE LAW // F = C * V^2', 'RESISTANCE // AUTOMATIC', 'PROFILE // NON-LINEAR', 'COOLING // RADIATIVE PASSIVE',
+      'ATTENUATION // 62% DAMPED', 'HUMAN ACCEL // < 0.05 M/S2', 'STABILITY // NOMINAL', 'STAGE // MECHANICAL DISSIPATION'
+    ];
+
+    const prompts = [
+      `Macro 35mm photo of industrial hydraulic test bench showing heavy damper cylinder with pressure instrumentation`,
+      `Technical infographic diagram illustrating energy conversion flow from building sway to fluid thermal rise`,
+      `Vector phase diagram showing 90-degree phase shift between building acceleration and damper counter-force`,
+      `3D cutaway of hydraulic viscous piston cylinder showing high-velocity silicone oil jets passing restriction orifices`,
+      `Thermal imaging visualization (FLIR palette) of hydraulic shock absorber glowing hot under continuous cycle testing`,
+      `Macro close-up of heavy chrome cylinder rod reflecting industrial safety lights as it compresses into housing`,
+      `Kinetic telemetry chart plotting dissipation power in megawatts during category-5 typhoon peak gust`,
+      `Close up of thermocouple sensor readout showing hydraulic fluid temperature rise curve over 6 hours of storm load`,
+      `Mathematical curve overlay showing damping force equation F = C * v^2 with velocity vector arrows`,
+      `Technical schematic diagram of internal piston head check valves and fluid bypass throttling channels`,
+      `Macro shot of finned aluminum cooling jacket wrapped around hydraulic damper cylinder body`,
+      `Isometric 3D model of Taipei 101 core showing the 8 radial dampers arrayed like spokes on a bicycle wheel`,
+      `Vibration attenuation graph showing dramatic decay of resonance peaks when dampers are fully engaged`,
+      `Human comfort acceleration threshold graph comparing top floor sway with and without active mass damping`,
+      `Dramatic dusk shot of Taipei 101 observation deck with visitors calmly viewing city through glass windows`,
+      `Cinematic identity card: HYDRO-MECHANICAL DAMPING // HIDDEN SYSTEMS LAB in sharp gold and obsidian accents`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 4) {
+    // ATO 04: THE PHYSICAL LIMIT & VORTEX SHEDDING (12 beats // 75s)
+    // 5x 35mm (0, 1, 5, 6, 11), 4x Diagram (3, 4, 8, 10), 3x Vector Remotion (2, 7, 9)
+    const roles: HslNarrativeRole[] = [
+      'AERODYNAMICS', 'VORTEX_PHYSICS', 'KINETIC_FLOW', 'AERODYNAMIC_MAP',
+      'CRITICAL_METRIC', 'AERODYNAMICS', 'BOUNDARY_LIMIT', 'KINETIC_FLOW',
+      'AERODYNAMIC_MAP', 'KINETIC_FLOW', 'AERODYNAMIC_MAP', 'CORE_THESIS'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 5 || beatIndex === 6 || beatIndex === 11)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 4 || beatIndex === 8 || beatIndex === 10)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 8 || beatIndex === 10) ? '3D_MAP' : beatIndex === 4 ? 'MACRO_HUD' : undefined;
+
+    const scripts = [
+      `The greatest threat to a supertall tower is not the direct force of the wind pushing against it.`,
+      `It is the invisible phenomenon known as von Kármán Vortex Shedding.`,
+      `As wind flows past the sharp edges of a rectangular building, alternating low-pressure vortices detach on either side.`,
+      `These vortices create rhythmic cross-wind suction forces perpendicular to the wind direction.`,
+      `If the frequency of vortex shedding matches the building's natural harmonic frequency of 0.15 Hertz, resonance occurs.`,
+      `The building begins to oscillate violently with increasing amplitude with each passing vortex cycle.`,
+      `This was the exact aerodynamic lock that tore the Tacoma Narrows Bridge apart in 1940.`,
+      `Taipei 101 mitigates this through two synchronized defense layers.`,
+      `First, its exterior corners are notched and stepped like a pagoda to break vortices into smaller, harmless eddies.`,
+      `Second, the tuned mass damper destroys the resonant lock by creating an immediate counter-harmonic force.`,
+      `Even if cross-winds reach hurricane intensity, vortex resonance cannot achieve amplification.`,
+      `Aerodynamics and inertia work in perfect, invisible harmony.`
+    ];
+
+    const headlines = [
+      'CROSS-WIND THREAT', 'VORTEX SHEDDING', 'PRESSURE ASYMMETRY', 'PERPENDICULAR SUCTION',
+      '0.15 HZ RESONANCE', 'AMPLITUDE LOCK', 'TACOMA LESSON', 'DUAL-LAYER DEFENSE',
+      'NOTCHED CORNERS', 'COUNTER-HARMONIC', 'RESONANCE BROKEN', 'HARMONIC EQUILIBRIUM'
+    ];
+
+    const telemetry = [
+      'WIND VECTOR // 250 KM/H', 'VORTEX FREQ // 0.15 HZ', 'PRESSURE DELTA // 4.5 KPA', 'SUCTION FORCE // CROSS-WIND',
+      'RESONANCE // 0.15 HZ CRITICAL', 'AMPLIFICATION // UNCHECKED', 'FAILURE MODE // AEROELASTIC FLUTTER', 'DEFENSE // DUAL TIER',
+      'CORNER NOTCHES // -25% DRAG', 'DAMPER OPPOSITION // 180 DEG', 'LOCK // SUPPRESSED', 'SYSTEM // STABLE'
+    ];
+
+    const prompts = [
+      `Wind tunnel test model of Taipei 101 with colored smoke streamlines showing laminar flow splitting around tower`,
+      `3D CFD aerodynamic visualization showing alternating von Kármán vortices shedding off tower corners in deep red and blue`,
+      `Vector animation showing perpendicular cross-wind aerodynamic lift forces oscillating the tower sideways`,
+      `High-angle 3D isometric cutaway of Taipei 101 facade showing the saw-toothed corner notched geometry`,
+      `Resonant frequency graph showing sharp dangerous peak at 0.15 Hz and the flat damped response curve`,
+      `Historical 35mm photo reference of Tacoma Narrows Bridge twisting under vortex resonance excitation`,
+      `Macro close-up photo of high-pressure aerodynamic pressure sensor taps installed on the 80th floor glass exterior`,
+      `Kinetic vector diagram illustrating the Pagoda corner steps diffusing wind energy into micro-turbulences`,
+      `Wind tunnel velocity contour map showing 25% drag reduction achieved by the notched corner design`,
+      `Telemetry overlay showing instant counter-force vector generated by 660-ton pendulum against vortex pulses`,
+      `3D airflow velocity stream map showing calm boundary layer behind the building structure`,
+      `Monumental identity card: VORTEX SUPPRESSION // HIDDEN SYSTEMS LAB with glowing yellow reticles`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 5) {
+    // ATO 05: THE CRITICAL STRAIN & SEISMIC LIMIT (14 beats // 90s)
+    // 6x 35mm (0, 1, 4, 6, 9, 13), 4x Diagram (3, 7, 10, 12), 4x Vector Remotion (2, 5, 8, 11)
+    const roles: HslNarrativeRole[] = [
+      'SEISMIC_CRISIS', 'CRITICAL_STRAIN', 'KINETIC_FLOW', 'SEISMIC_TELEMETRY',
+      'TECHNICAL_ANATOMY', 'KINETIC_FLOW', 'BOUNDARY_LIMIT', 'SEISMIC_TELEMETRY',
+      'KINETIC_FLOW', 'BOUNDARY_LIMIT', 'SEISMIC_TELEMETRY', 'KINETIC_FLOW',
+      'SEISMIC_TELEMETRY', 'SYSTEM_ARCHITECTURE'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 4 || beatIndex === 6 || beatIndex === 9 || beatIndex === 13)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 7 || beatIndex === 10 || beatIndex === 12)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 7 || beatIndex === 10 || beatIndex === 12) ? 'MACRO_HUD' : undefined;
+
+    const scripts = [
+      `While wind attacks from above, earthquakes attack from below.`,
+      `Taipei sits just two hundred kilometers from the Ryukyu Trench, one of the most active subduction zones on Earth.`,
+      `During a magnitude 7.0 earthquake, ground acceleration waves travel up the reinforced concrete core at three kilometers per second.`,
+      `As the ground jerks violently, the base of the tower shifts while the top remains momentarily frozen by inertia.`,
+      `This creates massive shear stresses across the 80th to 90th floor structural trusses.`,
+      `In 2015, Typhoon Soudelor struck Taipei with gusts of 230 km/h, forcing the sphere to swing one full meter from center.`,
+      `In April 2024, a magnitude 7.4 earthquake shook the island, triggering peak seismic acceleration.`,
+      `The 660-ton pendulum reacted instantly, swinging in dramatic arcs to absorb ground shockwaves.`,
+      `Inside the control room, engineers monitor sensor arrays measuring displacement, oil pressure, and cable tension in real time.`,
+      `If the pendulum reaches 1.5 meters of displacement, it enters the critical over-stroke threshold.`,
+      `The hydraulic dampers engage secondary stage throttling, multiplying fluid resistance by three hundred percent.`,
+      `The elastomeric ring bumper stands ready as the final physical fail-safe against structural breach.`,
+      `During both extreme events, the tower suffered zero structural damage.`,
+      `The system performed flawlessly at the outer envelope of human civil engineering.`
+    ];
+
+    const headlines = [
+      'SEISMIC ATTACK', 'RYUKYU SUBDUCTION', '3 KM/S SHOCKWAVES', 'SHEAR STRESS SPIKE',
+      'TRUSS OVERLOAD', 'TYPHOON SOUDELOR', 'MAGNITUDE 7.4', '1.0M SWAY PEAK',
+      'REAL-TIME SENSORS', '1.5M OVER-STROKE', '300% STAGE 2 BRAKE', 'RING FAIL-SAFE',
+      'ZERO DAMAGE', 'ENVELOPE MASTERED'
+    ];
+
+    const telemetry = [
+      'SEISMIC ZONE // RYUKYU TRENCH', 'FAULT DISTANCE // 200 KM', 'WAVE VELOCITY // 3,200 M/S', 'SHEAR FORCE // 18.5 MEGANNEWTONS',
+      'ELEVATION // 392M TRUSS', 'HISTORIC PEAK // 1,000 MM', 'SEISMIC MAG // 7.4 RICHTER', 'SWAY VECTOR // DYNAMIC PEAK',
+      'TELEMETRY ARRAY // 64 SENSORS', 'OVER-STROKE LIMIT // 1,500 MM', 'THROTTLING STAGE // 2X ACTIVE', 'FAIL-SAFE // BUMPER ENGAGED',
+      'STRUCTURAL HEALTH // 100% PASS', 'OPERATIONAL STATUS // NOMINAL'
+    ];
+
+    const prompts = [
+      `Dramatic night control room shot with engineers monitoring real-time seismic waveform graphs on multi-screen consoles`,
+      `3D isometric tectonic map showing the Ryukyu subduction trench and seismic wave propagation toward Taipei basin`,
+      `Kinetic vector animation showing S-wave and P-wave velocity vectors climbing up the Taipei 101 tower core`,
+      `Cutaway diagram of floor 87 steel outrigger trusses under high-tension seismic shear simulation`,
+      `Close up photo of high-precision laser distance meters measuring pendulum sphere gap in real time`,
+      `Historical archive video still of Taipei 101 damper swinging dramatically during Typhoon Soudelor in 2015`,
+      `Seismograph readout trace showing violent magnitude 7.4 acceleration spikes in vivid alert red (#FF2E00)`,
+      `Macro 35mm view of hydraulic damper piston fully extended near its mechanical travel limit`,
+      `Technical HUD telemetry dashboard showing displacement gauge needle touching 1,000mm warning line`,
+      `Detailed 3D model of the dual-stage hydraulic valve opening under extreme 300% surge pressure`,
+      `Close up shot of the heavy polyurethane elastomer bumper ring bolted into floor concrete foundation`,
+      `Laser displacement telemetry overlay plotting real-time damping performance vs un-damped structural model`,
+      `35mm wide photo of the 88th floor observation deck pristine and undamaged after major earthquake`,
+      `Monumental identity card: SEISMIC RESILIENCE // ZERO DAMAGE // HIDDEN SYSTEMS LAB`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 6) {
+    // ATO 06: THERMAL DISSIPATION & VISCOSITY BREAKDOWN (10 beats // 60s)
+    // 4x 35mm (0, 1, 5, 9), 3x Diagram (3, 6, 8), 3x Vector Remotion (2, 4, 7)
+    const roles: HslNarrativeRole[] = [
+      'THERMAL_LIMIT', 'VISCOSITY_BREAKDOWN', 'KINETIC_FLOW', 'THERMAL_MAP',
+      'KINETIC_FLOW', 'THERMAL_LIMIT', 'THERMAL_MAP', 'KINETIC_FLOW',
+      'THERMAL_MAP', 'CORE_THESIS'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 1 || beatIndex === 5 || beatIndex === 9)
+      ? 'generated_image_35mm'
+      : (beatIndex === 3 || beatIndex === 6 || beatIndex === 8)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 3 || beatIndex === 6 || beatIndex === 8) ? 'CUTAWAY' : undefined;
+
+    const scripts = [
+      `Every megajoule of wind energy absorbed by the damper must escape as heat.`,
+      `During an eight-hour continuous typhoon, the hydraulic dampers perform tens of thousands of compression cycles.`,
+      `Standard hydraulic oils break down at elevated temperatures, losing viscosity and collapsing damping resistance.`,
+      `To prevent thermal failure, the system uses specialized high-index polydimethylsiloxane silicone fluid.`,
+      `This engineered polymer maintains stable viscosity from minus forty degrees up to two hundred degrees Celsius.`,
+      `Internal fluid passages are designed with laminar expansion zones to prevent cavitation boiling at high velocities.`,
+      `If thermal limits were exceeded, oil viscosity would drop, and the damper would lose its braking force.`,
+      `Heavy aluminum cooling fins radiate heat directly into the ambient atrium air currents.`,
+      `Backup temperature sensors trigger alert thresholds long before chemical breakdown can occur.`,
+      `Thermodynamic discipline is what keeps mechanical inertia reliable under hours of continuous storm fury.`
+    ];
+
+    const headlines = [
+      'THERMAL LOAD', '10,000 CYCLES', 'VISCOSITY LOSS', 'PDMS SILICONE',
+      'STABLE -40° TO 200°C', 'CAVITATION PREVENTION', 'VISCOSITY CRASH RISK', 'ALUMINUM FINS',
+      'HEAT EQUILIBRIUM', 'THERMAL DISCIPLINE'
+    ];
+
+    const telemetry = [
+      'TOTAL HEAT // 48.6 MEGAJOULES', 'CYCLES // 14,200 STROKES', 'OIL BREAKDOWN // PREVENTED', 'FLUID // PDMS POLYMER',
+      'OPERATING RANGE // -40C TO +200C', 'CAVITATION MARGIN // +12 BAR', 'VISCOSITY INDEX // > 350', 'COOLING // RADIATIVE PASSIVE',
+      'MONITORING // 16X CHANNELS', 'STATUS // THERMAL EQUILIBRIUM'
+    ];
+
+    const prompts = [
+      `Macro thermal photography of hydraulic piston cylinder showing heat glow along high-pressure fluid lines`,
+      `3D cutaway animation of damper piston showing heat dissipation pathways from oil to aluminum fins`,
+      `Kinetic vector graph plotting fluid viscosity vs temperature comparing standard oil with synthetic PDMS silicone`,
+      `Molecular visualization of cross-linked polydimethylsiloxane silicone polymer chains resisting thermal shear`,
+      `Close up industrial photo of stainless steel thermocouple probe wired into damper fluid reservoir port`,
+      `Macro view of fluid throttling orifice showing bubble-free laminar stream under ultra-high fluid shear`,
+      `Thermal equilibrium balance equation overlay showing heat generation rate matching ambient convective dissipation`,
+      `Close up photo of heavy cast aluminum cooling fins with air currents visualized by micro-condensation mist`,
+      `Telemetry dashboard displaying multi-channel temperature readouts across all 8 dampers holding at safe 58°C`,
+      `Monumental identity card: THERMAL EQUILIBRIUM // HIDDEN SYSTEMS LAB in gold and acid yellow palette`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  if (actNumber === 7) {
+    // ATO 07: CIVILIZATIONAL RESILIENCE & MEGATALL ECONOMY (10 beats // 60s)
+    // 3x 35mm (0, 4, 9), 3x Diagram (2, 6, 8), 4x Vector Remotion (1, 3, 5, 7)
+    const roles: HslNarrativeRole[] = [
+      'URBAN_SCALE', 'KINETIC_FLOW', 'GLOBAL_MAP', 'KINETIC_FLOW',
+      'URBAN_SCALE', 'KINETIC_FLOW', 'GLOBAL_MAP', 'KINETIC_FLOW',
+      'GLOBAL_MAP', 'CORE_THESIS'
+    ];
+    const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 4 || beatIndex === 9)
+      ? 'generated_image_35mm'
+      : (beatIndex === 2 || beatIndex === 6 || beatIndex === 8)
+      ? 'motion_image_diagram'
+      : 'vector_remotion';
+
+    const archetype = (beatIndex === 2 || beatIndex === 6 || beatIndex === 8) ? '3D_MAP' : undefined;
+
+    const scripts = [
+      `Without tuned mass dampers, megatall skyscrapers above four hundred meters could not exist in coastal cities.`,
+      `Over twenty-five major global financial centers sit directly in active typhoon or earthquake belts.`,
+      `Tokyo, Shanghai, Hong Kong, and New York now employ advanced mass dampers in their signature towers.`,
+      `The technology transforms structural engineering from expensive mass accumulation into precision kinetic control.`,
+      `Instead of pouring thousands of additional tons of concrete into massive shear walls, engineers install a tuned pendulum.`,
+      `This saves millions in construction costs and unlocks soaring, slender architectural forms.`,
+      `Taipei 101 proved that humanity can build half a kilometer into the sky on top of a major tectonic fault line.`,
+      `The building is not an anomaly; it is the blueprint for resilient vertical civilization.`,
+      `Invisible mechanical balance is what allows twenty-first-century cities to touch the clouds.`,
+      `Engineering transforms hostile natural physics into structural safety.`
+    ];
+
+    const headlines = [
+      'MEGATALL BLUEPRINT', '25 GLOBAL HUBS', 'WORLDWIDE ADOPTION', 'KINETIC CONTROL',
+      'CONCRETE EFFICIENCY', 'ARCHITECTURAL FREEDOM', 'TECTONIC RESILIENCE', 'VERTICAL CIVILIZATION',
+      'INVISIBLE BALANCE', 'SAFETY MASTERED'
+    ];
+
+    const telemetry = [
+      'HEIGHT THRESHOLD // > 400 METERS', 'GLOBAL HUBS // 25 CITIES', 'ADOPTION // TOKYO TO NYC', 'CONTROL // INERTIAL PRECISION',
+      'MATERIAL SAVINGS // -18,000T CONCRETE', 'SLENDERNESS // 1:8 ASPECT RATIO', 'LOCATION // PACIFIC RIM', 'PARADIGM // VERTICAL CITY',
+      'EQUILIBRIUM // INERTIA DANCE', 'EPISODE 012 // CIVIL ENGINEERING'
+    ];
+
+    const prompts = [
+      `Wide panoramic twilight drone photo of modern mega-skyscrapers in Tokyo, Shanghai, and New York`,
+      `3D world map showing global megatall skyscrapers equipped with tuned mass dampers in neon yellow and cyan`,
+      `Comparative architectural blueprint showing traditional heavy shear wall vs slender tower with tuned mass damper`,
+      `Kinetic vector infographic displaying material volume savings: -18,000 tons of structural concrete`,
+      `Elevated 35mm view of Taipei financial district with Taipei 101 towering majestically above morning fog`,
+      `3D structural wireframe comparing structural weight and cost curves across 300m, 500m, and 800m towers`,
+      `Global seismic hazard map overlaid with coastal typhoon tracks and supertall building coordinates`,
+      `Architectural rendering of future supertall towers featuring nested multi-frequency tuned mass dampers`,
+      `Typography motion card: VERTICAL CIVILIZATION DEPENDS ON INERTIA in clean high-contrast Vox styling`,
+      `Cinematic dusk shot looking up at the illuminated spire of Taipei 101 cutting through golden sunset clouds`
+    ];
+
+    return {
+      narrativeRole: roles[beatIndex % roles.length],
+      visualMode,
+      infographicArchetype: archetype,
+      graphicHeadline: headlines[beatIndex % headlines.length],
+      telemetryLabel: telemetry[beatIndex % telemetry.length],
+      voiceoverScript: scripts[beatIndex % scripts.length],
+      promptSubject: prompts[beatIndex % prompts.length]
+    };
+  }
+
+  // ATO 08: ORIGINAL THESIS & SYSTEMS ARCHITECTURE (8 beats // 45s)
+  // 3x 35mm (0, 3, 7), 2x Diagram (1, 4), 3x Vector Remotion (2, 5, 6)
+  const roles: HslNarrativeRole[] = [
+    'CORE_THESIS', 'ARCHITECTURAL_PARADIGM', 'KINETIC_FLOW', 'ORIGINAL_THESIS',
+    'ARCHITECTURAL_PARADIGM', 'KINETIC_FLOW', 'KINETIC_FLOW', 'FINAL_HANDOFF'
+  ];
+  const visualMode: HslVisualMode = (beatIndex === 0 || beatIndex === 3 || beatIndex === 7)
+    ? 'generated_image_35mm'
+    : (beatIndex === 1 || beatIndex === 4)
+    ? 'motion_image_diagram'
+    : 'vector_remotion';
+
+  const archetype = (beatIndex === 1 || beatIndex === 4) ? 'CUTAWAY' : undefined;
+
+  const scripts = [
+    `The visible miracle of Taipei 101 is an iconic pagoda piercing the skyline of Taiwan.`,
+    `The hidden miracle is 660 tons of solid steel suspended on eight cables, quietly defeating the laws of resonance.`,
+    `Modern civilization does not survive nature through brute resistance; it survives through phase cancellation.`,
+    `When typhoons roar and the earth trembles, the golden pendulum moves in silent defiance.`,
+    `A single mechanical idea balances an eighty-thousand-ton tower on half a square meter of fluid shear.`,
+    `Hidden systems govern the world we take for granted.`,
+    `This is the science of structural survival.`,
+    `This is the Hidden Systems Lab.`
+  ];
+
+  const headlines = [
+    'THE VISIBLE MIRACLE', 'THE HIDDEN PRODUCT', 'PHASE CANCELLATION', 'SILENT DEFIANCE',
+    'FLUID SHEAR BALANCE', 'HIDDEN SYSTEMS RULE', 'STRUCTURAL SURVIVAL', 'HIDDEN SYSTEMS LAB'
+  ];
+
+  const telemetry = [
+    'VISIBLE PRODUCT // PAGODA SKYLINE', 'HIDDEN PRODUCT // 660T INERTIA', 'EQUATION // PHASE OPPOSITION', 'DEFENSE // INERTIA DANCE',
+    'PHYSICAL SCALE // 80,000T TOWER', 'GOVERNANCE // MECHANICAL BALANCE', 'SCIENCE // RESONANCE MASTERED', 'EPISODE 012 // MASTER DELIVERY'
+  ];
+
+  const prompts = [
+    `Minimalist Apple Keynote slide: THE VISIBLE PRODUCT: ICONIC SKYSCRAPER // THE HIDDEN PRODUCT: PHASE CANCELLATION`,
+    `3D artistic cutaway rendering showing the golden sphere glowing at the beating heart of Taipei 101 structure`,
+    `Kinetic vector animation resolving phase opposition wave curves into a single stable flatline in acid yellow`,
+    `Epic cinematic wide shot of Taipei 101 glowing at night in Taipei with mountain backdrop and clear starry sky`,
+    `Macro 35mm photo of the suspension cables and damper assembly bathed in warm museum spotlighting`,
+    `Monumental typography card: HIDDEN SYSTEMS RULE THE WORLD in clean off-white (#F4F4F0) on obsidian matte`,
+    `Dynamic kinetic resolution card displaying full Episode 012 telemetry summary: 660T // 0.15 HZ // 508 METERS`,
+    `Final closing identity card: HIDDEN SYSTEMS LAB // EPISODE 012 with sleek kinetic spring animation`
+  ];
+
+  return {
+    narrativeRole: roles[beatIndex % roles.length],
+    visualMode,
+    infographicArchetype: archetype,
+    graphicHeadline: headlines[beatIndex % headlines.length],
+    telemetryLabel: telemetry[beatIndex % telemetry.length],
+    voiceoverScript: scripts[beatIndex % scripts.length],
+    promptSubject: prompts[beatIndex % prompts.length]
+  };
+}
+
+
 
 

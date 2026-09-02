@@ -1,11 +1,11 @@
 {
-  "episodeId": "HSL_EPISODE_011_MEGASHIP_HYDRODYNAMICS",
-  "timestamp": "2026-09-02T01:50:14.032Z",
+  "episodeId": "HSL_EPISODE_012_TAIPEI_TMD",
+  "timestamp": "2026-09-02T16:18:34.631Z",
   "gatekeeperStatus": "PASSED",
   "autoRecovered": false,
   "totalBeats": 96,
   "validBeats": 96,
   "failedBeats": 0,
-  "narrationDurationSeconds": 599.993175,
+  "narrationDurationSeconds": 614.208,
   "errors": []
 }

@@ -24,6 +24,7 @@ import {
   getWallStreetLatencyBeatData,
   getKesslerBeatData,
   getMegaShipHydrodynamicsBeatData,
+  getTaipeiTmdBeatData,
   getUniversalTopicBeatData
 } from '../editorial/topicStoryboards';
 
@@ -151,6 +152,18 @@ export class HslSceneDirectorAgent {
           input.episodeId.toLowerCase().includes('latency') ||
           input.episodeId.toLowerCase().includes('hft');
 
+        const isTaipeiTmdTopic = input.topic.toLowerCase().includes('taipei') ||
+          input.topic.toLowerCase().includes('tmd') ||
+          input.topic.toLowerCase().includes('boliche') ||
+          input.topic.toLowerCase().includes('660') ||
+          input.topic.toLowerCase().includes('damper') ||
+          input.topic.toLowerCase().includes('amortecedor') ||
+          input.entity.toLowerCase().includes('taipei') ||
+          input.entity.toLowerCase().includes('damper') ||
+          input.entity.toLowerCase().includes('tmd') ||
+          input.episodeId.toLowerCase().includes('taipei') ||
+          input.episodeId.toLowerCase().includes('tmd');
+
         const isMegaShipTopic = input.topic.toLowerCase().includes('megaship') ||
           input.topic.toLowerCase().includes('monstro') ||
           input.topic.toLowerCase().includes('240.000') ||
@@ -167,7 +180,16 @@ export class HslSceneDirectorAgent {
           input.episodeId.toLowerCase().includes('ship') ||
           input.episodeId.toLowerCase().includes('suez');
 
-        if (isMegaShipTopic) {
+        if (isTaipeiTmdTopic) {
+          const tmdData = getTaipeiTmdBeatData(act.actNumber, i, input);
+          narrativeRole = tmdData.narrativeRole;
+          visualMode = tmdData.visualMode;
+          infographicArchetype = tmdData.infographicArchetype;
+          graphicHeadline = tmdData.graphicHeadline;
+          telemetryLabel = tmdData.telemetryLabel;
+          voiceoverScript = tmdData.voiceoverScript;
+          promptSubject = tmdData.promptSubject;
+        } else if (isMegaShipTopic) {
           const shipData = getMegaShipHydrodynamicsBeatData(act.actNumber, i, input);
           narrativeRole = shipData.narrativeRole;
           visualMode = shipData.visualMode;
