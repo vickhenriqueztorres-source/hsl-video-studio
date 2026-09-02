@@ -90,7 +90,11 @@ export async function prepareAndRunIdeTask(task: IdeTask, context: RunnerContext
   const started = Date.now();
   let errors: string[] = [];
   let result!: IdePreparation;
-  for (let offset = 0; offset < (task.provider === 'manual' ? 1 : 2); offset++) {
+  const maxAttempts = task.provider === 'manual' ? 1 : (task.maxAttempts ?? 2);
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 2) {
+    throw new Error('maxAttempts deve ser 1 ou 2.');
+  }
+  for (let offset = 0; offset < maxAttempts; offset++) {
     const prepared = prepareIdeTask({ ...task, attempt: task.attempt + offset }, context, errors);
     if (task.provider === 'manual') return { prepared };
     if (fs.existsSync(prepared.outputPath)) {

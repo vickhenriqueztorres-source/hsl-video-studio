@@ -13,6 +13,7 @@ export interface IdeTask {
   readOnly?: boolean;
   ioMode?: 'file' | 'stdout';
   contextLimitBytes?: number;
+  maxAttempts?: number;
 }
 
 export interface IdeResult {
