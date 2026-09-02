@@ -4,6 +4,9 @@
   "description": "Control plane para documentarios Hidden Systems Lab, Remotion e Firefly/Kling",
   "main": "dist/index.js",
   "scripts": {
+    "ide-runner:smoke": "ts-node graph/smoke/runSmoke.ts --mode all",
+    "ide-runner:smoke:manual": "ts-node graph/smoke/runSmoke.ts --mode manual",
+    "ide-runner:smoke:resume": "ts-node graph/smoke/runSmoke.ts --resume",
     "build": "tsc",
     "start": "ts-node orchestrator/productionRunner.ts",
     "test": "ts-node tests/integration.test.ts && ts-node tests/hsl_bridge.test.ts && ts-node tests/kling_provider_prompt_adapter.test.ts && ts-node tests/hsl_episode_gate.test.ts && ts-node tests/cinematic_shadow.test.ts && ts-node tests/narrative_beat_director.test.ts && ts-node tests/cinematic_shot_director.test.ts && ts-node tests/continuity_director.test.ts && ts-node tests/hsl_reference_attention.test.ts && ts-node tests/hsl_eugene_rag.test.ts && ts-node tests/hsl_editor_rag.test.ts && ts-node tests/hsl_motion_design.test.ts && ts-node tests/hsl_veo_motion.test.ts && ts-node tests/hsl_visual_identity.test.ts && ts-node tests/hsl_publication_packaging.test.ts && ts-node tests/hsl_video2_preproduction.test.ts && ts-node tests/hsl_video3_preproduction.test.ts && ts-node tests/hsl_video4_preproduction.test.ts && ts-node tests/hsl_full_pipeline.test.ts",
@@ -128,6 +131,9 @@
     "soak": "ts-node production/soakTestRunner.ts"
   },
   "dependencies": {
+    "@langchain/core": "1.2.9",
+    "@langchain/langgraph": "1.4.13",
+    "@langchain/langgraph-checkpoint-sqlite": "1.0.0",
     "@remotion/cli": "^4.0.513",
     "@remotion/media": "^4.0.513",
     "@resvg/resvg-js": "^2.6.2",

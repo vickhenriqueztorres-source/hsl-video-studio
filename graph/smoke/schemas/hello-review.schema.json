@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["score", "verdict", "issues"],
+  "additionalProperties": false,
+  "properties": {
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "verdict": { "type": "string", "enum": ["approve", "revise", "reject"] },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

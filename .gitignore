@@ -4,6 +4,7 @@
 *.db
 *.sqlite
 *.sqlite3
+database/langgraph-checkpoints.sqlite*
 
 # Local secrets and environment overrides.
 .env
