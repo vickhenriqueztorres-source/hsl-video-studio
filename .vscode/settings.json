@@ -1,0 +1,9 @@
+{
+  "antigravity.agent.autoApprove": true,
+  "antigravity.agent.autoAccept": true,
+  "antigravity.runCommandsWithoutPrompt": true,
+  "gemini.agent.autoApprove": "all",
+  "gemini.agent.allowCommandExecution": true,
+  "gemini.agent.allowFileEdits": true,
+  "terminal.integrated.allowChords": true
+}

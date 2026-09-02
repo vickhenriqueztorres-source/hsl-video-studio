@@ -285,5 +285,217 @@ export const MotionModule: React.FC<{design: HslMotionDesign; durationInFrames: 
   if (design.template === 'DELAY_PROPAGATION') content = <DelayPropagation design={design} />;
   if (design.template === 'BEFORE_AFTER') content = <BeforeAfter design={design} />;
   if (design.template === 'EVIDENCE_CARD') content = <EvidenceCard design={design} />;
+  if (design.template === 'PRESSURE_TEST') content = <Bottleneck design={design} />;
+  if (design.template === 'PRESSURE_MAP') content = <FlowMap design={design} />;
   return <MotionDurationContext.Provider value={durationInFrames}>{content}</MotionDurationContext.Provider>;
 };
+
+// -----------------------------------------------------------------------------
+// 🚀 NOVOS MÓDULOS DE MOTION GRAPHICS AVANÇADOS (POPDOC EXPERT)
+// -----------------------------------------------------------------------------
+
+/**
+ * Medidor Comparativo Cinético com contagem elástica (Ex: Vazão Nominal vs Vazão em Colapso)
+ */
+export const KineticComparisonGauge: React.FC<{
+  labelA: string;
+  valueA: number;
+  unitA: string;
+  labelB: string;
+  valueB: number;
+  unitB: string;
+  accentColor?: string;
+}> = ({
+  labelA = 'NOMINAL FLOW',
+  valueA = 1800,
+  unitA = 'GPM',
+  labelB = 'COLLAPSE RATE',
+  valueB = 750,
+  unitB = 'GPM',
+  accentColor = palette.yellow
+}) => {
+  const frame = useCurrentFrame();
+  const progressA = interpolate(frame, [10, 45], [0, 1], {...clamp, easing: Easing.out(Easing.cubic)});
+  const progressB = interpolate(frame, [25, 60], [0, 1], {...clamp, easing: Easing.out(Easing.cubic)});
+
+  const displayValA = Math.round(progressA * valueA);
+  const displayValB = Math.round(progressB * valueB);
+
+  return (
+    <div style={{
+      position: 'absolute',
+      right: 90,
+      bottom: 120,
+      width: 480,
+      padding: '24px 28px',
+      backgroundColor: 'rgba(13,14,21,0.92)',
+      border: '1px solid rgba(255,255,255,0.15)',
+      borderRadius: 4,
+      boxShadow: '0 16px 48px rgba(0,0,0,0.85)',
+      zIndex: 15,
+      pointerEvents: 'none'
+    }}>
+      <div style={{ fontSize: 13, fontFamily: '"JetBrains Mono", monospace', color: palette.muted, letterSpacing: 2, marginBottom: 14 }}>
+        DYNAMIC THROUGHPUT COMPARISON
+      </div>
+
+      {/* Barra A: Nominal */}
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 800, color: palette.text, marginBottom: 6 }}>
+          <span>{labelA}</span>
+          <span style={{ color: accentColor, fontFamily: '"JetBrains Mono", monospace' }}>{displayValA} {unitA}</span>
+        </div>
+        <div style={{ width: '100%', height: 10, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: `${progressA * 100}%`, height: '100%', backgroundColor: accentColor, boxShadow: `0 0 12px ${accentColor}` }} />
+        </div>
+      </div>
+
+      {/* Barra B: Strain / Collapse */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 800, color: palette.text, marginBottom: 6 }}>
+          <span>{labelB}</span>
+          <span style={{ color: palette.orange, fontFamily: '"JetBrains Mono", monospace' }}>{displayValB} {unitB}</span>
+        </div>
+        <div style={{ width: '100%', height: 10, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: `${progressB * (valueB / valueA) * 100}%`, height: '100%', backgroundColor: palette.orange, boxShadow: `0 0 12px ${palette.orange}` }} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Oscilador de Onda de Pressão Hidráulica / Sinal em Tempo Real
+ */
+export const HydraulicWaveformOscillator: React.FC<{
+  frequency?: number;
+  amplitude?: number;
+  label?: string;
+  pressurePsi?: number;
+  accentColor?: string;
+}> = ({
+  frequency = 0.08,
+  amplitude = 22,
+  label = '150 PSI HYDROSTATIC WAVE',
+  pressurePsi = 150,
+  accentColor = palette.yellow
+}) => {
+  const frame = useCurrentFrame();
+
+  const points: string[] = [];
+  for (let x = 0; x <= 400; x += 10) {
+    const y = 40 + Math.sin(x * frequency + frame * 0.15) * amplitude;
+    points.push(`${x},${y}`);
+  }
+
+  return (
+    <div style={{
+      position: 'absolute',
+      left: 80,
+      top: 140,
+      padding: '16px 20px',
+      backgroundColor: 'rgba(13,14,21,0.85)',
+      border: '1px solid rgba(255,229,0,0.3)',
+      borderRadius: 4,
+      zIndex: 15,
+      pointerEvents: 'none'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 20 }}>
+        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, fontWeight: 700, color: accentColor, letterSpacing: 1.5 }}>
+          {label}
+        </span>
+        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 14, fontWeight: 900, color: palette.text }}>
+          {pressurePsi} PSI
+        </span>
+      </div>
+      <svg width="400" height="80" style={{ overflow: 'visible' }}>
+        <polyline
+          fill="none"
+          stroke={accentColor}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points.join(' ')}
+          style={{ filter: `drop-shadow(0 0 8px ${accentColor})` }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+/**
+ * Brackets Industriais com Foco em Elemento Crítico
+ */
+export const TechnicalBracketsOverlay: React.FC<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  tag: string;
+  subTag?: string;
+  accentColor?: string;
+}> = ({
+  x,
+  y,
+  width,
+  height,
+  tag,
+  subTag,
+  accentColor = palette.yellow
+}) => {
+  const frame = useCurrentFrame();
+  const intro = spring({ frame, fps: 30, config: { damping: 14, stiffness: 140 } });
+
+  const bracketSize = 18;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      left: x,
+      top: y,
+      width,
+      height,
+      opacity: intro,
+      transform: `scale(${0.9 + intro * 0.1})`,
+      pointerEvents: 'none',
+      zIndex: 15
+    }}>
+      {/* Top Left */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: bracketSize, height: 3, backgroundColor: accentColor }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 3, height: bracketSize, backgroundColor: accentColor }} />
+
+      {/* Top Right */}
+      <div style={{ position: 'absolute', top: 0, right: 0, width: bracketSize, height: 3, backgroundColor: accentColor }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: 3, height: bracketSize, backgroundColor: accentColor }} />
+
+      {/* Bottom Left */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: bracketSize, height: 3, backgroundColor: accentColor }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 3, height: bracketSize, backgroundColor: accentColor }} />
+
+      {/* Bottom Right */}
+      <div style={{ position: 'absolute', bottom: 0, right: 0, width: bracketSize, height: 3, backgroundColor: accentColor }} />
+      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 3, height: bracketSize, backgroundColor: accentColor }} />
+
+      {/* Tag Box */}
+      <div style={{
+        position: 'absolute',
+        bottom: -28,
+        left: 0,
+        backgroundColor: 'rgba(13,14,21,0.9)',
+        padding: '3px 8px',
+        border: `1px solid ${accentColor}`,
+        fontFamily: '"JetBrains Mono", monospace',
+        fontSize: 11,
+        fontWeight: 800,
+        color: accentColor,
+        letterSpacing: 1.5,
+        display: 'flex',
+        gap: 8
+      }}>
+        <span>{tag}</span>
+        {subTag && <span style={{ color: palette.muted }}>// {subTag}</span>}
+      </div>
+    </div>
+  );
+};
+

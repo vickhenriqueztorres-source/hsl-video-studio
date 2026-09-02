@@ -1,0 +1,11 @@
+{
+  "episodeId": "HSL_EPISODE_011_MEGASHIP_HYDRODYNAMICS",
+  "timestamp": "2026-09-02T01:50:14.032Z",
+  "gatekeeperStatus": "PASSED",
+  "autoRecovered": false,
+  "totalBeats": 96,
+  "validBeats": 96,
+  "failedBeats": 0,
+  "narrationDurationSeconds": 599.993175,
+  "errors": []
+}

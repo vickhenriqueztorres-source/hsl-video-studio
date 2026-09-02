@@ -1,0 +1,781 @@
+{
+  "version": "1.0.0",
+  "videoId": "hsl_subsea_fiber",
+  "totalFrames": 1800,
+  "fps": 30,
+  "scenes": [
+    {
+      "sceneId": "act_01_the_cloud_illusion",
+      "startFrame": 0,
+      "endFrame": 300,
+      "mood": "suspense",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "suspense",
+        "file": "cinematic/suspense/suspense_oppressive_gloom.mp3",
+        "startFrame": 0,
+        "endFrame": 300,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/braams/braam_hit_02.wav",
+          "startFrame": 0,
+          "durationFrames": 90,
+          "volumeDb": -15,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_05.wav",
+          "startFrame": 0,
+          "endFrame": 300,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_31.wav",
+          "startFrame": 8,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_01.wav",
+          "startFrame": 18,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_90.wav",
+          "startFrame": 30,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_13.wav",
+          "startFrame": 60,
+          "endFrame": 105,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_001",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_02.wav",
+            "startFrame": 280,
+            "endFrame": 310,
+            "volumeDb": -26
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_03.wav",
+            "startFrame": 275,
+            "endFrame": 300,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_07.wav",
+            "startFrame": 300,
+            "durationFrames": 20,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "act_02_quantum_laser_flow",
+      "startFrame": 300,
+      "endFrame": 600,
+      "mood": "action",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "action",
+        "file": "cinematic/action/action_volatile_reaction.mp3",
+        "startFrame": 300,
+        "endFrame": 600,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/impacts/impact_strike_85.wav",
+          "startFrame": 300,
+          "durationFrames": 45,
+          "volumeDb": -17,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_04.wav",
+          "startFrame": 300,
+          "endFrame": 600,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_45.wav",
+          "startFrame": 308,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_19.wav",
+          "startFrame": 318,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_42.wav",
+          "startFrame": 330,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_09.wav",
+          "startFrame": 360,
+          "endFrame": 405,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_002",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_03.wav",
+            "startFrame": 580,
+            "endFrame": 610,
+            "volumeDb": -26
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_05.wav",
+            "startFrame": 575,
+            "endFrame": 600,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_47.wav",
+            "startFrame": 600,
+            "durationFrames": 20,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "act_03_voltage_repeaters",
+      "startFrame": 600,
+      "endFrame": 900,
+      "mood": "suspense",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "suspense",
+        "file": "cinematic/suspense/suspense_oppressive_gloom.mp3",
+        "startFrame": 600,
+        "endFrame": 900,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/impacts/impact_strike_72.wav",
+          "startFrame": 600,
+          "durationFrames": 45,
+          "volumeDb": -17,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_01.wav",
+          "startFrame": 600,
+          "endFrame": 900,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_59.wav",
+          "startFrame": 608,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_85.wav",
+          "startFrame": 618,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_15.wav",
+          "startFrame": 630,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_03.wav",
+          "startFrame": 660,
+          "endFrame": 705,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_003",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_01.wav",
+            "startFrame": 880,
+            "endFrame": 910,
+            "volumeDb": -26
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_04.wav",
+            "startFrame": 875,
+            "endFrame": 900,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_25.wav",
+            "startFrame": 900,
+            "durationFrames": 20,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "act_04_the_anchor_sever",
+      "startFrame": 900,
+      "endFrame": 1200,
+      "mood": "action",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "action",
+        "file": "cinematic/action/action_volatile_reaction.mp3",
+        "startFrame": 900,
+        "endFrame": 1200,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/impacts/impact_strike_67.wav",
+          "startFrame": 900,
+          "durationFrames": 45,
+          "volumeDb": -17,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_02.wav",
+          "startFrame": 900,
+          "endFrame": 1200,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_77.wav",
+          "startFrame": 908,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_25.wav",
+          "startFrame": 918,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_50.wav",
+          "startFrame": 930,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_08.wav",
+          "startFrame": 960,
+          "endFrame": 1005,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_004",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_01.wav",
+            "startFrame": 1180,
+            "endFrame": 1210,
+            "volumeDb": -26
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_01.wav",
+            "startFrame": 1175,
+            "endFrame": 1200,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_78.wav",
+            "startFrame": 1200,
+            "durationFrames": 20,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "act_05_bgp_route_surge",
+      "startFrame": 1200,
+      "endFrame": 1500,
+      "mood": "suspense",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "suspense",
+        "file": "cinematic/suspense/suspense_oppressive_gloom.mp3",
+        "startFrame": 1200,
+        "endFrame": 1500,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/impacts/impact_strike_33.wav",
+          "startFrame": 1200,
+          "durationFrames": 45,
+          "volumeDb": -17,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_05.wav",
+          "startFrame": 1200,
+          "endFrame": 1500,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_02.wav",
+          "startFrame": 1208,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_73.wav",
+          "startFrame": 1218,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_57.wav",
+          "startFrame": 1230,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_04.wav",
+          "startFrame": 1260,
+          "endFrame": 1305,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_005",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_02.wav",
+            "startFrame": 1480,
+            "endFrame": 1510,
+            "volumeDb": -26
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_02.wav",
+            "startFrame": 1475,
+            "endFrame": 1500,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_06.wav",
+            "startFrame": 1500,
+            "durationFrames": 20,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "act_06_ocean_repair_thesis",
+      "startFrame": 1500,
+      "endFrame": 1800,
+      "mood": "action",
+      "environment": "digital_network",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "action",
+        "file": "cinematic/action/action_volatile_reaction.mp3",
+        "startFrame": 1500,
+        "endFrame": 1800,
+        "volumeDb": -26,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -6,
+          "attackFrames": 6,
+          "releaseFrames": 16
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "impact",
+          "category": "scene_entrance_punch",
+          "file": "cinematic/booms/boom_explosion_05.wav",
+          "startFrame": 1500,
+          "durationFrames": 45,
+          "volumeDb": -17,
+          "frequencyRole": "low"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "drone",
+          "category": "tension_drone_bed",
+          "file": "cinematic/loops/loop_atmosphere_02.wav",
+          "startFrame": 1500,
+          "endFrame": 1800,
+          "volumeDb": -28,
+          "frequencyRole": "mid",
+          "reverb": "large_hall"
+        },
+        {
+          "layerId": "layer_003",
+          "type": "foley",
+          "category": "ui_text_eyebrow_reveal",
+          "file": "ui/ui_click_38.wav",
+          "startFrame": 1508,
+          "durationFrames": 12,
+          "volumeDb": -20,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_004",
+          "type": "foley",
+          "category": "ui_accent_line_expand",
+          "file": "ui/ui_click_39.wav",
+          "startFrame": 1518,
+          "durationFrames": 12,
+          "volumeDb": -21,
+          "frequencyRole": "high"
+        },
+        {
+          "layerId": "layer_005",
+          "type": "impact",
+          "category": "ui_headline_pop_hit",
+          "file": "cinematic/impacts/impact_strike_23.wav",
+          "startFrame": 1530,
+          "durationFrames": 25,
+          "volumeDb": -18,
+          "frequencyRole": "mid"
+        },
+        {
+          "layerId": "layer_006",
+          "type": "foley",
+          "category": "foley_action",
+          "file": "foley/household/foley_household_05.wav",
+          "startFrame": 1560,
+          "endFrame": 1605,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    }
+  ]
+}

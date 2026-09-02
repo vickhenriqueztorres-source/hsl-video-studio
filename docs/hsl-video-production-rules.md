@@ -1,6 +1,8 @@
-# HSL Video Production Rules
+# HSL Video Production Rules [DOCUMENTO HISTÓRICO / LEGADO]
 
-Estas regras sao obrigatorias para qualquer novo video do Hidden Systems Lab.
+> ⚠️ **AVISO DE DEPRECIAÇÃO:** Este documento reflete protótipos anteriores (ex: voz Voicebox). A autoridade canônica oficial é [`docs/HSL_MASTER_PRD_ARCHITECTURE_BRIEFING.md`](./HSL_MASTER_PRD_ARCHITECTURE_BRIEFING.md) e a especificação executável em [`spec/hsl-spec.ts`](../spec/hsl-spec.ts).
+
+Estas regras sao mantidas apenas para histórico:
 
 ## Voz oficial
 

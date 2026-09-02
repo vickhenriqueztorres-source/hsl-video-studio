@@ -8,7 +8,9 @@ export type HslMotionTemplate =
   | 'PARALLEL_TURNAROUND'
   | 'DELAY_PROPAGATION'
   | 'BEFORE_AFTER'
-  | 'EVIDENCE_CARD';
+  | 'EVIDENCE_CARD'
+  | 'PRESSURE_TEST'
+  | 'PRESSURE_MAP';
 
 export type HslMotionAccent = 'yellow' | 'blue' | 'orange';
 

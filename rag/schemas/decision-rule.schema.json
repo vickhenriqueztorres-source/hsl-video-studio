@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SoundDesignDecisionRule",
+  "type": "object",
+  "required": [
+    "id",
+    "when",
+    "recommend",
+    "avoid",
+    "reason",
+    "sourceChunks",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^rule_[a-z0-9_]+$"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "narrative_intent",
+        "score",
+        "ambience",
+        "foley",
+        "creative_sound_design",
+        "riser",
+        "drone",
+        "whoosh",
+        "hit",
+        "boom",
+        "reverse_impact",
+        "transition",
+        "music_editing",
+        "beat_alignment",
+        "frequency_separation",
+        "voice_processing",
+        "equalization",
+        "reverb",
+        "room_matching",
+        "layering",
+        "waveform_editing",
+        "volume_automation",
+        "mixing",
+        "restraint",
+        "cinematic_style"
+      ]
+    },
+    "when": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "recommend": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "avoid": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 10
+    },
+    "sourceChunks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    }
+  }
+}

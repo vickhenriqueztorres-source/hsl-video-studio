@@ -1,0 +1,46 @@
+{
+  "schema": "hsl.sound_design.source_map.v1",
+  "generated_at": "2026-08-26T21:55:22.444Z",
+  "source_files": {
+    "CONT1.md": {
+      "title": "Espacialidade, Equalização Paramétrica e Transições Atmosféricas",
+      "chunks": [
+        "sd_cont1_eq_001",
+        "sd_cont1_eq_002",
+        "sd_cont1_reverb_003"
+      ]
+    },
+    "CONT2-2.md": {
+      "title": "Frequency Carving, Camadas de 3 Bandas, Regra dos 4 Compassos e Modulação de SFX",
+      "chunks": [
+        "sd_cont2_carving_001",
+        "sd_cont2_layering_002",
+        "sd_cont2_intent_003",
+        "sd_cont2_story_004",
+        "sd_cont2_music_005",
+        "sd_cont2_pause_006",
+        "sd_cont2_sfx_mod_007",
+        "sd_cont2_master_008"
+      ]
+    },
+    "CONT3-3.md": {
+      "title": "Taxonomia de SFX (Risers, Drones, Whooshes, Hits) e Calçamento Triplo de Transições",
+      "chunks": [
+        "sd_cont3_taxonomy_001",
+        "sd_cont3_automation_002",
+        "sd_cont3_three_sfx_003"
+      ]
+    },
+    "CONT4-4.md": {
+      "title": "Metodologia em 3 Passos, Foley/Reverb por Submix, Sound Design Abstrato e Moderação",
+      "chunks": [
+        "sd_cont4_workflow_001",
+        "sd_cont4_score_edit_002",
+        "sd_cont4_foley_reverb_003",
+        "sd_cont4_abstract_004",
+        "sd_cont4_restraint_005",
+        "sd_cont4_mix_levels_006"
+      ]
+    }
+  }
+}

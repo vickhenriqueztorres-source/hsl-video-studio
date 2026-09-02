@@ -1,0 +1,44 @@
+{
+  "schema": "hsl.sound_design.audio_vocabulary.v1",
+  "categories": [
+    "narrative_intent",
+    "score",
+    "ambience",
+    "foley",
+    "creative_sound_design",
+    "riser",
+    "drone",
+    "whoosh",
+    "hit",
+    "boom",
+    "reverse_impact",
+    "transition",
+    "music_editing",
+    "beat_alignment",
+    "frequency_separation",
+    "voice_processing",
+    "equalization",
+    "reverb",
+    "room_matching",
+    "layering",
+    "waveform_editing",
+    "volume_automation",
+    "mixing",
+    "restraint",
+    "cinematic_style"
+  ],
+  "knowledge_types": [
+    "technical_principle",
+    "narrative_principle",
+    "practical_example",
+    "decision_rule",
+    "heuristic_parameter",
+    "subjective_recommendation",
+    "workflow"
+  ],
+  "confidence_levels": [
+    "high",
+    "medium",
+    "low"
+  ]
+}

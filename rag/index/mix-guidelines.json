@@ -1,0 +1,37 @@
+{
+  "schema": "hsl.sound_design.mix_guidelines.v1",
+  "description": "Diretrizes paramétricas de mixagem e masterização extraídas do conhecimento RAG",
+  "levels_heuristic_db": {
+    "dialogue": {
+      "target_db": -12,
+      "tolerance_db": 2,
+      "description": "Voz/Locução como elemento dominante da mixagem"
+    },
+    "sound_effects_sfx": {
+      "range_min_db": -30,
+      "range_max_db": -10,
+      "description": "Efeitos sonoros pontuais e foleys de fundo"
+    },
+    "score_music": {
+      "range_min_db": -30,
+      "range_max_db": -20,
+      "description": "Trilha musical de fundo durante presença de diálogo"
+    }
+  },
+  "master_bus": {
+    "hard_limiter_ceiling_db": -2.5,
+    "hard_limiter_range": [
+      -3,
+      -2
+    ],
+    "purpose": "Garantir proteção contra clipping digital e uniformidade de volume"
+  },
+  "submix_bus": {
+    "foley_reverb_room_matching": true,
+    "description": "Roteamento de foley através de submix bus com reverberação correspondente"
+  },
+  "metering_and_timeline": {
+    "audio_samples_units_enabled": true,
+    "purpose": "Visualização e ajuste em micro-amostras de áudio para sincronização perfeita de transientes"
+  }
+}

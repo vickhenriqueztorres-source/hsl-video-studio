@@ -1,0 +1,544 @@
+[
+  {
+    "id": "rule_score_by_mood_001",
+    "category": "score",
+    "when": [
+      "iniciando o corte ou estruturação de uma nova cena",
+      "definindo a intenção emocional e o ritmo dos cortes"
+    ],
+    "recommend": [
+      "inserir trilha temporária (temp track) antes de desenhar os sound effects",
+      "escolher o gênero e instrumentação de acordo com o mood emocional da cena (heroico, tenso, calmo ou perseguição)"
+    ],
+    "avoid": [
+      "editar vídeo e sound design em silêncio absoluto sem métrica musical",
+      "utilizar trilhas alegres em cenas de suspense ou vice-versa"
+    ],
+    "reason": "A música define a métrica de tempo, tom dramático e contexto para que os sound effects sejam desenhados em harmonia.",
+    "sourceChunks": [
+      "sd_cont4_workflow_001",
+      "sd_cont2_music_005"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_ambience_location_002",
+    "category": "ambience",
+    "when": [
+      "cena estabelece um novo ambiente ou localização espacial",
+      "momentos de silêncio na narrativa onde não há diálogos"
+    ],
+    "recommend": [
+      "adicionar ruído de fundo característico do local (ex: ar condicionado em escritório, vento em deserto, ondas em praia)",
+      "manter o nível de ambiência sutil em segundo plano para preencher o vazio estéril"
+    ],
+    "avoid": [
+      "deixar momentos sem som diegético gerando uma cena artificialmente morta",
+      "aumentar a ambiência a ponto de disputar espaço com falas"
+    ],
+    "reason": "Na realidade nada é 100% silencioso; a ambiência confere textura, realismo e conforto auditivo contínuo.",
+    "sourceChunks": [
+      "sd_cont4_foley_reverb_003",
+      "sd_cont3_automation_002",
+      "sd_cont2_intent_003"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_foley_visual_003",
+    "category": "foley",
+    "when": [
+      "ações físicas visíveis na tela (digitação, escrita, passos, manuseio de papéis, trincos de porta)"
+    ],
+    "recommend": [
+      "sonorizar os elementos presentes na imagem para sincronia realista",
+      "utilizar variações de amostras ou gravar foley diretamente na timeline para evitar repetições idênticas"
+    ],
+    "avoid": [
+      "repetir exatamente o mesmo arquivo de áudio para cada passo ou clique de teclado",
+      "deixar ações visuais em primeiro plano desprovidas de som"
+    ],
+    "reason": "A ausência de foley ou a repetição robótica quebra a suspensão da descrença e soa amadora.",
+    "sourceChunks": [
+      "sd_cont4_foley_reverb_003",
+      "sd_cont2_sfx_mod_007"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_riser_reveal_004",
+    "category": "riser",
+    "when": [
+      "antecedendo uma grande revelação, virada dramática, mudança de cena ou corte musical importante"
+    ],
+    "recommend": [
+      "posicionar o riser de modo que seu crescimento antecipe a mudança",
+      "alinhar o ataque final do riser precisamente no ponto de corte ou primeiro tempo do novo compasso"
+    ],
+    "avoid": [
+      "usar risers longos em momentos banais sem desfecho visual correspondente",
+      "interromper o riser antes de atingir seu ápice natural"
+    ],
+    "reason": "O riser gera expectativa no subconsciente do espectador e prepara a mente para a nova informação.",
+    "sourceChunks": [
+      "sd_cont3_taxonomy_001",
+      "sd_cont2_music_005",
+      "sd_cont3_three_sfx_003"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_drone_suspense_005",
+    "category": "drone",
+    "when": [
+      "cenas de mistério, investigação, perigo iminente ou quando algo importante ainda não foi revelado"
+    ],
+    "recommend": [
+      "usar drones graves e contínuos para criar uma atmosfera densa e inquietante",
+      "sustentar a frequência baixa como uma cama contínua que amplifica a gravidade da cena"
+    ],
+    "avoid": [
+      "usar drones melódicos em excesso competindo com diálogos reflexivos",
+      "cortar o drone de maneira seca sem cauda natural de sustentação"
+    ],
+    "reason": "Drones estimulam a percepção psicológica de perigo e suspense contínuo sem demandar elementos rítmicos.",
+    "sourceChunks": [
+      "sd_cont3_taxonomy_001",
+      "sd_cont2_intent_003",
+      "sd_cont4_score_edit_002"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_whoosh_movement_006",
+    "category": "whoosh",
+    "when": [
+      "movimentos rápidos de câmera (pans rápidos, whip pans), transições visuais ou ações dinâmicas de personagens"
+    ],
+    "recommend": [
+      "adicionar whooshes e swooshes para acompanhar a trajetória do movimento visual",
+      "usar whooshes para conferir dinamismo e leveza rítmica em edições estilizadas"
+    ],
+    "avoid": [
+      "inserir whooshes em cortes lentos e contemplativos onde não há deslocamento de quadro",
+      "utilizar whooshes com frequências excessivamente estridentes que causem fadiga auditiva"
+    ],
+    "reason": "O whoosh cria uma ponte auditiva que guia o olhar e torna as transições espaciais fluidas.",
+    "sourceChunks": [
+      "sd_cont3_taxonomy_001",
+      "sd_cont4_abstract_004"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_hit_punchline_007",
+    "category": "hit",
+    "when": [
+      "revelação de informação chave, punchline em comédia, corte dramático ou virada narrativa"
+    ],
+    "recommend": [
+      "aplicar um hit imediatamente no instante do impacto visual para marcar o evento",
+      "alinhar o pico de transiente do hit ao frame exato da ação na timeline"
+    ],
+    "avoid": [
+      "espalhar hits em todas as frases sem hierarquia de importância",
+      "usar hits com ataques atrasados em relação ao corte"
+    ],
+    "reason": "Hits reforçam no cérebro a importância do elemento mostrado, pontuando a história como vírgulas e pontos finais sonoros.",
+    "sourceChunks": [
+      "sd_cont3_taxonomy_001",
+      "sd_cont4_abstract_004",
+      "sd_cont2_story_004"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_boom_climax_008",
+    "category": "boom",
+    "when": [
+      "clímax de cena, resolução de bloco, fechamento de título principal ou impacto de grande escala"
+    ],
+    "recommend": [
+      "combinar sub-booms de baixa frequência com caudas de ressonância profunda",
+      "reservar o boom para o ponto mais alto de energia da sequência"
+    ],
+    "avoid": [
+      "usar booms graves em momentos secundários ou pausas momentâneas de ação",
+      "acumular múltiplos booms consecutivos gerando embolamento no espectro sub-grave"
+    ],
+    "reason": "O boom transmite magnitude, finalização e peso monumental que só surtem efeito se não forem banalizados.",
+    "sourceChunks": [
+      "sd_cont4_restraint_005",
+      "sd_cont2_story_004"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_reverse_impact_009",
+    "category": "reverse_impact",
+    "when": [
+      "antecedência imediata de um golpe, corte sinistro ou término de frase musical"
+    ],
+    "recommend": [
+      "utilizar reverse cymbal (suck back) ou impacto invertido que suga o áudio em direção ao ponto de impacto",
+      "casar o final do reverse exatamente com o transiente do hit seguinte"
+    ],
+    "avoid": [
+      "deixar um intervalo de silêncio entre o final do efeito reverso e o início do impacto",
+      "utilizar reverse excessivamente longo que desvie a atenção do diálogo prévio"
+    ],
+    "reason": "O reverse cria uma sucção acústica que aumenta exponencialmente a força do impacto subsequente.",
+    "sourceChunks": [
+      "sd_cont4_abstract_004",
+      "sd_cont4_restraint_005",
+      "sd_cont3_three_sfx_003"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_transition_calcar_010",
+    "category": "transition",
+    "when": [
+      "passagem entre duas cenas distintas ou transição entre temas de vídeo"
+    ],
+    "recommend": [
+      "calçar a transição com 3 elementos: suporte central, antecipação crescente (riser) e ancoragem (hit/reverso)",
+      "esconder cortes bruscos tornando o fluxo sonoro uma experiência contínua"
+    ],
+    "avoid": [
+      "usar apenas fade-in e fade-out lineares amadores que revelam o corte",
+      "deixar gaps de áudio vazios sem ambiência de transição"
+    ],
+    "reason": "Uma transição calçada em três pontos soa orgânica e guia a mente do público sem sobressaltos.",
+    "sourceChunks": [
+      "sd_cont3_three_sfx_003",
+      "sd_cont1_eq_001",
+      "sd_cont2_pause_006"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_music_compass_011",
+    "category": "music_editing",
+    "when": [
+      "fatiando, emendando ou trocando faixas musicais na timeline"
+    ],
+    "recommend": [
+      "respeitar rigorosamente a contagem de 4 compassos (1, 2, 3, 4) para realizar cortes e viradas",
+      "aproveitar as mudanças naturais de instrumentos no quarto compasso para introduzir novos temas"
+    ],
+    "avoid": [
+      "cortar no segundo ou terceiro compasso sem justificativa dramática intencional",
+      "emendar compassos de tempos métricos conflitantes sem transição de descanso"
+    ],
+    "reason": "O ouvido humano espera a conclusão da frase métrica no quarto compasso; respeitar isso evita dissonância rítmica.",
+    "sourceChunks": [
+      "sd_cont2_music_005",
+      "sd_cont4_score_edit_002"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_beat_alignment_012",
+    "category": "beat_alignment",
+    "when": [
+      "alinhando cortes de imagem e efeitos de transição com a trilha sonora"
+    ],
+    "recommend": [
+      "alinhar o corte do vídeo ao primeiro tempo forte (downbeat) do compasso musical",
+      "visualizar a forma de onda (waveform) para identificar o pico exato do bumbo/caixa"
+    ],
+    "avoid": [
+      "cortar 1 ou 2 frames antes ou depois do beat por falta de precisão na timeline",
+      "sobrepor beats concorrentes de duas faixas com tempos (BPM) incompatíveis"
+    ],
+    "reason": "O sincronismo do estímulo visual com o pulso sonoro multiplica o impacto e a percepção de polimento da edição.",
+    "sourceChunks": [
+      "sd_cont2_music_005",
+      "sd_cont3_three_sfx_003"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_frequency_carving_013",
+    "category": "frequency_separation",
+    "when": [
+      "presença simultânea de locução/diálogo e trilha musical em segundo plano"
+    ],
+    "recommend": [
+      "aplicar técnica de Frequency Carving com EQ paramétrico, esculpindo e atenuando as frequências médias da trilha onde a voz atua",
+      "manter os graves e agudos da trilha preservados para que a música continue encorpada e vibrante"
+    ],
+    "avoid": [
+      "simplesmente baixar o ganho geral da trilha até que ela fique inaudível ou perca toda a energia",
+      "deixar a trilha concorrendo em frequências médias diretas com a fala"
+    ],
+    "reason": "A voz humana ganha clareza cristalina sem que a trilha perca seu corpo e potência emocional.",
+    "sourceChunks": [
+      "sd_cont2_carving_001",
+      "sd_cont4_mix_levels_006"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_voice_intelligibility_014",
+    "category": "voice_processing",
+    "when": [
+      "ajustando volume e processamento de narrações, depoimentos e diálogos"
+    ],
+    "recommend": [
+      "manter o diálogo como prioridade no mix, visando pico em torno de -12 dB",
+      "utilizar automação de reverb ou EQ para afastar a voz quando ela representar pensamentos ou memórias"
+    ],
+    "avoid": [
+      "enterrar a voz sob camadas pesadas de efeitos de impacto ou música",
+      "permitir que a voz ultrapasse 0 dB e gere distorção digital estridente"
+    ],
+    "reason": "O diálogo é o veículo primordial da mensagem e deve permanecer sempre inteligível e bem balanceado.",
+    "sourceChunks": [
+      "sd_cont4_mix_levels_006",
+      "sd_cont1_reverb_003",
+      "sd_cont2_carving_001"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_parametric_eq_015",
+    "category": "equalization",
+    "when": [
+      "ajustando timbres, limpando ressonâncias ou criando efeitos de distância em áudios"
+    ],
+    "recommend": [
+      "usar equalizador paramétrico para cortes precisos de frequências indesejadas e abertura de espaço para outros instrumentos",
+      "animar filtros Low-Pass / High-Pass com keyframes para transições espaciais progressivas"
+    ],
+    "avoid": [
+      "recorrer unicamente ao ganho bruto para resolver problemas de conflito espectral",
+      "amplificar excessivamente frequências sem monitorar os medidores de saturação"
+    ],
+    "reason": "O EQ molda o timbre e a clareza espacial de cada elemento individual sem desbalancear o volume geral.",
+    "sourceChunks": [
+      "sd_cont1_eq_001",
+      "sd_cont1_eq_002",
+      "sd_cont2_carving_001",
+      "sd_cont2_sfx_mod_007"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_reverb_environment_016",
+    "category": "reverb",
+    "when": [
+      "inserindo foleys ou efeitos gravados em estúdio seco dentro de uma cena com ambiente específico"
+    ],
+    "recommend": [
+      "aplicar reverberação condizente com a geometria do espaço visual (ex: Grande Salão / Sala Pequena / Catedral)",
+      "rotear pistas de foley através de um submix bus com reverb comum para unificar o espaço acústico"
+    ],
+    "avoid": [
+      "deixar foleys completamente secos em ambientes grandes e reverberantes",
+      "inserir reverbs diferentes e conflitantes em cada clipe isolado"
+    ],
+    "reason": "O reverb conecta o som ao mundo físico da imagem, fazendo com que o efeito pareça ter sido gravado na própria locação.",
+    "sourceChunks": [
+      "sd_cont4_foley_reverb_003",
+      "sd_cont1_reverb_003",
+      "sd_cont2_master_008"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_room_matching_017",
+    "category": "room_matching",
+    "when": [
+      "ambientando efeitos gravados isoladamente com a locação exibida na imagem"
+    ],
+    "recommend": [
+      "ajustar o decaimento do reverb e a atenuação de agudos de acordo com a distância e materiais da sala",
+      "abafar o som com corte de altas frequências quando a fonte sonora estiver longe da câmera"
+    ],
+    "avoid": [
+      "reproduzir sons distantes com presença brilhante como se estivessem em primeiro plano",
+      "ignorar as propriedades físicas do ambiente retratado"
+    ],
+    "reason": "A correspondência acústica de sala cria harmonia e verossimilhança visual-auditiva instantânea.",
+    "sourceChunks": [
+      "sd_cont2_sfx_mod_007",
+      "sd_cont4_foley_reverb_003",
+      "sd_cont1_eq_001"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_layering_three_bands_018",
+    "category": "layering",
+    "when": [
+      "construindo transições de impacto, viradas de cena ou design de ações grandiosas"
+    ],
+    "recommend": [
+      "estruturar o evento em 3 camadas de frequência complementares (Grave para peso, Médio para corpo e Agudo para detalhe e ataque)",
+      "escalonar os transientes para que cada frequência ocupe seu momento próprio sem colisão"
+    ],
+    "avoid": [
+      "acumular múltiplos efeitos disputando a mesma faixa restrita de frequência",
+      "confiar em um único efeito solitário para momentos de clímax"
+    ],
+    "reason": "O empilhamento equilibrado em 3 bandas preenche o espectro auditivo de forma rica, potente e sem asperezas.",
+    "sourceChunks": [
+      "sd_cont2_layering_002",
+      "sd_cont4_abstract_004"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_waveform_alignment_019",
+    "category": "waveform_editing",
+    "when": [
+      "sincronizando efeitos de impacto, passos, cliques ou transientes rápidos"
+    ],
+    "recommend": [
+      "editar com as formas de onda (waveforms) sempre visíveis na timeline",
+      "alinhar o ápice da onda (transiente principal) com o frame exato do evento ou marcador de corte"
+    ],
+    "avoid": [
+      "posicionar clipes de áudio apenas pelo início do bloco sem verificar onde está o pico sonoro",
+      "ignorar micro-defasagens de 1 a 2 frames entre imagem e áudio"
+    ],
+    "reason": "O waveform revela a física do áudio; alinhar visualmente o pico garante precisão cirúrgica.",
+    "sourceChunks": [
+      "sd_cont4_score_edit_002",
+      "sd_cont2_master_008",
+      "sd_cont3_automation_002"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_volume_automation_020",
+    "category": "volume_automation",
+    "when": [
+      "ajustando a dinâmica de trilhas, foleys sob falas ou movimentos de câmera"
+    ],
+    "recommend": [
+      "usar keyframes para automação suave e expressiva de ganho",
+      "aumentar o volume proporcionalmente à aproximação da câmera (zoom in) e atenuar no afastamento"
+    ],
+    "avoid": [
+      "manter volumes estáticos do início ao fim sem reagir aos acontecimentos da cena",
+      "aplicar automações com curvas angulares bruscas que causem estalos"
+    ],
+    "reason": "A automação de volume imprime dinamismo, respiração e profundidade ao mix sonoro.",
+    "sourceChunks": [
+      "sd_cont3_automation_002",
+      "sd_cont1_eq_002",
+      "sd_cont4_mix_levels_006"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_mixing_master_021",
+    "category": "mixing",
+    "when": [
+      "balanceando os níveis finais de diálogo, música e efeitos e finalizando o barramento Master"
+    ],
+    "recommend": [
+      "aplicar um limitador de pico rígido (Hard Limiter / Brickwall) no barramento Master ajustado entre -2 dB e -3 dB",
+      "respeitar a hierarquia de níveis: Diálogo a -12dB, SFX de -10dB a -30dB, Score de -20dB a -30dB"
+    ],
+    "avoid": [
+      "permitir que os picos ultrapassem 0 dB gerando distorção destrutiva",
+      "deixar a música abafando completamente a clareza do diálogo"
+    ],
+    "reason": "O limitador e a escala de medição garantem que o áudio soe consistente, potente e livre de clipping em qualquer player.",
+    "sourceChunks": [
+      "sd_cont2_master_008",
+      "sd_cont4_mix_levels_006"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_restraint_avoid_overload_022",
+    "category": "restraint",
+    "when": [
+      "decidindo a quantidade e intensidade dos efeitos sonoros em uma sequência"
+    ],
+    "recommend": [
+      "identificar os momentos verdadeiramente cruciais da narrativa e reservar a intensidade máxima apenas para eles",
+      "utilizar efeitos sutis em momentos intermediários e dosar o silêncio e as pausas"
+    ],
+    "avoid": [
+      "colocar hits e bass drops pesados em toda e qualquer ação ou movimento secundário",
+      "sobrecarregar a timeline a ponto de anular o impacto do clímax"
+    ],
+    "reason": "Se todo momento for tratado como especial, nenhum terá impacto; o contraste e a moderação tornam os momentos épicos inesquecíveis.",
+    "sourceChunks": [
+      "sd_cont4_restraint_005",
+      "sd_cont2_story_004"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_cinematic_style_023",
+    "category": "cinematic_style",
+    "when": [
+      "estabelecendo a identidade e a consistência estilística de um projeto audiovisual"
+    ],
+    "recommend": [
+      "adotar uma paleta consistente de sound design (timbre de risers, texturas de whooshes, tipo de reverbs)",
+      "revisar a edição em passes iterativos sucessivos: base diegética -> suporte musical -> camadas criativas -> mix final"
+    ],
+    "avoid": [
+      "misturar estilos sonoros conflitantes aleatoriamente sem motivação narrativa",
+      "esperar obter uma mixagem perfeita em uma única passagem rápida"
+    ],
+    "reason": "A consistência estilística e a construção em passes conferem identidade de estúdio e sofisticação à produção.",
+    "sourceChunks": [
+      "sd_cont4_workflow_001",
+      "sd_cont4_abstract_004",
+      "sd_cont1_eq_001"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_creative_sound_design_024",
+    "category": "creative_sound_design",
+    "when": [
+      "enriquecendo cenas cotidianas ou criando metáforas e presságios sonoros"
+    ],
+    "recommend": [
+      "adicionar camadas não literais (como estalos ósseos ou sinos etéreos) que combinem em frequência com os sons da cena",
+      "usar o áudio para comunicar o que não pode ser visto na imagem, como sensações e pensamentos"
+    ],
+    "avoid": [
+      "limitar o sound design exclusivamente à reprodução óbvia do que os olhos enxergam",
+      "inserir sons abstratos desconectados do timbre dos elementos da tela"
+    ],
+    "reason": "O sound design criativo transforma imagens comuns em cinema, gerando curiosidade e tensão no espectador.",
+    "sourceChunks": [
+      "sd_cont4_abstract_004",
+      "sd_cont2_intent_003"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "rule_narrative_intent_025",
+    "category": "narrative_intent",
+    "when": [
+      "planejando o arco dramático e a reação psicológica desejada do público"
+    ],
+    "recommend": [
+      "guiar o sound design pela intenção dramática antes de se ater à realidade física da locação",
+      "usar graves para sugerir gravidade e perigo e agudos para leveza ou agilidade"
+    ],
+    "avoid": [
+      "forçar atmosferas que entrem em contradição injustificada com a lógica do cérebro do público",
+      "adicionar efeitos sonoros sem um propósito claro na narrativa"
+    ],
+    "reason": "O som é a parte oculta do iceberg: ele determina o que o público sente antes mesmo de racionalizar a imagem.",
+    "sourceChunks": [
+      "sd_cont2_intent_003",
+      "sd_cont3_taxonomy_001",
+      "sd_cont4_abstract_004"
+    ],
+    "confidence": "high"
+  }
+]

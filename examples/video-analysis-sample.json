@@ -1,0 +1,115 @@
+{
+  "videoId": "video_sample_dark_comedy_01",
+  "totalFrames": 540,
+  "fps": 30,
+  "globalMood": "suspense",
+  "scenes": [
+    {
+      "sceneId": "scene_01",
+      "startFrame": 0,
+      "endFrame": 180,
+      "detectedMood": "suspense",
+      "detectedEnvironment": "office_night",
+      "visualCues": [
+        {
+          "frame": 0,
+          "type": "environment",
+          "description": "office at night, single desk lamp",
+          "mood": "suspense"
+        },
+        {
+          "frame": 36,
+          "type": "action",
+          "description": "hands typing on keyboard",
+          "soundNeeded": "foley_keyboard"
+        },
+        {
+          "frame": 140,
+          "type": "transition",
+          "description": "quick zoom on character face",
+          "soundNeeded": "riser"
+        },
+        {
+          "frame": 180,
+          "type": "climax",
+          "description": "door slams open",
+          "soundNeeded": "boom_impact"
+        }
+      ],
+      "audioCues": [
+        {
+          "frame": 0,
+          "type": "voice",
+          "hasVoice": true,
+          "voiceType": "narration",
+          "targetDb": -12
+        }
+      ],
+      "recommendedLayers": ["ambience", "foley", "tension_riser", "boom"]
+    },
+    {
+      "sceneId": "scene_02",
+      "startFrame": 180,
+      "endFrame": 360,
+      "detectedMood": "emotional",
+      "detectedEnvironment": "contemplative_room",
+      "visualCues": [
+        {
+          "frame": 180,
+          "type": "environment",
+          "description": "quiet moment examining papers"
+        },
+        {
+          "frame": 240,
+          "type": "action",
+          "description": "turning page of document",
+          "soundNeeded": "foley_paper"
+        },
+        {
+          "frame": 350,
+          "type": "camera_move",
+          "description": "whip pan to doorway",
+          "soundNeeded": "whoosh"
+        }
+      ],
+      "audioCues": [
+        {
+          "frame": 180,
+          "type": "voice",
+          "hasVoice": true,
+          "voiceType": "dialogue",
+          "targetDb": -12
+        }
+      ],
+      "recommendedLayers": ["ambience", "foley", "whoosh"]
+    },
+    {
+      "sceneId": "scene_03",
+      "startFrame": 360,
+      "endFrame": 540,
+      "detectedMood": "epic",
+      "detectedEnvironment": "monumental_exterior",
+      "visualCues": [
+        {
+          "frame": 360,
+          "type": "environment",
+          "description": "cityscape at dawn with sun flare"
+        },
+        {
+          "frame": 480,
+          "type": "climax",
+          "description": "final title card reveal",
+          "soundNeeded": "boom_impact"
+        }
+      ],
+      "audioCues": [
+        {
+          "frame": 360,
+          "type": "voice",
+          "hasVoice": false
+        }
+      ],
+      "recommendedLayers": ["ambience", "tension_riser", "boom"]
+    }
+  ]
+}

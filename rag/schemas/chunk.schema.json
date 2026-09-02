@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SoundDesignChunk",
+  "type": "object",
+  "required": [
+    "id",
+    "sourceFile",
+    "title",
+    "summary",
+    "content",
+    "knowledgeType",
+    "tags",
+    "confidence",
+    "relatedConcepts"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^sd_[a-z0-9_]+$"
+    },
+    "sourceFile": {
+      "type": "string"
+    },
+    "sourceTimestamp": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "string" },
+        "end": { "type": "string" }
+      },
+      "required": ["start", "end"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "content": {
+      "type": "string",
+      "minLength": 50
+    },
+    "knowledgeType": {
+      "type": "string",
+      "enum": [
+        "technical_principle",
+        "narrative_principle",
+        "practical_example",
+        "decision_rule",
+        "heuristic_parameter",
+        "subjective_recommendation",
+        "workflow"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "narrative_intent",
+          "score",
+          "ambience",
+          "foley",
+          "creative_sound_design",
+          "riser",
+          "drone",
+          "whoosh",
+          "hit",
+          "boom",
+          "reverse_impact",
+          "transition",
+          "music_editing",
+          "beat_alignment",
+          "frequency_separation",
+          "voice_processing",
+          "equalization",
+          "reverb",
+          "room_matching",
+          "layering",
+          "waveform_editing",
+          "volume_automation",
+          "mixing",
+          "restraint",
+          "cinematic_style"
+        ]
+      },
+      "minItems": 1
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    },
+    "relatedConcepts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

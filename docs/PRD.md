@@ -1,122 +1,29 @@
-# PRD - Hidden Systems Lab Production System
+# 📋 PRD — HIDDEN SYSTEMS LAB (HSL)
 
-Atualizado em: 2026-08-19
-Produto operacional: Wolf AI Studio / B2 Mission Control
+## 1. Visão do Produto
+O **Hidden Systems Lab (HSL)** é um canal documental automatizado e ecossistema de software que investiga a infraestrutura física, lógica e invisível que sustenta a civilização contemporânea. O canal aborda temas de engenharia pesada, logística de alta pressão, redes submarinas e sistemas críticos sob a ótica de throughput, gargalos e colapsos em cascata.
 
-## Objetivo
+---
 
-Automatizar a producao de documentarios de sistemas sem transformar o canal em conteudo generico, repetitivo ou baseado em footage. O sistema deve tornar pesquisa, tese, mecanismo causal, procedencia e contribuicao original partes verificaveis do pipeline.
+## 2. Metas de Negócio e Métricas
+- **Crescimento:** 30.000 inscritos qualificados até o dia 27 de cada mês.
+- **Retenção Alvo (AVD):** > 65% de retenção média através da estrutura de 8 Atos e suspense contínuo.
+- **CTR Alvo:** > 12% a 18% com a fórmula científica de Thumbnails A/B/C (Rosto + Evidência de Dados).
+- **Formato:** Documentários Long-Form de **10 a 12 minutos** (600s a 720s // 18.000 a 21.600 frames).
 
-## Usuarios
+---
 
-- editor-chefe: escolhe pergunta, tese e aprovacao humana;
-- pesquisador: cria source pack e claim registry;
-- roteirista: transforma mecanismo em narrativa causal;
-- motion designer: constroi modelos Remotion;
-- operador: acompanha Kling, render e incidentes;
-- revisor: verifica originalidade, licencas, disclosure e qualidade.
+## 3. Personas
+- **The Systems Thinker:** Dev sênior, engenheiro de infraestrutura ou arquiteto de software fascinado por sistemas distribuídos físicos.
+- **The Industrial Nerd:** Engenheiro mecânico, civil ou elétrico interessado em pressões reais, tolerâncias de materiais e redundâncias.
+- **The International Viewer:** Público global dos EUA, Europa e Ásia consumidor de canais analíticos como *Veritasium* e *Branch Education*.
 
-## Requisitos funcionais
+---
 
-### FR-01 - Pauta estruturada
-
-Exigir titulo, pergunta, objeto/fluxo, sistema, restricao, consequencia, tese, formato, duracao e interpretacao original.
-
-### FR-02 - Source pack
-
-Exigir, quando disponiveis, fonte primaria, fonte tecnica e fonte independente, com data, claims e limitacoes.
-
-### FR-03 - Claim registry
-
-Cada afirmacao factual deve ter `claim_id`, fonte e classificacao como fato, estimativa ou inferencia.
-
-### FR-04 - Roteiro causal
-
-Cada secao deve adicionar relacao causal, trade-off, limitacao ou consequencia. Roteiro intercambiavel por troca de nomes deve ser rejeitado.
-
-### FR-05 - Hero visual exclusivo
-
-Todo episodio deve ter um mapa, diagrama, fault tree, timeline, flow trace ou modelo de controle criado para sua tese.
-
-### FR-06 - Plano visual multimidia
-
-Separar cenas Remotion, material real, Kling e tipografia. Cada cena deve declarar funcao narrativa, evidence status, procedencia, fonte, licenca e contribuicao original.
-
-### FR-07 - Kling seguro
-
-Kling so pode representar atmosfera, escala, reconstrucao, processo invisivel ou transicao. Nao pode ser evidencia factual. Image-to-video exige start frame fisico e hash.
-
-### FR-08 - Remotion
-
-Remotion e o recurso explicativo principal e deve compor pelo menos metade do episodio piloto.
-
-### FR-09 - Narracao
-
-Narracao em ingles, interpretativa e baseada em fontes. Deve distinguir fato, estimativa, inferencia e limitacao.
-
-### FR-10 - Originality Gate
-
-Calcular score interno de 0 a 20. `16-20` aprova, `12-15` exige revisao e abaixo de 12 bloqueia.
-
-### FR-11 - Procedencia e copyright
-
-Material externo exige origem, criador, licenca, data de acesso, uso permitido, modificacao e episodio.
-
-### FR-12 - Disclosure
-
-Reconstrucao fotorealista de IA exige rotulo em cena e decisao documentada de disclosure no upload.
-
-### FR-13 - Render final
-
-Validar 16:9, 30 fps, texto legivel em TV, audio, fontes, sincronizacao, labels, ausencia de repeticao excessiva, `ffprobe` e SHA-256.
-
-## Requisitos nao funcionais
-
-- nenhum artefato fake, dummy ou placeholder em producao;
-- rastreabilidade por episodio, claim, cena, asset e fonte;
-- operacao fail-closed quando runtime ou evidencia estiver ausente;
-- nenhuma cena generativa promovida a prova;
-- variacao editorial real entre episodios;
-- controles operacionais restritos ao host confiavel ate existir RBAC.
-
-## Criterios de pronto
-
-Um episodio esta pronto quando todos os seis gates passam: ideia, pesquisa, roteiro, visual, monetizacao/seguranca e render final. Sofisticacao visual isolada nao conta como aprovacao.
-
-## Fora do escopo atual
-
-- apresentador humano ou avatar;
-- shorts verticais como formato principal;
-- noticias e opiniao politica;
-- ingestao automatica de material sem licenca;
-- publicacao automatica sem aprovacao humana;
-- garantia de decisao de monetizacao de plataforma externa.
-
-## Riscos atuais
-
-- o pacote fonte HSL ainda nao possui runtime executavel;
-- biblioteca Remotion ainda precisa ser implementada;
-- source pack do piloto ainda nao foi pesquisado e aprovado;
-- automacao Kling depende da UI e sessao externas;
-- adapter atual bloqueia a producao ate existir runner real;
-- endpoints operacionais ainda precisam de autenticacao.
-
-## Roadmap
-
-### P0
-
-- implementar runtime editorial e schemas completos;
-- construir componentes Remotion essenciais;
-- pesquisar e aprovar o piloto;
-- ligar o adapter HSL ao runtime;
-- produzir start frames 16:9 dos assets Kling;
-- integrar ElevenLabs com voz aprovada;
-- certificar render e gates ponta a ponta.
-
-### P1
-
-- dashboard por claim e procedencia;
-- importacao controlada de source packs;
-- verificacao de licenca;
-- comparacao de originalidade com episodios anteriores;
-- publicacao assistida com descricoes e fontes.
+## 4. Requisitos Funcionais do Sistema
+1. **Planejamento de Cenas do Zero:** `HslSceneDirectorAgent` gera a partitura de 96 a 120 beats do zero para qualquer tema.
+2. **Imagens 35mm Reais:** `HslImageFrameEngine` popula cada frame com fotografias documentais 35mm inéditas em `public/runs/<id>/frames/`.
+3. **Vídeos Firefly Reais:** `HslFireflyVideoEngine` aciona e popula takes de vídeo cinematográficos em `public/runs/<id>/videos/`.
+4. **Voz Chris com Pool de Chaves:** `ElevenLabsNarrationAdapter` divide scripts longos e rotaciona as chaves de API.
+5. **Composição Remotion Long-Form:** `HslLongFormComposition.tsx` renderiza os 10-12 minutos a 30fps em 1080p Full HD.
+6. **Empacotamento A/B/C:** `ThumbnailSeoEngine` gera 3 Thumbnails 4K, 3 Títulos 1+1=3 e tags SEO completas.

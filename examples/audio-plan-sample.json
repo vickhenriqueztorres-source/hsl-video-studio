@@ -1,0 +1,293 @@
+{
+  "version": "1.0.0",
+  "videoId": "video_sample_dark_comedy_01",
+  "totalFrames": 540,
+  "fps": 30,
+  "scenes": [
+    {
+      "sceneId": "scene_01",
+      "startFrame": 0,
+      "endFrame": 180,
+      "mood": "suspense",
+      "environment": "office_night",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_clear",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "suspense",
+        "file": "cinematic/suspense/suspense_unseen_horrors.mp3",
+        "startFrame": 0,
+        "endFrame": 180,
+        "volumeDb": -24,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -8,
+          "attackFrames": 5,
+          "releaseFrames": 15
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "ambience",
+          "category": "room_tone",
+          "file": "foley/household/foley_household_01.wav",
+          "startFrame": 0,
+          "endFrame": 180,
+          "volumeDb": -32,
+          "frequencyRole": "mid",
+          "reverb": "small_room"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "foley",
+          "category": "foley_keyboard",
+          "file": "foley/household/foley_household_02.wav",
+          "startFrame": 36,
+          "endFrame": 96,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        },
+        {
+          "layerId": "layer_003",
+          "type": "creative",
+          "category": "riser",
+          "file": "cinematic/tension/tension_riser_01.wav",
+          "startFrame": 110,
+          "endFrame": 140,
+          "volumeDb": -20,
+          "frequencyRole": "high",
+          "reverse": false
+        },
+        {
+          "layerId": "layer_004",
+          "type": "impact",
+          "category": "ominous_boom",
+          "file": "cinematic/booms/boom_explosion_01.wav",
+          "startFrame": 180,
+          "durationFrames": 30,
+          "volumeDb": -14,
+          "frequencyRole": "low"
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_001",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_01.wav",
+            "startFrame": 165,
+            "endFrame": 195,
+            "volumeDb": -28
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_02.wav",
+            "startFrame": 170,
+            "endFrame": 180,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_01.wav",
+            "startFrame": 180,
+            "durationFrames": 15,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2.5
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "scene_02",
+      "startFrame": 180,
+      "endFrame": 360,
+      "mood": "emotional",
+      "environment": "contemplative_room",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "small_room",
+        "eqProfile": "voice_warm",
+        "distance": "near",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "emotional",
+        "file": "cinematic/emotional/emotional_heartbreaking.mp3",
+        "startFrame": 180,
+        "endFrame": 360,
+        "volumeDb": -24,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -8,
+          "attackFrames": 5,
+          "releaseFrames": 15
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "ambience",
+          "category": "room_tone",
+          "file": "foley/household/foley_household_03.wav",
+          "startFrame": 180,
+          "endFrame": 360,
+          "volumeDb": -32,
+          "frequencyRole": "mid",
+          "reverb": "small_room"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "foley",
+          "category": "foley_paper",
+          "file": "foley/household/foley_household_04.wav",
+          "startFrame": 240,
+          "endFrame": 300,
+          "volumeDb": -22,
+          "frequencyRole": "mid",
+          "variations": 3
+        },
+        {
+          "layerId": "layer_003",
+          "type": "whoosh",
+          "category": "whoosh",
+          "file": "cinematic/whooshes/whoosh_swoosh_01.wav",
+          "startFrame": 320,
+          "endFrame": 350,
+          "volumeDb": -20,
+          "frequencyRole": "high",
+          "reverse": false
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "trans_002",
+          "type": "music_transition",
+          "method": "triple_calcar",
+          "supportTrack": {
+            "file": "cinematic/loops/loop_atmosphere_02.wav",
+            "startFrame": 345,
+            "endFrame": 375,
+            "volumeDb": -28
+          },
+          "riserTrack": {
+            "file": "cinematic/tension/tension_riser_03.wav",
+            "startFrame": 350,
+            "endFrame": 360,
+            "volumeDb": -18
+          },
+          "anchorTrack": {
+            "file": "cinematic/impacts/impact_strike_02.wav",
+            "startFrame": 360,
+            "durationFrames": 15,
+            "volumeDb": -16
+          }
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2.5
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    },
+    {
+      "sceneId": "scene_03",
+      "startFrame": 360,
+      "endFrame": 540,
+      "mood": "epic",
+      "environment": "monumental_exterior",
+      "hasVoice": true,
+      "voiceTreatment": {
+        "reverb": "cathedral",
+        "eqProfile": "voice_clear",
+        "distance": "mid",
+        "targetDb": -12
+      },
+      "music": {
+        "role": "tension_bed",
+        "mood": "epic",
+        "file": "cinematic/epic/epic_impact_moderato.mp3",
+        "startFrame": 360,
+        "endFrame": 540,
+        "volumeDb": -24,
+        "ducking": {
+          "enabled": true,
+          "duckAmount": -8,
+          "attackFrames": 5,
+          "releaseFrames": 15
+        }
+      },
+      "layers": [
+        {
+          "layerId": "layer_001",
+          "type": "ambience",
+          "category": "room_tone",
+          "file": "foley/household/foley_household_05.wav",
+          "startFrame": 360,
+          "endFrame": 540,
+          "volumeDb": -32,
+          "frequencyRole": "mid",
+          "reverb": "small_room"
+        },
+        {
+          "layerId": "layer_002",
+          "type": "impact",
+          "category": "ominous_boom",
+          "file": "cinematic/booms/boom_explosion_02.wav",
+          "startFrame": 480,
+          "durationFrames": 30,
+          "volumeDb": -14,
+          "frequencyRole": "low"
+        }
+      ],
+      "mixing": {
+        "masterLimiter": {
+          "enabled": true,
+          "ceilingDb": -2.5
+        },
+        "sidechain": {
+          "enabled": true,
+          "source": "voice",
+          "targets": [
+            "music",
+            "ambience"
+          ],
+          "thresholdDb": -18,
+          "ratio": 3
+        }
+      }
+    }
+  ]
+}

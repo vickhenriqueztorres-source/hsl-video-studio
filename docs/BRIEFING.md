@@ -1,126 +1,42 @@
-# Briefing Mestre - Hidden Systems Lab
+# 🎨 BRIEFING EDITORIAL & VISUAL — HIDDEN SYSTEMS LAB (HSL)
 
-Atualizado em: 2026-08-19
+## 1. Identidade Visual e Estética
+- **Paleta de Cores Oficial:**
+  - `Obsidian` (`#07080B` / `#0D0E15`): Fundo profundo, nunca preto absoluto.
+  - `Klein Blue` (`#0038FF`): Fluxo normal, cabos, rotas estáveis e dados.
+  - `Acid Yellow` (`#FFE500`): Nós de tensão, medições e gargalos.
+  - `Hyper Orange` (`#FF2E00`): Rupturas físicas, saturação 94%+ e emergências.
+  - `Titanium Gray` (`#E8ECF2`): Tipografia técnica e grids.
+- **Cinematografia 35mm:** Fotografias e vídeos reais com granulação analógica, desfoque óptico de fundo e iluminação volumétrica.
+- **Gráficos HUD e Telemetria:** Linhas limpas e retículas técnicas animadas sobrepostas às fotos e vídeos reais.
 
-## Definicao
+---
 
-**Hidden Systems Lab** e um canal de documentarios sobre os sistemas fisicos, logisticos e urbanos que mantem a vida moderna em movimento.
+## 2. Identidade Sonora e Narração
+- **Voz Chris (ElevenLabs Multilingual v2):**
+  - Tom: Analítico, sóbrio, cirúrgico, sem afetações emotivas artificiais.
+  - Idioma: Inglês nativo.
+- **Trilha Sonora:**
+  - Suspense contínuo em volume atenuado (-28dB / 0.045).
+  - Picos de tensão e foley mecânico tátil em pontos de ruptura.
 
-Promessa:
+---
 
-> We reveal the hidden systems that keep modern life moving.
+## 3. Estrutura Canônica de 8 Atos (10–12 Minutos)
+1. **Act 1: The Hook & The Visible Miracle** (75s / 12 beats)
+2. **Act 2: The Physical Anatomy & Layer Breakdown** (90s / 14 beats)
+3. **Act 3: The Flow Dynamics & Throughput Math** (105s / 16 beats)
+4. **Act 4: The Physical Limit & Boundary Condition** (75s / 12 beats)
+5. **Act 5: The Bottleneck & Strain Breakdown** (90s / 14 beats)
+6. **Act 6: The Emergency Workaround & Hidden Margins** (60s / 10 beats)
+7. **Act 7: Systemic Consequences & Economic Ripple** (60s / 10 beats)
+8. **Act 8: Original Thesis & System Architecture** (45s / 8 beats)
 
-O canal nao faz videos genericos sobre infraestrutura. Ele acompanha algo concreto - combustivel, agua, energia, alimentos, conteineres, encomendas, dados ou pessoas - pela rede invisivel que permite seu movimento.
+---
 
-## Personagem editorial
-
-Nao existe apresentador ou avatar humano. O protagonista de cada episodio e o proprio sistema em operacao. A personalidade da marca e:
-
-- curiosa: pergunta o que existe por tras do resultado visivel;
-- energetica: mantem movimento visual a cada 4 a 7 segundos;
-- clara: reduz sistemas complexos a modelos causais legiveis;
-- moderna: usa tipografia forte, motion fisico e dados bem desenhados;
-- continua: mostra fluxos, handoffs, gargalos, falhas e recuperacao.
-
-## Unidade editorial obrigatoria
-
-```text
-Object or flow
-      +
-System
-      +
-Constraint
-      +
-Consequence
-      +
-Original interpretation
-```
-
-Um episodio so existe quando ha uma pergunta causal, uma tese propria, um mecanismo explicavel e uma conclusao que mostre por que o sistema se comporta daquela forma.
-
-## Territorio
-
-Entra:
-
-- infraestrutura invisivel;
-- logistica e supply chain;
-- transporte e operacoes urbanas;
-- energia, agua, residuos e redes fisicas;
-- sistemas de distribuicao e armazenamento;
-- geografia operacional e dependencias economicas;
-- gargalos e falhas sem sensacionalismo.
-
-Nao entra:
-
-- noticias diarias ou politica partidaria;
-- investigacao criminal;
-- turismo, biografias ou rankings;
-- curiosidades sem mecanismo;
-- compilacao de footage;
-- leitura de artigos;
-- cenas de IA tratadas como evidencia;
-- videos que poderiam trocar apenas os nomes e continuar iguais.
-
-## Pilares
-
-1. **Hidden Journeys:** jornada de um objeto, recurso ou produto.
-2. **System Anatomy:** componentes, controles e interfaces internas.
-3. **Bottlenecks:** restricoes que limitam capacidade e throughput.
-4. **When Systems Break:** gatilho, propagacao, resposta e recuperacao.
-
-## Formatos
-
-- `THE_JOURNEY`: 12-18 minutos.
-- `SYSTEM_ANATOMY`: 14-20 minutos.
-- `BOTTLENECK`: 12-18 minutos.
-- `FAILURE`: 14-22 minutos.
-
-Idioma de audiencia: ingles. Formato visual: 16:9, 30 fps, master 4K e render 1080p.
-
-## Linguagem visual
-
-A estetica e **Kinetic Pop-Documentary**: fundo preto carvao, amarelo acido, azul eletrico, tipografia condensada monumental, diagramas limpos, fisica elastica e footage industrial cinematografico.
-
-Mistura recomendada:
-
-- 50-60% Remotion;
-- 20-25% material real ou historico licenciado;
-- 10-20% Kling para atmosfera, escala, processo invisivel ou reconstrucao;
-- 5-10% tipografia e bumpers.
-
-Regra funcional:
-
-- Remotion quando o espectador precisa entender;
-- material real quando precisa reconhecer;
-- Kling quando precisa imaginar;
-- tipografia quando precisa lembrar;
-- audio quando precisa sentir continuidade.
-
-## Politica de IA
-
-IA e ferramenta de producao, nao autora editorial. Toda cena generativa deve declarar uma funcao: `atmosphere`, `scale`, `reconstruction`, `invisible_process` ou `transition`.
-
-Cenas Kling:
-
-- nunca servem como prova factual;
-- nunca simulam noticia ou registro de empresa;
-- nunca mostram pessoa real fazendo algo que nao fez;
-- recebem `evidence_status: illustrative|not_evidence`;
-- recebem `AI VISUALIZATION` quando fotorealistas;
-- carregam decisao de disclosure para o upload.
-
-## Primeiro episodio
-
-Titulo: **The Hidden System That Keeps Planes Flying**
-
-Pergunta:
-
-> How does fuel move from a refinery to an aircraft without interrupting a system that operates every minute of the day?
-
-Tese:
-
-> Airports do not simply buy fuel. They operate a timed, redundant logistics system in which storage, quality control, pipelines, trucks and aircraft scheduling must remain synchronized.
-
-Conclusao:
-
-> The visible product is a flight. The hidden product is synchronized fuel logistics.
+## 4. Psicologia de Thumbnails & Títulos
+- **3 Thumbnails Obrigatórias em 4K:**
+  - `Variante A:` Rosto humano + evidência técnica (25–38% mais cliques).
+  - `Variante B:` Split screen Antes vs Depois com divisória luminosa.
+  - `Variante C:` Hero Object / Macro do gargalo com retícula de precisão.
+- **3 Títulos Estratégicos (Regra 1+1=3):** Busca, Curiosidade e Contradição/Paradoxo.

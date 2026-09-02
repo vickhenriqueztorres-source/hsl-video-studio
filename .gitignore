@@ -13,14 +13,40 @@
 # Dependencies and build output.
 node_modules/
 dist/
-
-# Generated media, renders and pipeline run artifacts.
-runs/
-public/hsl-runs/
-public/hsl-publication/
-
-# Local caches and coverage.
+build/
+out/
 .cache/
 .remotion/
 coverage/
 *.log
+backups/
+backup/
+
+# Generated media, renders and pipeline run artifacts.
+runs/
+public/runs/
+public/public/
+public/hsl-runs/
+public/hsl-publication/
+public/audio/
+deliveries/
+*.mp4
+*.wav
+*.aif
+*.aiff
+
+# Heavy asset libraries (downloaded via agents)
+assets/audio-library/
+assets/editorial-references/
+chatgpt-image-bot/
+
+# Temp debug files
+debug_frame_*.jpg
+temp_thumb_*.json
+test_opt.png
+
+# Python cache
+__pycache__/
+*.pyc
+
+
