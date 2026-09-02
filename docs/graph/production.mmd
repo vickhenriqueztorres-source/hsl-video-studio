@@ -1,0 +1,55 @@
+%%{init: {'flowchart': {'curve': 'linear'}}}%%
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	scene_plan(scene_plan)
+	fan_out_frames(fan_out_frames)
+	image_frames(image_frames)
+	join_frames(join_frames)
+	fan_out_videos(fan_out_videos)
+	firefly_videos(firefly_videos)
+	join_videos(join_videos)
+	narration_stage(narration_stage)
+	sound_design(sound_design)
+	gatekeeper_stage(gatekeeper_stage)
+	gate_render_wait(gate_render_wait)
+	render_prepare(render_prepare)
+	fan_out_render(fan_out_render)
+	render_chunk(render_chunk)
+	stitch(stitch)
+	pre_mux_gate(pre_mux_gate)
+	mux(mux)
+	packaging_stage(packaging_stage)
+	compliance_stage(compliance_stage)
+	gate_publish_wait(gate_publish_wait)
+	finalize(finalize)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> scene_plan;
+	fan_out_frames --> image_frames;
+	fan_out_videos --> firefly_videos;
+	finalize --> __end__;
+	firefly_videos --> join_videos;
+	gate_publish_wait --> finalize;
+	image_frames --> join_frames;
+	join_frames --> fan_out_videos;
+	join_videos --> narration_stage;
+	mux --> packaging_stage;
+	narration_stage --> sound_design;
+	packaging_stage --> compliance_stage;
+	pre_mux_gate --> mux;
+	render_chunk --> fan_out_render;
+	render_prepare --> fan_out_render;
+	scene_plan --> fan_out_frames;
+	sound_design --> gatekeeper_stage;
+	stitch --> pre_mux_gate;
+	gatekeeper_stage -.-> gate_render_wait;
+	gatekeeper_stage -.-> finalize;
+	gate_render_wait -.-> finalize;
+	gate_render_wait -.-> render_prepare;
+	fan_out_render -.-> render_chunk;
+	fan_out_render -.-> stitch;
+	compliance_stage -.-> gate_publish_wait;
+	compliance_stage -.-> finalize;
+	classDef default fill:#f2f0ff,line-height:1.2;
+	classDef first fill-opacity:0;
+	classDef last fill:#bfb6fc;
+

@@ -4,6 +4,12 @@
   "description": "Control plane para documentarios Hidden Systems Lab, Remotion e Firefly/Kling",
   "main": "dist/index.js",
   "scripts": {
+    "hsl:master:graph": "ts-node graph/production/cli.ts run",
+    "hsl:master:graph:resume": "ts-node graph/production/cli.ts resume",
+    "hsl:master:graph:status": "ts-node graph/production/cli.ts status",
+    "hsl:master:graph:mermaid": "ts-node graph/production/cli.ts mermaid",
+    "hsl:master:parity": "ts-node graph/production/parity.ts",
+    "hsl:master:studio": "langgraphjs dev -c graph/langgraph.json --host 127.0.0.1 --port 2025 --no-browser",
     "ide-runner:smoke": "ts-node graph/smoke/runSmoke.ts --mode all",
     "ide-runner:smoke:manual": "ts-node graph/smoke/runSmoke.ts --mode manual",
     "ide-runner:smoke:resume": "ts-node graph/smoke/runSmoke.ts --resume",
@@ -150,6 +156,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@langchain/langgraph-cli": "1.4.5",
     "@types/better-sqlite3": "^7.6.12",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.1",

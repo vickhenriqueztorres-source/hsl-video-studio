@@ -120,9 +120,13 @@ O helper do driver Antigravity le contextFiles localmente e insere blocos
 `file path=...` no prompt, junto com o schema completo. O limite acumulado
 configuravel e `contextLimitBytes`, padrao **204800 bytes (200 KiB)**. Acima
 disso, a preparacao falha com contagem e limite explicitos antes de spawn.
-No Windows ha ainda um limite conservador de 24000 caracteres de prompt
-para argv; se excedido, o driver retorna erro claro, sem truncar contexto.
-O limite de contexto nao elimina o limite de linha de comando do sistema.
+Desde a Fase 1, prompts com mais de 7000 caracteres saem de argv e usam
+stdin NDJSON, quando --input-format stream-json existe no help. A mensagem
+aceita pela CLI instalada e `{ "event": "user", "message": { "role":
+"user", "content": "<prompt completo>" } }`, seguida de newline. O formato
+com `type: user` foi testado e rejeitado pela CLI por faltar o campo event.
+Sem suporte a stdin, -p recebe apenas uma referencia curta a prompt.md;
+as permissoes de leitura continuam sendo respeitadas nesse fallback.
 
 Uma resposta invalida de CLI recebe 1 retry em attempt+1 com os erros AJV no
 novo prompt. Timeout nao reexecuta automaticamente: SIGTERM/SIGKILL em
@@ -180,6 +184,19 @@ string JSON. O parser tambem trata result/content/text e blocos de texto,
 respeita strings com chaves/escapes e ignora envelopes vazios de telemetria.
 O driver grava o objeto e o valida com AJV; o runner confirma o contrato.
 gitDiffStat armazena git diff --stat antes/depois (arquivos rastreados).
+
+Transporte longo validado na Fase 1:
+
+```text
+agy -p "" --output-format stream-json --input-format stream-json --mode plan --disable-slash-commands --print-timeout 120s
+```
+
+O prompt de 24741 caracteres foi enviado exclusivamente por stdin. O teste
+`npx.cmd ts-node graph/smoke/longPrompt.ts` coloca um UUID aleatorio no fim
+do contexto e exige esse UUID na resposta validada por AJV. Evidencia:
+`runs/agy-long-1788364536512/ide/long_prompt/1/run.log`, exit 0.
+O parser aceita o envelope stream `event: result` com `result.response`.
+O runner comum agora reutiliza `graph/lib/proc.ts`; shell permanece false.
 
 ## Codex: flags e isolamento de configuracao
 

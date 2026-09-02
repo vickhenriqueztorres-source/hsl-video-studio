@@ -3,6 +3,7 @@ import path from 'node:path';
 import Ajv from 'ajv';
 import { DriverResult, IdeTask, PreparedTask } from '../types';
 import { findCli, runProcess, unavailableReason } from './process';
+import { spawnTool } from '../../lib/proc';
 
 export function inlineAntigravityContext(task: IdeTask, repoRoot: string): string {
   const limit = task.contextLimitBytes ?? 200 * 1024;
@@ -76,17 +77,22 @@ export async function runAntigravity(prepared: PreparedTask): Promise<DriverResu
   }
   const stdoutMode = prepared.task.ioMode !== 'file';
   const prompt = stdoutMode ? fs.readFileSync(prepared.promptPath, 'utf8') : `Leia e siga integralmente ${JSON.stringify(prepared.promptPath)}.`;
-  if (process.platform === 'win32' && prompt.length > 24_000) {
-    return { reason: 'Prompt excede o limite seguro de argv no Windows (24000 caracteres); reduza contexto ou use ioMode=file.' };
-  }
+  const longPrompt = prompt.length > 7000;
+  const useStdin = longPrompt && flags.includes('--input-format') && flags.includes('stream-json');
+  const promptArg = useStdin ? '' : longPrompt ? `Leia o arquivo ${prepared.promptPath} e execute exatamente o que ele pede.` : prompt;
   const git = findCli('git');
   const diff = async () => git ? (await runProcess(git, ['diff', '--stat'], prepared.repoRoot, 30_000)).stdout.trim() : 'git indisponivel';
   const before = await diff();
-  const args = ['-p', prompt, '--output-format', 'json'];
+  const args = ['-p', promptArg, '--output-format', useStdin ? 'stream-json' : 'json'];
+  if (useStdin) args.push('--input-format', 'stream-json');
   if (flags.includes('--mode')) args.push('--mode', stdoutMode ? 'plan' : 'accept-edits');
   if (flags.includes('--disable-slash-commands')) args.push('--disable-slash-commands');
   if (flags.includes('--print-timeout')) args.push('--print-timeout', `${Math.ceil(prepared.timeoutMs / 1000)}s`);
-  const result = await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath);
+  fs.appendFileSync(prepared.logPath, `[transport] ${useStdin ? 'stdin-stream-json' : longPrompt ? 'prompt-file-reference' : 'argv'} promptChars=${prompt.length}\n`);
+  const result = useStdin ? await spawnTool(cli.command, [...cli.prefix, ...args], {
+    cwd: prepared.repoRoot, timeoutMs: prepared.timeoutMs, logPath: prepared.logPath,
+    stdin: JSON.stringify({ event: 'user', message: { role: 'user', content: prompt } }) + '\n',
+  }) : await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath);
   if (stdoutMode && !result.timedOut) {
     const output = extractAntigravityJson(result.stdout);
     if (output !== undefined) {

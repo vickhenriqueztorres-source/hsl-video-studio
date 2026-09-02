@@ -1,0 +1,80 @@
+# Ambiente de render Remotion no Windows
+
+Data do diagnóstico: 2026-09-02. Root testado:
+`D:\HSL STUDIO AGENTS\hsl-video-studio`.
+
+## Resultado
+
+O render mínimo isolado passou com a configuração original. Foram renderizados
+os frames 0–29 do bundle `build`, composição `HslLongFormComposition`, com o
+mesmo argv do `renderChunk` da referência e somente a faixa e a saída trocadas.
+Resultado: exit 0, 30/30 frames, 60.465 ms, MP4 de 104,7 kB.
+
+Isso elimina como causa permanente o espaço no path, o Chrome Headless Shell
+instalado e as flags originais. O timeout anterior de 25.000 ms ocorreu na
+abertura do browser durante execuções longas/concorrentes. A conclusão suportada
+pelos testes é contenção transitória de recursos; não há evidência para atribuir
+a falha a uma flag específica. Durante a comparação com `main` havia outro
+Remotion renderizando o EP 012 e apenas cerca de 1,7 GB de RAM física livre. O
+teste isolado foi executado depois que esse processo terminou.
+Depois disso, a terceira referência e o grafo abriram quatro browsers cada,
+renderizaram 18.000 frames por execução e terminaram com exit 0. Esse resultado
+reforça a contenção concorrente como causa raiz operacional.
+
+Nenhuma variação de `--timeout`, `--gl`, `--browser-executable` ou clone sem
+espaços foi necessária. Por isso `remotion.config.ts` não foi alterado. Ele já
+define concorrência 2, timeout de delayRender de 3.600.000 ms e GL `angle`.
+No Remotion 4.0.513, o timeout de abertura do browser é outro valor: 25.000 ms,
+fixo em `@remotion/renderer/dist/open-browser.js`; `--timeout` controla
+delayRender e não esse handshake.
+
+## Browser validado
+
+- CLI: `@remotion/cli 4.0.513`. Nesta versão, `npx remotion --version` imprime
+  a versão e o help, mas retorna exit 1; a saída foi preservada no recibo.
+- `npx remotion browser ensure`: exit 0.
+- Binário: `node_modules/.remotion/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe`.
+- Execução direta, via `graph/lib/proc.ts`, `shell:false`, argv `--version`:
+  exit 0, `Google Chrome for Testing 149.0.7790.0`.
+
+## Comando isolado que passou
+
+Os itens abaixo são argv literais enviados por `spawnTool`; aspas de shell não
+fazem parte da execução:
+
+```text
+npx remotion render build HslLongFormComposition runs/HSL_EPISODE_011/graph/render-diagnostic/default.mp4
+--props=runs/HSL_EPISODE_011/graph/render-diagnostic/render-props.json
+--frames=0-29
+--public-dir=build/public
+--muted
+--concurrency=2
+--gl=angle
+--image-format=jpeg
+--jpeg-quality=80
+--timeout=3600000
+```
+
+O props usa o mesmo scene plan e um servidor local novo, porque a porta salva
+pela referência encerrada já não respondia. Bundle e assets são os mesmos da
+segunda referência.
+
+## Recomendação de setup
+
+1. Executar `npx remotion browser ensure` após instalar dependências.
+2. Não iniciar dois renders Remotion longos ao mesmo tempo nesta máquina.
+3. Confirmar memória livre e ausência de Chrome Headless Shell órfão antes do
+   render de 18.000 frames.
+4. Manter o path atual: o teste provou que espaços não impedem o render.
+5. Usar `graph/production/renderDiagnostic.ts` para repetir os 30 frames antes
+   de uma referência longa quando o ambiente tiver mudado.
+
+Evidências completas: `runs/HSL_EPISODE_011/graph/render-diagnostic/receipt.json`
+e os logs individuais na mesma pasta.
+
+## Chrome de login
+
+`graph/production/openChromeLogin.ps1` abre Google Chrome visível com
+`--user-data-dir=%LOCALAPPDATA%\HSLVideoStudio\ChromeProfile`. Esse perfil é
+persistente para login humano no LangSmith Studio e é separado do perfil
+temporário que o Remotion cria para render.
