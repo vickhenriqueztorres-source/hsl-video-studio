@@ -12,7 +12,8 @@ export type StageName =
   | 'STAGE_08_PRE_MUX_GATE'
   | 'STAGE_09_FFMPEG_MUX'
   | 'STAGE_10_PACKAGING'
-  | 'STAGE_11_PRD_COMPLIANCE';
+  | 'STAGE_11_PRD_COMPLIANCE'
+  | 'STAGE_12_CLOUD_ARCHIVE';
 
 export type StageStatus = 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'FAILED';
 

@@ -22,7 +22,28 @@ export type HslNarrativeRole =
   | 'BOTTLENECK_CRISIS'
   | 'EMERGENCY_DISPATCH'
   | 'SYSTEMIC_IMPACT'
-  | 'CORE_THESIS';
+  | 'CORE_THESIS'
+  | 'PHYSICAL_SCALE'
+  | 'SYSTEM_ARCHITECTURE'
+  | 'CRITICAL_METRIC'
+  | 'STRUCTURAL_DYNAMICS'
+  | 'MECHANICAL_BLUEPRINT'
+  | 'HYDRO_MECHANICS'
+  | 'THERMODYNAMICS'
+  | 'AERODYNAMICS'
+  | 'VORTEX_PHYSICS'
+  | 'AERODYNAMIC_MAP'
+  | 'SEISMIC_CRISIS'
+  | 'CRITICAL_STRAIN'
+  | 'SEISMIC_TELEMETRY'
+  | 'THERMAL_LIMIT'
+  | 'VISCOSITY_BREAKDOWN'
+  | 'THERMAL_MAP'
+  | 'URBAN_SCALE'
+  | 'GLOBAL_MAP'
+  | 'ARCHITECTURAL_PARADIGM'
+  | 'ORIGINAL_THESIS'
+  | 'FINAL_HANDOFF';
 
 export interface HslSceneBeat {
   readonly beatId: string;
@@ -37,6 +58,7 @@ export interface HslSceneBeat {
   readonly pacingType?: HslPacingType;
   readonly narrativeRole?: HslNarrativeRole;
   readonly cinematicPrompt: string;
+  readonly promptSubject?: string;
   readonly voiceoverScript: string;
   readonly outputFramePath?: string;
   readonly outputVideoPath?: string;

@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { spawnSync } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 
 export class HslDriveStorage {
   private static readonly SCRIPT_PATH = path.resolve(process.cwd(), 'scripts', 'driveSync.py');
