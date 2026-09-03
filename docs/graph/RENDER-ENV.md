@@ -2,7 +2,7 @@
 
 ## Aprovação de Start Frames
 
-No caminho real, image_generate_prepare publica uma fila única em runs/<E>/images/QUEUE.json. A skill interativa hsl-image-worker gera e valida os PNGs. Depois, image_review_prepare anexa os arquivos diretamente ao codex exec -i/--image, registra SHA-256, score, fidelidade, texto detectado e issues. Score mínimo: 75.
+No caminho real, image_generate_prepare publica uma fila única em runs/<E>/images/QUEUE.json com `generator: codex-imagegen`. A skill interativa hsl-image-worker gera os PNGs exclusivamente pelo ImageGen integrado do Codex e o validador rejeita filas com outro gerador. Depois, image_review_prepare anexa os arquivos diretamente ao codex exec -i/--image, registra SHA-256, score, fidelidade, texto detectado e issues. Score mínimo: 75.
 
 Se o Codex estiver sem cota ou indisponível, a validação física permanece válida, mas o grafo interrompe obrigatoriamente em IMAGE_HUMAN_REVIEW. O Firefly só recebe trabalho após aprovação do revisor ou desse fallback humano.
 

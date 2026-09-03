@@ -38,6 +38,7 @@ export async function fixImage(item:ImageQueueItem):Promise<void> {
 
 export async function validateQueue(queuePath:string,fix=false):Promise<{queue:ImageQueue;results:(ImageQueueItem&ImageValidation)[]}> {
   const queue=JSON.parse(fs.readFileSync(queuePath,'utf8').replace(/^\uFEFF/,'')) as ImageQueue;
+  if(queue.generator!=='codex-imagegen') throw new Error(`IMAGE_GENERATOR_NOT_ALLOWED:${queue.generator||'missing'}`);
   const results=[] as (ImageQueueItem&ImageValidation)[];
   for(const item of queue.items) {
     if(fix&&!validateImage(item.outputPath).ok&&sourceCandidate(item)) {
@@ -45,6 +46,7 @@ export async function validateQueue(queuePath:string,fix=false):Promise<{queue:I
     }
     const result=validateImage(item.outputPath); item.attempts+=item.status==='done'&&result.ok?0:1;
     item.status=result.ok?'done':'rejected'; item.lastError=result.ok?undefined:result.error;
+    item.generatedBy=result.ok?'codex-imagegen':undefined;
     results.push({...item,...result});
   }
   fs.writeFileSync(queuePath,JSON.stringify(queue,null,2)+'\n','utf8'); return {queue,results};

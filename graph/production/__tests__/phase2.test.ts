@@ -72,9 +72,14 @@ async function main(){
 
   const fixDir=path.join(base,'fix'),jpg=path.join(fixDir,'BEAT.jpg'),png=path.join(fixDir,'BEAT.png'),queuePath=path.join(fixDir,'QUEUE.json');fs.mkdirSync(fixDir,{recursive:true});
   requireSuccess(await spawnTool('ffmpeg',['-y','-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=red:s=1600x900','-frames:v','1',jpg],{cwd:base}),'TEST_JPG');
-  fs.writeFileSync(queuePath,JSON.stringify({episodeId:'FIX',threadId:'FIX@v2',spec:{aspect:'16:9',minWidth:1920,format:'png',noText:true},items:[{beatId:'BEAT',promptPath:'prompt',outputPath:png,status:'pending',attempts:0}],resumeCommand:'resume'},null,2));
+  fs.writeFileSync(queuePath,JSON.stringify({episodeId:'FIX',threadId:'FIX@v2',generator:'codex-imagegen',spec:{aspect:'16:9',minWidth:1920,format:'png',noText:true},items:[{beatId:'BEAT',promptPath:'prompt',outputPath:png,status:'pending',attempts:0}],resumeCommand:'resume'},null,2));
   const fixed=await validateQueue(queuePath,true);assert.equal(fixed.queue.items[0].status,'done');assert.equal(fixed.results[0].width,1920);assert.equal(fixed.results[0].height,1080);
+  assert.equal(fixed.queue.items[0].generatedBy,'codex-imagegen');
   console.log('PASS 13: --fix converts 1600x900 JPG to valid 1920x1080 PNG');
+
+  const foreignQueue=path.join(fixDir,'FOREIGN.json');fs.writeFileSync(foreignQueue,JSON.stringify({...fixed.queue,generator:'other-provider'},null,2));
+  await assert.rejects(validateQueue(foreignQueue),/IMAGE_GENERATOR_NOT_ALLOWED:other-provider/);
+  console.log('PASS 16: non-Codex image generator is rejected');
 
   const imageLow=setup('IMAGE_REVIEW_LOW',{imageLow:true});try{let s=await runNew(imageLow,'IMAGE_REVIEW_LOW');assert.equal((s.tasks[0].interrupts[0].value as any).kind,'IMAGE_QUEUE');await validateQueue(s.values.imageQueuePath!);s=await executeProduction(imageLow.graph,imageLow.root,'IMAGE_REVIEW_LOW',new Command({resume:{resumed:true}}));assert.deepEqual(s.next,['packaging_stage']);assert.equal(s.values.imageReview?.round,2);console.log('PASS 14: low image review requeues; second review passes');}finally{imageLow.saver.db.close();}
 

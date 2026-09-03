@@ -47,6 +47,7 @@ O agente externo é referenciado por `HSL_FIREFLY_AGENT_DIR`; credenciais e perf
 | 13 | --fix converte JPG 1600x900 em PNG 1920x1080 | passou |
 | 14 | review baixa retorna item à fila; segunda passa | passou |
 | 15 | Codex skipped exige IMAGE_HUMAN_REVIEW | passou |
+| 16 | fila com gerador diferente do Codex falha fechado | passou |
 
 Validações: `npx tsc --noEmit`, `npx ts-node graph/production/__tests__/phase2.test.ts` e `npx ts-node graph/production/__tests__/production.test.ts`.
 

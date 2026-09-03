@@ -9,7 +9,7 @@ export interface GraphOptions {
   assetConcurrency: number; renderConcurrency: number; offline: boolean;
   gates: { render: boolean; publish: boolean };
   mediaMode: MediaMode; beats?: number; testRender: boolean; maxGenerations: number;
-  promptReviewThreshold: number; images: { tryHeadless: boolean };
+  promptReviewThreshold: number; images: { provider: 'codex' };
   imageReviewThreshold: number;
   video: { takeSeconds: 5; splitOver: 5.5 };
 }
@@ -17,8 +17,8 @@ export type Options = MasterPipelineOptions & { graph: GraphOptions };
 export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string }
 export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
 export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
-export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string }
-export interface ImageQueue { episodeId: string; threadId: string; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText:true }; items:ImageQueueItem[]; resumeCommand:string }
+export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string; generatedBy?:'codex-imagegen' }
+export interface ImageQueue { episodeId: string; threadId: string; generator:'codex-imagegen'; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText:true }; items:ImageQueueItem[]; resumeCommand:string }
 export interface ImageReviewItem { beatId:string; score:number; fidelity:string; hasText:boolean; issues:string[]; imageHash:string }
 export interface ImageReview { items:ImageReviewItem[]; skipped?:boolean; reason?:string; round:number }
 export interface VideoTake {
@@ -77,7 +77,7 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   threadId(topicInput.episodeId);
   const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
     maxGenerations: 4, promptReviewThreshold: 75, imageReviewThreshold:75, ...options.graph,
-    gates: { render: false, publish: false, ...options.graph?.gates }, images: { tryHeadless: false, ...options.graph?.images },
+    gates: { render: false, publish: false, ...options.graph?.gates }, images: { provider: 'codex' },
     video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
   for (const value of [graph.assetConcurrency, graph.renderConcurrency]) if (!Number.isSafeInteger(value) || value < 1) throw new Error('Concurrency deve ser inteiro positivo');
   if (graph.beats !== undefined && (!Number.isSafeInteger(graph.beats) || graph.beats < 1)) throw new Error('beats deve ser inteiro positivo');
