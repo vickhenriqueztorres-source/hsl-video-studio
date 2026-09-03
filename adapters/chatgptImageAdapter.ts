@@ -56,7 +56,21 @@ export class ChatGptImageAdapter {
   private readonly outputDir: string;
 
   constructor(customBotDir?: string) {
-    this.botDir = path.resolve(customBotDir || path.join(process.cwd(), 'chatgpt-image-bot'));
+    const candidates = [
+      customBotDir,
+      path.join(process.cwd(), 'chatgpt-image-bot'),
+      path.resolve('C:/Users/brend/OneDrive/Desktop/PROJETO 30K ATE 27/02 - O OUTRO LADO/AUTOMACAO - O OUTRO LADO/chatgpt-image-bot')
+    ].filter(Boolean) as string[];
+
+    let resolved = candidates[0];
+    for (const cand of candidates) {
+      if (fs.existsSync(cand)) {
+        resolved = cand;
+        break;
+      }
+    }
+
+    this.botDir = path.resolve(resolved);
     this.queuePath = path.join(this.botDir, 'prompts', 'queue.txt');
     this.manifestPath = path.join(this.botDir, 'output', 'manifest.jsonl');
     this.outputDir = path.join(this.botDir, 'output');

@@ -3,6 +3,7 @@ import path from 'path';
 import {Resvg} from '@resvg/resvg-js';
 import {HslSceneBeat} from './types';
 import {isValidPngFile} from './hslPathResolver';
+import {ChatGptStartFrameRuntime, formatCinematic35mmPrompt, ChatGptShotPlanItem} from '../startframe/chatgptStartFrameRuntime';
 
 export interface ImageFrameEngineResult {
   readonly totalGenerated: number;
@@ -1629,6 +1630,71 @@ export class HslImageFrameEngine {
     return this.generateUniversalThemeFrames(episodeId, beats);
   }
 
+  /**
+   * Garante a geração autônoma de imagens fotorrealistas inéditas via robô ChatGPT (DALL-E 3)
+   * para 100% dos beats do tipo 'generated_image_35mm', sem repetição e com fidelidade cinematográfica.
+   */
+  public static ensurePhotorealFramesWithChatGPT(
+    episodeId: string,
+    beats: readonly HslSceneBeat[]
+  ): Map<string, string> {
+    const root = process.cwd();
+    const photorealBeats = beats.filter(b => b.visualMode === 'generated_image_35mm');
+    const resultMap = new Map<string, string>();
+
+    if (photorealBeats.length === 0) {
+      return resultMap;
+    }
+
+    console.log(`\n🤖 [ChatGPT Image Bot] Orquestrando geração de ${photorealBeats.length} imagens fotorrealistas inéditas para ${episodeId}...`);
+
+    const outputDirectory = path.resolve(root, 'runs', episodeId);
+    const startFramesDir = path.resolve(outputDirectory, 'start-frames');
+    fs.mkdirSync(startFramesDir, {recursive: true});
+
+    const pendingBeats: HslSceneBeat[] = [];
+    for (const b of photorealBeats) {
+      const existing = path.resolve(startFramesDir, `${b.beatId}.png`);
+      if (fs.existsSync(existing) && fs.statSync(existing).size > 5000) {
+        resultMap.set(b.beatId, existing);
+      } else {
+        pendingBeats.push(b);
+      }
+    }
+
+    if (pendingBeats.length > 0) {
+      const shotPlanItems: ChatGptShotPlanItem[] = pendingBeats.map((beat, idx) => {
+        const rawPrompt = beat.cinematicPrompt || beat.promptSubject || beat.voiceoverScript || `Industrial engineering scene ${beat.beatId}`;
+        return {
+          shot_id: beat.beatId,
+          parent_scene_id: `SCENE_${String(idx + 1).padStart(3, '0')}`,
+          start_frame_prompt: formatCinematic35mmPrompt(rawPrompt)
+        };
+      });
+
+      const runtime = new ChatGptStartFrameRuntime();
+      const runResult = runtime.run({
+        episodeId,
+        shotPlanItems,
+        outputDirectory,
+        autoRunBot: true
+      });
+
+      console.log(`🤖 [ChatGPT Image Bot] Status da geração: ${runResult.status} (${runResult.generatedShots}/${runResult.totalShots} geradas)`);
+
+      for (const b of pendingBeats) {
+        const candidate = path.resolve(startFramesDir, `${b.beatId}.png`);
+        if (fs.existsSync(candidate) && fs.statSync(candidate).size > 5000) {
+          resultMap.set(b.beatId, candidate);
+        }
+      }
+    } else {
+      console.log(`✅ [ChatGPT Image Bot] Todas as ${photorealBeats.length} imagens fotorrealistas já estão prontas no disco.`);
+    }
+
+    return resultMap;
+  }
+
   public static generateUniversalThemeFrames(
     episodeId: string,
     beats: readonly HslSceneBeat[]
@@ -1642,6 +1708,8 @@ export class HslImageFrameEngine {
     fs.mkdirSync(tempDir, {recursive: true});
 
     console.log(`\n[HslImageFrameEngine] Gerando ${beats.length} frames 100% INÉDITOS e dedicados para ${episodeId} em: ${framesDir}`);
+
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
 
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
@@ -1657,27 +1725,32 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      let base64Image = '';
-      if (dedicatedImages.length > 0) {
-        const matchingImg = dedicatedImages[(beat.actNumber - 1) % dedicatedImages.length];
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
+      } else {
+        let base64Image = '';
+        if (dedicatedImages.length > 0) {
+          const matchingImg = dedicatedImages[(beat.actNumber - 1) % dedicatedImages.length];
+          try {
+            base64Image = fs.readFileSync(matchingImg).toString('base64');
+          } catch {}
+        }
+
+        const svg = universalThemeSceneSvg(beat, i, base64Image);
+        const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
+        fs.writeFileSync(svgPath, svg, 'utf8');
+
         try {
-          base64Image = fs.readFileSync(matchingImg).toString('base64');
-        } catch {}
-      }
-
-      const svg = universalThemeSceneSvg(beat, i, base64Image);
-      const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
-      fs.writeFileSync(svgPath, svg, 'utf8');
-
-      try {
-        const png = new Resvg(svg, {
-          fitTo: {mode: 'width', value: 1920},
-          font: { loadSystemFonts: true }
-        }).render().asPng();
-        fs.writeFileSync(targetFile, png);
-      } catch (err: any) {
-        missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
-        continue;
+          const png = new Resvg(svg, {
+            fitTo: {mode: 'width', value: 1920},
+            font: { loadSystemFonts: true }
+          }).render().asPng();
+          fs.writeFileSync(targetFile, png);
+        } catch (err: any) {
+          missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
+          continue;
+        }
       }
 
       fs.copyFileSync(targetFile, localTargetFile);
@@ -1715,6 +1788,8 @@ export class HslImageFrameEngine {
 
     console.log(`\n[HslImageFrameEngine] Gerando 96 frames 100% INEDITOS para o episodio de Kessler Syndrome em: ${framesDir}`);
 
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
+
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
 
@@ -1724,21 +1799,26 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      const svg = kesslerSceneSvg(beat, i);
-      const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
-      fs.writeFileSync(svgPath, svg, 'utf8');
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
+      } else {
+        const svg = kesslerSceneSvg(beat, i);
+        const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
+        fs.writeFileSync(svgPath, svg, 'utf8');
 
-      try {
-        const png = new Resvg(svg, {
-          fitTo: {mode: 'width', value: 1920},
-          font: {
-            loadSystemFonts: true
-          }
-        }).render().asPng();
-        fs.writeFileSync(targetFile, png);
-      } catch (err: any) {
-        missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
-        continue;
+        try {
+          const png = new Resvg(svg, {
+            fitTo: {mode: 'width', value: 1920},
+            font: {
+              loadSystemFonts: true
+            }
+          }).render().asPng();
+          fs.writeFileSync(targetFile, png);
+        } catch (err: any) {
+          missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
+          continue;
+        }
       }
 
       fs.copyFileSync(targetFile, localTargetFile);
@@ -1778,6 +1858,8 @@ export class HslImageFrameEngine {
 
     console.log(`\n[HslImageFrameEngine] Gerando 96 frames 100% INEDITOS para o episodio de Megaship Hydrodynamics em: ${framesDir}`);
 
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
+
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
 
@@ -1787,21 +1869,26 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      const svg = megashipSceneSvg(beat, i);
-      const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
-      fs.writeFileSync(svgPath, svg, 'utf8');
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
+      } else {
+        const svg = megashipSceneSvg(beat, i);
+        const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
+        fs.writeFileSync(svgPath, svg, 'utf8');
 
-      try {
-        const png = new Resvg(svg, {
-          fitTo: {mode: 'width', value: 1920},
-          font: {
-            loadSystemFonts: true
-          }
-        }).render().asPng();
-        fs.writeFileSync(targetFile, png);
-      } catch (err: any) {
-        missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
-        continue;
+        try {
+          const png = new Resvg(svg, {
+            fitTo: {mode: 'width', value: 1920},
+            font: {
+              loadSystemFonts: true
+            }
+          }).render().asPng();
+          fs.writeFileSync(targetFile, png);
+        } catch (err: any) {
+          missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
+          continue;
+        }
       }
 
       fs.copyFileSync(targetFile, localTargetFile);
@@ -1841,12 +1928,7 @@ export class HslImageFrameEngine {
 
     console.log(`\n[HslImageFrameEngine] Gerando 96 frames 100% INEDITOS para o episodio de AI Datacenter Cooling em: ${framesDir}`);
 
-    const chatgptBotDir = path.resolve(root, 'chatgpt-image-bot', 'output');
-    const botPhotos = fs.existsSync(chatgptBotDir)
-      ? fs.readdirSync(chatgptBotDir)
-          .filter(f => f.endsWith('.png') && !f.includes('manifest') && !f.includes('session') && !f.includes('dom_inspect') && !f.includes('login') && !f.includes('run_status') && !f.includes('gato'))
-          .map(f => path.join(chatgptBotDir, f))
-      : [];
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
 
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
@@ -1857,10 +1939,9 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      const shouldUseBotPhoto = botPhotos.length > 0 && (i % 8 === 0 || i === 0);
-      if (shouldUseBotPhoto) {
-        const photo = botPhotos[Math.floor(i / 8) % botPhotos.length];
-        fs.copyFileSync(photo, targetFile);
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
       } else {
         const svg = aiCoolingSceneSvg(beat, i);
         const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
@@ -1917,12 +1998,7 @@ export class HslImageFrameEngine {
 
     console.log(`\n[HslImageFrameEngine] Gerando 96 frames 100% INEDITOS para o episodio da Rede Eletrica em: ${framesDir}`);
 
-    const chatgptBotDir = path.resolve(root, 'chatgpt-image-bot', 'output');
-    const botPhotos = fs.existsSync(chatgptBotDir)
-      ? fs.readdirSync(chatgptBotDir)
-          .filter(f => f.endsWith('.png') && !f.includes('manifest') && !f.includes('session') && !f.includes('dom_inspect') && !f.includes('login') && !f.includes('run_status') && !f.includes('gato'))
-          .map(f => path.join(chatgptBotDir, f))
-      : [];
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
 
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
@@ -1933,10 +2009,9 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      const shouldUseBotPhoto = botPhotos.length > 0 && (i % 8 === 0 || i === 0);
-      if (shouldUseBotPhoto) {
-        const photo = botPhotos[Math.floor(i / 8) % botPhotos.length];
-        fs.copyFileSync(photo, targetFile);
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
       } else {
         const svg = gridSceneSvg(beat, i);
         const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
@@ -1993,6 +2068,8 @@ export class HslImageFrameEngine {
 
     console.log(`\n[HslImageFrameEngine] Gerando ${beats.length} frames 100% INEDITOS para o episodio de Taipei 101 TMD em: ${framesDir}`);
 
+    const chatgptPhotosMap = this.ensurePhotorealFramesWithChatGPT(episodeId, beats);
+
     const generatedFrames: string[] = [];
     const missingFrames: string[] = [];
 
@@ -2002,21 +2079,26 @@ export class HslImageFrameEngine {
       const targetFile = path.join(framesDir, targetFileName);
       const localTargetFile = path.join(localFramesDir, targetFileName);
 
-      const svg = taipeiTmdSceneSvg(beat, i);
-      const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
-      fs.writeFileSync(svgPath, svg, 'utf8');
+      const photorealPhoto = chatgptPhotosMap.get(beat.beatId);
+      if (beat.visualMode === 'generated_image_35mm' && photorealPhoto && fs.existsSync(photorealPhoto)) {
+        fs.copyFileSync(photorealPhoto, targetFile);
+      } else {
+        const svg = taipeiTmdSceneSvg(beat, i);
+        const svgPath = path.join(tempDir, `${beat.beatId}.svg`);
+        fs.writeFileSync(svgPath, svg, 'utf8');
 
-      try {
-        const png = new Resvg(svg, {
-          fitTo: {mode: 'width', value: 1920},
-          font: {
-            loadSystemFonts: true
-          }
-        }).render().asPng();
-        fs.writeFileSync(targetFile, png);
-      } catch (err: any) {
-        missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
-        continue;
+        try {
+          const png = new Resvg(svg, {
+            fitTo: {mode: 'width', value: 1920},
+            font: {
+              loadSystemFonts: true
+            }
+          }).render().asPng();
+          fs.writeFileSync(targetFile, png);
+        } catch (err: any) {
+          missingFrames.push(`Beat #${i + 1} (${beat.beatId}): falha ao renderizar SVG para PNG: ${err.message}`);
+          continue;
+        }
       }
 
       fs.copyFileSync(targetFile, localTargetFile);

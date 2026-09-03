@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import {HslLongFormProjectPlan, HslSceneBeat} from '../hsl/core/types';
 import {resolvePlanAssetToDiskPath, inspectMediaWithFfprobe, isValidPngFile} from '../hsl/core/hslPathResolver';
 import {
@@ -204,6 +205,52 @@ export class HslRunValidator {
           visualMode: String(beat.visualMode),
           expectedPath: 'N/A',
           reason: `visualMode desconhecido: '${beat.visualMode}'.`
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Validação de Diversidade Visual de Imagens 35mm (Zero tolerância a repetição em massa)
+    // -------------------------------------------------------------------------
+    const photorealHashes = new Map<string, string[]>();
+    let totalPhotorealBeats = 0;
+
+    for (let i = 0; i < plan.beats.length; i++) {
+      const beat = plan.beats[i];
+      if (beat.visualMode === 'generated_image_35mm') {
+        totalPhotorealBeats++;
+        const relativeFramePath = beat.outputFramePath || `runs/${episodeId}/frames/${beat.beatId}.png`;
+        const absoluteFramePath = resolvePlanAssetToDiskPath(relativeFramePath, root);
+        if (fs.existsSync(absoluteFramePath)) {
+          try {
+            const hash = crypto.createHash('sha256').update(fs.readFileSync(absoluteFramePath)).digest('hex');
+            const list = photorealHashes.get(hash) || [];
+            list.push(beat.beatId);
+            photorealHashes.set(hash, list);
+          } catch {}
+        }
+      }
+    }
+
+    if (totalPhotorealBeats >= 10) {
+      const uniqueImagesCount = photorealHashes.size;
+      const uniquenessRatio = uniqueImagesCount / totalPhotorealBeats;
+      const minRequiredRatio = 0.80; // No mínimo 80% das imagens photoreal devem ser únicas e inéditas
+
+      if (uniquenessRatio < minRequiredRatio) {
+        const duplicateDetails = Array.from(photorealHashes.entries())
+          .filter(([_, beatIds]) => beatIds.length > 1)
+          .map(([hash, beatIds]) => `Hash ${hash.slice(0, 8)} repetido em ${beatIds.length} cenas (${beatIds.slice(0, 4).join(', ')}...)`)
+          .slice(0, 3)
+          .join(' | ');
+
+        errors.push({
+          index: 0,
+          beatId: 'VISUAL_DIVERSITY_GATE',
+          actNumber: 0,
+          visualMode: 'generated_image_35mm',
+          expectedPath: `runs/${episodeId}/frames/`,
+          reason: `IMAGE_DIVERSITY_VIOLATION: Falha crítica de diversidade visual! Apenas ${uniqueImagesCount}/${totalPhotorealBeats} imagens únicas detectadas (${Math.round(uniquenessRatio * 100)}%). Mínimo exigido pelo PRD: ${Math.round(minRequiredRatio * 100)}%. Repetições em massa: ${duplicateDetails}`
         });
       }
     }
