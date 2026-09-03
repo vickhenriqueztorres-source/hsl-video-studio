@@ -165,23 +165,58 @@ def sync_assets(service, root_folder_id):
         if sub.is_dir():
             upload_folder_recursive(service, sub, target_folder)
 
+def sync_single_episode(service, root_folder_id, episode_id):
+    print(f"\n🚀 [Auto-Save] Sincronizando dados completos do episódio: {episode_id}...", flush=True)
+    # 1. Deliveries
+    ep_deliv = ROOT / 'deliveries' / episode_id
+    if ep_deliv.exists():
+        deliv_folder = get_or_create_folder(service, '01_DELIVERIES', root_folder_id)
+        upload_folder_recursive(service, ep_deliv, deliv_folder)
+    # 2. Saves
+    ep_runs = ROOT / 'runs' / episode_id
+    if ep_runs.exists():
+        saves_folder = get_or_create_folder(service, '03_EPISODE_SAVES', root_folder_id)
+        ep_target = get_or_create_folder(service, episode_id, saves_folder)
+        for save_file in ['run-manifest.json', 'scene-plan.json', 'audio-plan.json', 'audio/narration.mp3']:
+            p = ep_runs / save_file
+            if p.exists() and p.is_file():
+                upload_single_file(service, p, ep_target)
+
+def upload_checkpoint_files(service, root_folder_id, dest_subfolder, file_paths):
+    target_parent = root_folder_id
+    for part in dest_subfolder.strip('/').split('/'):
+        if part.strip():
+            target_parent = get_or_create_folder(service, part.strip(), target_parent)
+    for f in file_paths:
+        p = Path(f)
+        if p.exists() and p.is_file():
+            upload_single_file(service, p, target_parent)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--folder-id', default=DEFAULT_FOLDER_ID, help="Google Drive Root Folder ID")
-    parser.add_argument('--action', choices=['all', 'deliveries', 'saves', 'assets'], default='all')
+    parser.add_argument('--action', choices=['all', 'deliveries', 'saves', 'assets', 'sync-episode', 'checkpoint'], default='all')
+    parser.add_argument('--episode-id', help="ID do episódio para sync específico")
+    parser.add_argument('--dest-subfolder', help="Subpasta de destino no Drive (ex: 03_EPISODE_SAVES/EP_012)")
+    parser.add_argument('--files', nargs='*', help="Lista de arquivos para upload em checkpoint")
     args = parser.parse_args()
 
     service = get_drive_service()
     root_id = args.folder_id
 
-    if args.action in ['deliveries', 'all']:
-        sync_deliveries(service, root_id)
-    if args.action in ['saves', 'all']:
-        sync_saves(service, root_id)
-    if args.action in ['assets', 'all']:
-        sync_assets(service, root_id)
+    if args.action == 'sync-episode' and args.episode_id:
+        sync_single_episode(service, root_id, args.episode_id)
+    elif args.action == 'checkpoint' and args.dest_subfolder and args.files:
+        upload_checkpoint_files(service, root_id, args.dest_subfolder, args.files)
+    else:
+        if args.action in ['deliveries', 'all']:
+            sync_deliveries(service, root_id)
+        if args.action in ['saves', 'all']:
+            sync_saves(service, root_id)
+        if args.action in ['assets', 'all']:
+            sync_assets(service, root_id)
 
-    print("\n🎉 Sincronização com o Google Drive finalizada com sucesso!")
+    print("\n🎉 Operação no Google Drive finalizada com sucesso!", flush=True)
 
 if __name__ == '__main__':
     main()

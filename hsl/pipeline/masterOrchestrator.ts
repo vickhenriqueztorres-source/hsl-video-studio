@@ -142,6 +142,7 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   fs.writeFileSync(scenePlanPath, JSON.stringify(scenePlan, null, 2), 'utf8');
   manifest.completeStage('STAGE_01_SCENE_PLAN', { totalBeats: scenePlan.totalBeatsCount });
   manifest.setArtifacts({ scenePlanPath });
+  HslDriveStorage.saveStageCheckpoint(topicInput.episodeId, 'STAGE_01_SCENE_PLAN', [scenePlanPath]);
 
   // ---------------------------------------------------------------------------
   // 2. IMAGE ENGINE (GERAÇÃO DE NOVOS FRAMES 35MM)
@@ -176,6 +177,7 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   const narrationInfo = inspectMediaWithFfprobe(narrationDest);
   manifest.completeStage('STAGE_04_NARRATION', { durationSeconds: narrationInfo.durationSeconds });
   manifest.setArtifacts({ narrationAudioPath: narrationDest, narrationDurationSeconds: narrationInfo.durationSeconds });
+  HslDriveStorage.saveStageCheckpoint(topicInput.episodeId, 'STAGE_04_NARRATION', [narrationDest]);
 
   // ---------------------------------------------------------------------------
   // 5. SOUND DESIGN AGENT (ORQUESTRAÇÃO MULTI-LAYER)
@@ -210,6 +212,7 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   const remotionAudioPath = path.resolve(root, 'remotion', 'TestVideo1MinAudio.tsx');
   soundAgent.runFullPipeline(videoAnalysis, remotionAudioPath, audioPlanPath);
   manifest.completeStage('STAGE_05_SOUND_DESIGN');
+  HslDriveStorage.saveStageCheckpoint(topicInput.episodeId, 'STAGE_05_SOUND_DESIGN', [audioPlanPath]);
 
   // ---------------------------------------------------------------------------
   // 6. CANONICAL GATEKEEPER VALIDATION (BLOQUEANTE COM AUTO-CURA)
@@ -568,8 +571,7 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   manifest.startStage('STAGE_12_CLOUD_ARCHIVE');
   console.log('\n☁️ [12/12] Cloud Archive & Auto-Cleanup: Salvando no Google Drive e liberando disco...');
   try {
-    HslDriveStorage.syncDeliveries();
-    HslDriveStorage.syncSaves();
+    HslDriveStorage.syncEpisode(topicInput.episodeId);
     HslDriveStorage.pruneRenderIntermediates(topicInput.episodeId);
     manifest.completeStage('STAGE_12_CLOUD_ARCHIVE', { driveSynced: true, localPruned: true });
     console.log('✅ [12/12] Entregáveis protegidos na nuvem e intermediários limpos do disco.');
