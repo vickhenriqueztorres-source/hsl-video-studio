@@ -9,6 +9,8 @@ graph TD;
 	visual_prompts_review_wait(visual_prompts_review_wait)
 	image_generate_prepare(image_generate_prepare)
 	image_generate_wait(image_generate_wait)
+	image_review_prepare(image_review_prepare)
+	image_review_wait(image_review_wait)
 	fan_out_frames(fan_out_frames)
 	image_frames(image_frames)
 	join_frames(join_frames)
@@ -50,7 +52,8 @@ graph TD;
 	gate_publish_wait --> finalize;
 	image_frames --> join_frames;
 	image_generate_prepare --> image_generate_wait;
-	image_generate_wait --> join_frames;
+	image_generate_wait --> image_review_prepare;
+	image_review_prepare --> image_review_wait;
 	join_videos --> narration_stage;
 	mux --> packaging_stage;
 	narration_stage --> sound_design;
@@ -67,6 +70,8 @@ graph TD;
 	scene_plan -.-> env_check;
 	visual_prompts_review_wait -.-> visual_prompts_prepare;
 	visual_prompts_review_wait -.-> image_generate_prepare;
+	image_review_wait -.-> image_generate_wait;
+	image_review_wait -.-> join_frames;
 	join_frames -.-> fan_out_videos;
 	join_frames -.-> firefly_session_prepare;
 	firefly_session_wait -.-> firefly_guide;

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Command } from '@langchain/langgraph';
@@ -39,7 +40,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === 'status') {
       console.log(JSON.stringify({ thread_id: config.configurable.thread_id, next: snapshot.next,
         frames: counts(snapshot.values.frames ?? []), videos: counts(snapshot.values.videos ?? []), chunks: counts(snapshot.values.renderChunks ?? []),
-        generationCount:snapshot.values.generationCount,videoTakes:snapshot.values.videoTakes,sfxResolved:snapshot.values.sfxResolved,sfxUnresolved:snapshot.values.sfxUnresolved,
+        generationCount:snapshot.values.generationCount??0,videoTakes:snapshot.values.videoTakes??[],sfxResolved:snapshot.values.sfxResolved??[],sfxUnresolved:snapshot.values.sfxUnresolved??[],
         productionStatus: snapshot.values.productionStatus, errors: snapshot.values.errors, journalErrors: readErrors(REPO_ROOT, episodeId), tasks: snapshot.tasks }, null, 2));
       return 0;
     }
@@ -68,8 +69,9 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (snapshot.tasks.some(t => t.interrupts.length)) {
         const kind=(snapshot.tasks.flatMap(t=>t.interrupts)[0]?.value as any)?.kind;
         const decision = args['--decision'];
-        if (!kind && decision !== 'proceed' && decision !== 'abort') throw new Error('Resume de gate requer --decision proceed|abort');
-        input = new Command({ resume: kind ? { resumed:true } : { decision } });
+        const needsDecision=!kind||kind==='IMAGE_HUMAN_REVIEW';
+        if (needsDecision && decision !== 'proceed' && decision !== 'abort') throw new Error('Resume deste gate requer --decision proceed|abort');
+        input = new Command({ resume: needsDecision ? { decision } : { resumed:true } });
       } else if (args['--decision']) throw new Error('Nenhum gate aguarda decisão');
     }
     snapshot = await executeProduction(graph, REPO_ROOT, episodeId, input);

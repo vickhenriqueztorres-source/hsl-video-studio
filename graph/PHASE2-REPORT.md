@@ -9,7 +9,8 @@ Data: 2026-09-02. Branch: `codex/phase2-real-media`.
 | env_check | determinístico | valida agente e perfil |
 | visual_prompts_prepare/wait | IDE Antigravity + interrupt | JSON por beat validado por schema |
 | visual_prompts_review_prepare/wait | IDE Codex read-only | score/issues; até duas iterações |
-| image_generate_prepare/wait | arquivos + interrupt | PNG/JPG 16:9, largura mínima 1920 |
+| image_generate_prepare/wait | fila + interrupt | uma QUEUE.json por episódio; PNG 16:9, largura mínima 1920 |
+| image_review_prepare/wait | Codex visual + interrupt | imagens anexadas por -i; hashes, score, texto e issues |
 | firefly_session_prepare/wait | externo + interrupt | probe, Chrome persistente e revalidação |
 | firefly_guide | determinístico | somente Kling 2.5 Turbo, takes de 5 s |
 | firefly_dispatch/intake_wait | externo + interrupt | um take por vez, ffprobe e continuidade |
@@ -33,7 +34,7 @@ O agente externo é referenciado por `HSL_FIREFLY_AGENT_DIR`; credenciais e perf
 |---|---|---|
 | 1 | dois beats reais mockados até mux | passou |
 | 2 | take ausente, FIREFLY_RECOVERY e resume | passou |
-| 3 | imagem ausente, IMAGE_MANUAL e resume | passou |
+| 3 | gate manual por beat | substituído pelos testes 11–12 da fila única |
 | 4 | review 40, segunda iteração 95 | passou |
 | 5 | maxGenerations excedido antes do despacho | passou |
 | 6 | SFX não resolvido visível; demais mixados | passou |
@@ -41,6 +42,11 @@ O agente externo é referenciado por `HSL_FIREFLY_AGENT_DIR`; credenciais e perf
 | 8 | 4,9 s = 1; 7 s = 2; 12 s = 3; continuidade no take 2 | passou |
 | 9 | perfil Chrome ocupado bloqueia antes da geração | passou |
 | 10 | sessão inválida, FIREFLY_LOGIN e revalidação | passou |
+| 11 | prepare cria N pending e um único IMAGE_QUEUE | passou |
+| 12 | PNG inválido recebe lastError e novo interrupt | passou |
+| 13 | --fix converte JPG 1600x900 em PNG 1920x1080 | passou |
+| 14 | review baixa retorna item à fila; segunda passa | passou |
+| 15 | Codex skipped exige IMAGE_HUMAN_REVIEW | passou |
 
 Validações: `npx tsc --noEmit`, `npx ts-node graph/production/__tests__/phase2.test.ts` e `npx ts-node graph/production/__tests__/production.test.ts`.
 
@@ -48,7 +54,9 @@ Validações: `npx tsc --noEmit`, `npx ts-node graph/production/__tests__/phase2
 
 Comando: `run --episode HSL_EPISODE_011 --beats 2 --media-mode real --max-generations 3 --test-render`.
 
-Estado atual: interrompido em `IMAGE_MANUAL`, antes de qualquer nova geração. O Antigravity CLI não estava no PATH e o contrato de prompts foi preenchido manualmente; a validação de schema foi concluída. Após as duas imagens, a previsão é consumir duas gerações: take 2 de SCENE_001 e take 1 de SCENE_002. O MP4 final e seu ffprobe serão adicionados após o resume.
+Estado atual: checkpoint migrado com --from image_generate_prepare e interrompido uma única vez em IMAGE_QUEUE, antes de qualquer nova geração. Fila: runs/HSL_EPISODE_011/images/QUEUE.json, com SCENE_001 e SCENE_002 pendentes. O worker deve ser disparado na IDE com: “execute a skill hsl-image-worker para runs/HSL_EPISODE_011/images/QUEUE.json”.
+
+Depois que o worker validar os PNGs, o resume executará a revisão Codex com as imagens anexadas. Após aprovação, a previsão continua sendo duas gerações: take 2 de SCENE_001 e take 1 de SCENE_002. O MP4 final e seu ffprobe serão adicionados após o resume.
 
 ## SFX e dívidas
 

@@ -10,12 +10,17 @@ export interface GraphOptions {
   gates: { render: boolean; publish: boolean };
   mediaMode: MediaMode; beats?: number; testRender: boolean; maxGenerations: number;
   promptReviewThreshold: number; images: { tryHeadless: boolean };
+  imageReviewThreshold: number;
   video: { takeSeconds: 5; splitOver: 5.5 };
 }
 export type Options = MasterPipelineOptions & { graph: GraphOptions };
 export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string }
 export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
 export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
+export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string }
+export interface ImageQueue { episodeId: string; threadId: string; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText:true }; items:ImageQueueItem[]; resumeCommand:string }
+export interface ImageReviewItem { beatId:string; score:number; fidelity:string; hasText:boolean; issues:string[]; imageHash:string }
+export interface ImageReview { items:ImageReviewItem[]; skipped?:boolean; reason?:string; round:number }
 export interface VideoTake {
   beatId: string; takeIndex: number; dependsOnTake?: string; requestedSeconds: 5;
   actualSeconds?: number; firstFrameSource: 'image' | 'previous-take'; firstFramePath: string;
@@ -36,6 +41,9 @@ export const ProductionState = Annotation.Root({
   visualPrompts: Annotation<VisualPrompt[]>({ reducer: (_, b) => b, default: () => [] }),
   visualPromptsPath: nullable<string>(), promptReview: nullable<PromptReview>(), promptIteration: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   imageSpecs: Annotation<{ beatId: string; promptPath: string; expectedPath: string }[]>({ reducer: (_, b) => b, default: () => [] }),
+  imageQueuePath: nullable<string>(), imageValidationRounds: Annotation<number>({reducer:(_,b)=>b,default:()=>0}),
+  imageReview: nullable<ImageReview>(), imageReviewRounds: Annotation<number>({reducer:(_,b)=>b,default:()=>0}),
+  imageHumanApproved: Annotation<boolean>({reducer:(_,b)=>b,default:()=>false}),
   frames: append<AssetResult>(), videos: append<AssetResult>(), fireflyGuidePath: nullable<string>(),
   videoTakes: Annotation<VideoTake[]>({ reducer: (_, b) => b, default: () => [] }),
   generationCount: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
@@ -68,12 +76,13 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   };
   threadId(topicInput.episodeId);
   const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
-    maxGenerations: 4, promptReviewThreshold: 75, ...options.graph,
+    maxGenerations: 4, promptReviewThreshold: 75, imageReviewThreshold:75, ...options.graph,
     gates: { render: false, publish: false, ...options.graph?.gates }, images: { tryHeadless: false, ...options.graph?.images },
     video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
   for (const value of [graph.assetConcurrency, graph.renderConcurrency]) if (!Number.isSafeInteger(value) || value < 1) throw new Error('Concurrency deve ser inteiro positivo');
   if (graph.beats !== undefined && (!Number.isSafeInteger(graph.beats) || graph.beats < 1)) throw new Error('beats deve ser inteiro positivo');
   if (!Number.isSafeInteger(graph.maxGenerations) || graph.maxGenerations < 0) throw new Error('maxGenerations deve ser inteiro não negativo');
   if (graph.promptReviewThreshold < 0 || graph.promptReviewThreshold > 100) throw new Error('promptReviewThreshold deve estar entre 0 e 100');
+  if (graph.imageReviewThreshold < 0 || graph.imageReviewThreshold > 100) throw new Error('imageReviewThreshold deve estar entre 0 e 100');
   return { stateVersion: STATE_VERSION, episodeId: topicInput.episodeId, topicInput, options: { ...options, graph }, productionStatus: 'RUNNING' };
 }

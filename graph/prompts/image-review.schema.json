@@ -1,0 +1,5 @@
+{
+  "$schema":"http://json-schema.org/draft-07/schema#","type":"object","additionalProperties":false,"required":["items"],
+  "properties":{"items":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["beatId","score","fidelity","hasText","issues"],
+  "properties":{"beatId":{"type":"string"},"score":{"type":"number","minimum":0,"maximum":100},"fidelity":{"type":"string"},"hasText":{"type":"boolean"},"issues":{"type":"array","items":{"type":"string"}}}}}}
+}

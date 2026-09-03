@@ -26,6 +26,10 @@ export function taskDirectory(task: Pick<IdeTask, 'threadId' | 'node' | 'attempt
 export function prepareIdeTask(task: IdeTask, context: RunnerContext = {}, errors: string[] = []): PreparedTask {
   if (!['antigravity', 'codex', 'manual'].includes(task.provider)) throw new Error('Provider invalido.');
   const repoRoot = path.resolve(context.repoRoot ?? REPO_ROOT);
+  for (const image of task.imageFiles ?? []) {
+    const absolute = path.resolve(repoRoot, image);
+    if (!fs.existsSync(absolute)) throw new Error(`Imagem de contexto ausente: ${absolute}`);
+  }
   const ioMode = task.ioMode ?? (task.provider === 'antigravity' ? 'stdout' : 'file');
   const timeoutMs = task.timeoutMs ?? 600_000;
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647) throw new Error('timeoutMs invalido.');

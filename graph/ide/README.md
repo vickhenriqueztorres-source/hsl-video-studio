@@ -61,6 +61,12 @@ Exit 0 significa ausencia de falhas nao ignoradas; pode incluir PENDING ou
 SKIPPED/PENDING. Veja a tabela, nao apenas o exit code. `PASS` do transporte
 significa JSON conforme schema, nao aprovacao editorial do scene plan.
 
+## Workers de IDE
+
+Gates que dependem de uma ferramenta disponível apenas na interface usam o padrão **fila → skill → resume**. O nó prepare publica uma fila única e idempotente; o nó wait emite um único interrupt para a fila inteira. Um agente interativo executa a skill indicada, valida os artefatos por um script determinístico e só então executa o resumeCommand gravado na fila.
+
+Para Start Frames, runs/<E>/images/QUEUE.json é consumido pela skill hsl-image-worker. O worker não despacha Firefly nem altera prompts ou código. Itens inválidos permanecem pendentes com lastError; o grafo aceita no máximo três rodadas de validação antes de falhar.
+
 ## Regras de idempotência para nós com interrupt
 
 **Nenhum spawn de CLI nem efeito nao idempotente pode viver no mesmo no que

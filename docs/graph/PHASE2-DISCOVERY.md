@@ -124,7 +124,7 @@ o sandbox read-only e o transporte proíbem ferramentas/escrita.
 Evidência imutável: `runs/phase2-discovery/image-headless/results.json`, com
 um log por provider. O harness recusa nova execução quando esse receipt existe.
 
-**Decisão:** B3 deve usar o caminho manual com interrupt `IMAGE_MANUAL`. Não há
+**Decisão da descoberta:** o headless não gera imagens. A Parte B2 substituiu o interrupt por beat por uma fila única IMAGE_QUEUE, consumida pela skill interativa hsl-image-worker. Não há
 geração headless de PNG comprovada nas configurações autorizadas.
 
 ## A3 — contrato da composição Remotion

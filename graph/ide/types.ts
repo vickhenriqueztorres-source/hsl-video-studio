@@ -8,6 +8,7 @@ export interface IdeTask {
   promptTemplate: string;
   schemaPath: string;
   contextFiles?: string[];
+  imageFiles?: string[];
   vars?: Record<string, string>;
   timeoutMs?: number;
   readOnly?: boolean;

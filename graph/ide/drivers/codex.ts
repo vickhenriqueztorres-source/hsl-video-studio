@@ -35,10 +35,14 @@ export async function runCodex(prepared: PreparedTask): Promise<DriverResult> {
   }
   args.push('--ignore-user-config', '-c', 'approval_policy="never"');
   if (flags.includes('--ephemeral')) args.push('--ephemeral');
+  if (prepared.task.imageFiles?.length) {
+    if (!flags.includes('--image')) return { skipped: true, reason: 'Codex sem -i/--image; revisão visual não executada.' };
+    for (const image of prepared.task.imageFiles) args.push('-i', image);
+  }
   if (hasOutput) args.push('-o', prepared.outputPath);
   const prompt = fs.readFileSync(prepared.promptPath, 'utf8');
   args.push(prompt + '\n\nCodex transport instructions: The complete task is included above. ' +
-    'Evaluate the embedded scene plan directly. Do not use tools, read files, edit repository files or access the network. ' +
+    'Evaluate the embedded task and attached images directly. Do not use tools, read files, edit repository files or access the network. ' +
     'Return only the final JSON. The CLI output transport writes that final response to output.json; do not attempt a shell write.');
   const result = await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath);
   if (!hasOutput) {
