@@ -19,8 +19,8 @@ Trabalhe somente na fila indicada pelo usuário. Se nenhuma for indicada, locali
 
    Caso contrário, execute o mesmo comando sem --fix. O validador exige PNG, aspecto 16:9 com tolerância de 1% e largura mínima de 1920, atualiza cada item para done ou rejected e imprime a tabela.
 5. Para cada item rejected, leia lastError, gere novamente e valide. Faça no máximo duas novas tentativas por item.
-6. Quando todos os itens estiverem done, execute literalmente o resumeCommand da fila. Se algum continuar rejected, não retome o grafo; informe os beats e erros ao usuário.
+6. Quando executado pelo LangGraph via `codex exec`, não execute resumeCommand nem retome o grafo: o processo pai valida os PNGs e continua automaticamente. Quando o usuário pedir execução manual da fila, valide todos os itens antes de executar seu resumeCommand. Se algum continuar rejected, informe os beats e erros.
 
-Execute esta skill na interface do Codex que expõe `image_gen`. Não use Antigravity, Adobe Firefly, navegador, API/CLI da OpenAI, DALL-E, Midjourney, Stable Diffusion ou qualquer fallback. Se `image_gen` estiver indisponível, pare e informe o usuário. A ferramenta pode variar o aspecto, limitar a resolução ou devolver JPG/WebP; `--fix` converte e faz upscale determinístico antes da validação.
+Use o ImageGen nativo do Codex, inclusive pelo Codex CLI (`codex exec`) com a conta ChatGPT autenticada. O grafo chama `npm run hsl:images:generate -- --queue <QUEUE.json>` e dispensa uma IDE aberta. Não use o script Python image_gen.py, chave de API, Antigravity, Adobe Firefly, navegador ou outro gerador/fallback. Se `image_gen` estiver indisponível, reporte o erro; o grafo grava checkpoint em CODEX_IMAGE_UNAVAILABLE. A ferramenta pode variar o aspecto, limitar a resolução ou devolver JPG/WebP; `--fix` converte e faz upscale determinístico antes da validação.
 
 Nunca altere prompt.md, gere fora de outputPath, despache Firefly, edite código ou marque manualmente um item como done.

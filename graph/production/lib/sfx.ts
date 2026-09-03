@@ -1,8 +1,51 @@
-import fs from 'node:fs'; import path from 'node:path'; import crypto from 'node:crypto';
-import {spawnTool,requireSuccess} from '../../lib/proc'; import type {SfxItem} from '../state';
-type Layer={layerId:string;type:string;category:string;file?:string;startFrame:number;volumeDb:number};
-type Plan={fps:number;scenes:{sceneId:string;layers:Layer[]}[]};
-const assets={SNAP_POP:'assets/soundfx/kenney/interface-sounds/Audio/pluck_001.ogg',SUBTLE_STRIKE:'assets/soundfx/kenney/impact-sounds/Audio/impactMetal_light_002.ogg',CHAPTER_DROP:'assets/soundfx/kenney/impact-sounds/Audio/impactBell_heavy_001.ogg'} as const;
-function kind(l:Layer):keyof typeof assets|undefined{const x=`${l.type} ${l.category}`.toLowerCase();if(/chapter/.test(x))return'CHAPTER_DROP';if(/impact|strike|alert|bottleneck|entrance|headline/.test(x))return'SUBTLE_STRIKE';if(/foley|ui_|snap|pop|accent|reveal|flow/.test(x))return'SNAP_POP';}
-export async function renderSfx(root:string,planPath:string,out:string,totalSeconds:number){const p=JSON.parse(fs.readFileSync(planPath,'utf8')) as Plan;const resolved:SfxItem[]=[];const unresolved:SfxItem[]=[];for(const scene of p.scenes)for(const l of scene.layers){const k=kind(l),item:SfxItem={id:`${scene.sceneId}:${l.layerId}`,description:`${l.type}/${l.category}`,offsetSeconds:l.startFrame/p.fps,targetDb:l.volumeDb};if(!k){unresolved.push({...item,reason:'sem correspondência nos três assets Kenney disponíveis'});continue;}const sourcePath=path.join(root,assets[k]);if(!fs.existsSync(sourcePath)){unresolved.push({...item,reason:`asset ausente: ${sourcePath}`});continue;}resolved.push({...item,sourcePath});}
- fs.mkdirSync(path.dirname(out),{recursive:true});const args=['-y','-hide_banner','-loglevel','error','-f','lavfi','-i',`anullsrc=r=48000:cl=stereo:d=${totalSeconds}`];for(const x of resolved)args.push('-i',x.sourcePath!);const filters:string[]=[];const labels=['[0:a]'];resolved.forEach((x,i)=>{const label=`s${i}`;const delay=Math.round(x.offsetSeconds*1000),vol=Math.pow(10,x.targetDb/20).toFixed(6);filters.push(`[${i+1}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${vol},adelay=${delay}|${delay}[${label}]`);labels.push(`[${label}]`);});filters.push(`${labels.join('')}amix=inputs=${labels.length}:duration=first:normalize=0,alimiter=limit=0.7[out]`);args.push('-filter_complex',filters.join(';'),'-map','[out]','-ar','48000','-ac','2','-c:a','pcm_s16le',out);requireSuccess(await spawnTool('ffmpeg',args,{cwd:root,logPath:out+'.log'}),'SFX_RENDER');const hashes=resolved.map(x=>({...x,sha256:crypto.createHash('sha256').update(fs.readFileSync(x.sourcePath!)).digest('hex')}));return{resolved:hashes,unresolved};}
+import fs from 'node:fs';
+import path from 'node:path';
+import {spawnTool, requireSuccess} from '../../lib/proc';
+import type {SfxItem} from '../state';
+import type {AudioPlan} from '../../../sound-agent/types/audio-plan.types';
+import type {HslLongFormProjectPlan} from '../../../hsl/core/types';
+import type {SoundFxScene} from '../../../hsl/postproduction/soundFxRuntime';
+interface SfxContext {episodeId: string; scenePlan: HslLongFormProjectPlan}
+export interface SfxResult {resolved: SfxItem[]; unresolved: SfxItem[]; planPath?: string; qaPath?: string; cached?: boolean}
+
+export function soundScenes(audio: AudioPlan, context: SfxContext): {scenes: SoundFxScene[]; unresolved: SfxItem[]} {
+  let start = 0;
+  const unresolved: SfxItem[] = [];
+  const scenes = context.scenePlan.beats.map(beat => {
+    const layers = audio.scenes.find(scene => scene.sceneId.toLowerCase() === beat.beatId.toLowerCase())?.layers ?? [];
+    const choreography: {type: string; at_percent: number}[] = [];
+    const events: {at_percent: number; action: string; subject: string}[] = [];
+    for (const layer of layers) {
+      const text = `${layer.type}/${layer.category}`, at = layer.startFrame / audio.fps - start;
+      const percent = 100 * at / beat.durationSeconds;
+      const reason = at < 0 || at >= beat.durationSeconds ? 'cue fora do beat' : undefined;
+      if (!reason && /flow|arrow|snap|pop/i.test(text)) choreography.push({type: 'flow_line', at_percent: percent});
+      else if (!reason && /alert|bottleneck|constraint|strike/i.test(text)) events.push({at_percent: percent, action: 'alert', subject: text});
+      else unresolved.push({id: `${beat.beatId}:${layer.layerId}`, description: text,
+        offsetSeconds: layer.startFrame / audio.fps, targetDb: layer.volumeDb,
+        reason: reason ?? 'sem asset narrativo específico no banco; silêncio preservado'});
+    }
+    const scene: SoundFxScene = {scene_id: beat.beatId, episode_id: context.episodeId,
+      chapter_id: `ACT_${beat.actNumber}`, planned_duration_seconds: beat.durationSeconds,
+      narrative_function: `${beat.narrativeRole ?? ''} ${beat.voiceoverScript}`,
+      visual_subject: beat.promptSubject ?? beat.cinematicPrompt,
+      micro_events: events, remotion_choreography: choreography};
+    start += beat.durationSeconds;
+    return scene;
+  });
+  if (Math.abs(start - context.scenePlan.totalDurationSeconds) > 0.08) throw new Error('SFX_SCENE_DURATION_MISMATCH');
+  return {scenes, unresolved};
+}
+
+export async function renderSfx(root: string, planPath: string, out: string, totalSeconds: number, context?: SfxContext): Promise<SfxResult> {
+  if (!context) throw new Error('SFX_SCENE_CONTEXT_REQUIRED');
+  const audio = JSON.parse(fs.readFileSync(planPath, 'utf8')) as AudioPlan;
+  if (!(audio.fps > 0) || Math.abs(context.scenePlan.totalDurationSeconds - totalSeconds) > 0.08) throw new Error('SFX_TIMELINE_INVALID');
+  const {scenes, unresolved} = soundScenes(audio, context);
+  fs.mkdirSync(path.dirname(out), {recursive: true});
+  const input = path.join(path.dirname(out), 'soundfx-input.json'), result = path.join(path.dirname(out), 'soundfx-result.json');
+  fs.writeFileSync(input, JSON.stringify({root, out, scenes, fps: audio.fps}, null, 2) + '\n');
+  requireSuccess(await spawnTool(process.execPath, [require.resolve('ts-node/dist/bin.js'),
+    path.resolve(__dirname, '../../audio/worker.ts'), input, result], {cwd: root, logPath: out + '.log'}), 'SFX_RUNTIME');
+  return {...JSON.parse(fs.readFileSync(result, 'utf8')), unresolved};
+}

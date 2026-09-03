@@ -22,8 +22,8 @@ export function findCli(name: string): CliCommand | undefined {
   }
   return undefined;
 }
-export function runProcess(cli: CliCommand, args: string[], cwd: string, timeoutMs: number, logPath?: string): Promise<ProcessResult> {
-  return spawnTool(cli.command, [...cli.prefix, ...args], { cwd, timeoutMs, logPath });
+export function runProcess(cli: CliCommand, args: string[], cwd: string, timeoutMs: number, logPath?: string, stdin?:string): Promise<ProcessResult> {
+  return spawnTool(cli.command, [...cli.prefix, ...args], { cwd, timeoutMs, logPath, stdin });
 }
 export function unavailableReason(result: ProcessResult): string | undefined {
   if (result.errorCode === 'ENOENT') return 'CLI indisponivel (ENOENT).';

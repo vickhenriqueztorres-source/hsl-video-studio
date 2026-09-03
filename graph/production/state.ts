@@ -3,6 +3,8 @@ import type { MasterPipelineOptions } from '../../hsl/pipeline/masterOrchestrato
 import type { EpisodeTopicInput, HslLongFormProjectPlan } from '../../hsl/core/types';
 import type { HslPublicationPackage } from '../../hsl/packaging/thumbnailSeoEngine';
 import type { ComplianceReport } from '../../spec/hsl-compliance-checker';
+import type { StorageEntry } from './storage/model';
+import type { ImageGenerationIssue } from './lib/codexImages';
 export const STATE_VERSION = 2;
 export type MediaMode = 'legacy' | 'real';
 export interface GraphOptions {
@@ -12,12 +14,13 @@ export interface GraphOptions {
   promptReviewThreshold: number; images: { provider: 'codex' };
   imageReviewThreshold: number;
   video: { takeSeconds: 5; splitOver: 5.5 };
+  storageMode:'off'|'drive'; prune:'dry-run'|'apply'; keepLocalDeliverables:number;
 }
 export type Options = MasterPipelineOptions & { graph: GraphOptions };
 export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string }
 export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
 export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
-export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string; generatedBy?:'codex-imagegen' }
+export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; promptHash?:string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string; generatedBy?:'codex-imagegen' }
 export interface ImageQueue { episodeId: string; threadId: string; generator:'codex-imagegen'; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText:true }; items:ImageQueueItem[]; resumeCommand:string }
 export interface ImageReviewItem { beatId:string; score:number; fidelity:string; hasText:boolean; issues:string[]; imageHash:string }
 export interface ImageReview { items:ImageReviewItem[]; skipped?:boolean; reason?:string; round:number }
@@ -42,6 +45,8 @@ export const ProductionState = Annotation.Root({
   visualPromptsPath: nullable<string>(), promptReview: nullable<PromptReview>(), promptIteration: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   imageSpecs: Annotation<{ beatId: string; promptPath: string; expectedPath: string }[]>({ reducer: (_, b) => b, default: () => [] }),
   imageQueuePath: nullable<string>(), imageValidationRounds: Annotation<number>({reducer:(_,b)=>b,default:()=>0}),
+  codexAuth: nullable<{authenticated:boolean;reason?:string}>(), imageGenerationIssue: nullable<ImageGenerationIssue>(),
+  imageGenerationRetry: Annotation<boolean>({reducer:(_,b)=>b,default:()=>false}),
   imageReview: nullable<ImageReview>(), imageReviewRounds: Annotation<number>({reducer:(_,b)=>b,default:()=>0}),
   imageHumanApproved: Annotation<boolean>({reducer:(_,b)=>b,default:()=>false}),
   frames: append<AssetResult>(), videos: append<AssetResult>(), fireflyGuidePath: nullable<string>(),
@@ -49,7 +54,8 @@ export const ProductionState = Annotation.Root({
   generationCount: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   narration: nullable<{ path: string; publicCopyPath: string; durationSeconds: number }>(),
   soundDesign: nullable<{ audioPlanPath: string; audioTsxPath: string }>(),
-  sfxTrackPath: nullable<string>(), sfxResolved: Annotation<SfxItem[]>({ reducer: (_, b) => b, default: () => [] }),
+  sfxTrackPath: nullable<string>(), sfxPlanPath: nullable<string>(), sfxQaPath: nullable<string>(),
+  sfxResolved: Annotation<SfxItem[]>({ reducer: (_, b) => b, default: () => [] }),
   sfxUnresolved: Annotation<SfxItem[]>({ reducer: (_, b) => b, default: () => [] }),
   gatekeeper: nullable<{ passed: boolean; blockedReason?: string; verifiedBeats: number; autoRecovered: boolean; attempts: number }>(),
   assetServer: nullable<{ baseUrl: string }>(), renderProps: nullable<{ path: string }>(),
@@ -58,8 +64,9 @@ export const ProductionState = Annotation.Root({
   finalVideo: nullable<{ outPath: string; deliveryPath: string; runPath: string; durationSeconds: number }>(),
   packaging: nullable<HslPublicationPackage>(), compliance: nullable<ComplianceReport>(),
   productionStatus: Annotation<'RUNNING' | 'BLOCKED_PRE_RENDER' | 'ABORTED' | 'COMPLIANCE_FAILED' | 'COMPLETED'>({ reducer: (_, b) => b, default: () => 'RUNNING' }),
-  gateDecisions: append<{ gate: 'render' | 'publish'; decision: 'proceed' | 'abort'; at: string }>(),
+  gateDecisions: append<{ gate: 'render' | 'publish' | 'kling'; decision: 'proceed' | 'abort'; at: string }>(),
   errors: append<NodeError>(), timings: append<Timing>(),
+  storageIndex: append<StorageEntry>(),
 });
 export type State = typeof ProductionState.State;
 export type Update = typeof ProductionState.Update;
@@ -76,7 +83,7 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   };
   threadId(topicInput.episodeId);
   const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
-    maxGenerations: 4, promptReviewThreshold: 75, imageReviewThreshold:75, ...options.graph,
+    maxGenerations: 0, promptReviewThreshold: 75, imageReviewThreshold:75, storageMode:'off',prune:'dry-run',keepLocalDeliverables:1,...options.graph,
     gates: { render: false, publish: false, ...options.graph?.gates }, images: { provider: 'codex' },
     video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
   for (const value of [graph.assetConcurrency, graph.renderConcurrency]) if (!Number.isSafeInteger(value) || value < 1) throw new Error('Concurrency deve ser inteiro positivo');
@@ -84,5 +91,8 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   if (!Number.isSafeInteger(graph.maxGenerations) || graph.maxGenerations < 0) throw new Error('maxGenerations deve ser inteiro não negativo');
   if (graph.promptReviewThreshold < 0 || graph.promptReviewThreshold > 100) throw new Error('promptReviewThreshold deve estar entre 0 e 100');
   if (graph.imageReviewThreshold < 0 || graph.imageReviewThreshold > 100) throw new Error('imageReviewThreshold deve estar entre 0 e 100');
+  if(!['off','drive'].includes(graph.storageMode))throw new Error('storageMode deve ser off|drive');
+  if(!['dry-run','apply'].includes(graph.prune))throw new Error('prune deve ser dry-run|apply');
+  if(!Number.isSafeInteger(graph.keepLocalDeliverables)||graph.keepLocalDeliverables<0)throw new Error('keepLocalDeliverables deve ser inteiro não negativo');
   return { stateVersion: STATE_VERSION, episodeId: topicInput.episodeId, topicInput, options: { ...options, graph }, productionStatus: 'RUNNING' };
 }

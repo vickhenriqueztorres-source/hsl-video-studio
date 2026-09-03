@@ -22,6 +22,8 @@ export function fixtures(root: string, episodeId: string, opts: MockOptions = {}
   const smallPlan = { ...plan, beats: plan.beats.slice(0, 3).map((b, i) => ({ ...b, visualMode: i === 0 ? 'generated_image_35mm' as const : 'firefly_video' as const })), totalBeatsCount: 3 };
   let held = 0;
   const deps: Partial<Dependencies> = {
+    codexAccount:async()=>({authenticated:true}),
+    generateImages:async()=>({kind:'IMAGE_GENERATION_RECOVERY',reason:'fixture: no external image generation'}),
     plan: () => { called('plan'); return smallPlan; },
     frames: async (_episode, beats) => {
       called('frames');

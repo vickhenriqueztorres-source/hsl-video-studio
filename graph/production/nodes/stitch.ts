@@ -12,7 +12,7 @@ export const stitch = (c: Context): NodeFn => async s => {
     if (chunks.some(f => !validMedia(c, f))) throw new Error('FFMPEG_CONCAT_MISSING_CHUNKS');
     const list = path.join(c.root, 'out', 'concat_' + s.episodeId.toLowerCase() + '.txt');
     writeConcatList(list, chunks);
-    if(s.options.graph.testRender && chunks.length===1) fs.copyFileSync(chunks[0],p.visual); else await c.deps.concatChunks(list, p.visual);
+    if(s.options.graph.testRender && chunks.length===1) { fs.mkdirSync(path.dirname(p.visual),{recursive:true}); fs.copyFileSync(chunks[0],p.visual); } else await c.deps.concatChunks(list, p.visual);
     if (!validMedia(c, p.visual) || fs.statSync(p.visual).size < 100000) throw new Error('REMOTION_RENDER_GATE_FATAL: Falha ao renderizar trilha visual.');
     for (const file of [...chunks, list]) if (fs.existsSync(file)) fs.unlinkSync(file);
   }

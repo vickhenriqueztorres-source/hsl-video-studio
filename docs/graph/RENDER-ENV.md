@@ -1,8 +1,25 @@
 # Ambiente de render Remotion no Windows
 
+## Storage Google Drive do grafo
+
+O modo real da CLI usa `options.graph.storageMode=drive`; testes mantêm
+`storageMode=off`. O ambiente é validado em `env_check` antes da produção:
+
+- `HSL_DRIVE_FOLDER_ID`: obrigatório no modo Drive;
+- `HSL_GOOGLE_CLIENT_SECRET_FILE`: caminho absoluto fora do repositório;
+- `HSL_GOOGLE_TOKEN_FILE`: caminho do token OAuth fora do repositório ou o
+  default ignorado `config/token.json`;
+- `HSL_PYTHON`: executável opcional. Sem ele, o helper tenta `py -3`,
+  `python3` e `python`, sempre com argv literal e sem shell.
+
+`npm run hsl:drive:auth` abre um servidor loopback em `127.0.0.1`, imprime o
+URL OAuth v2 e grava o token apenas no path fornecido pelo ambiente. A CLI não
+registra o conteúdo das credenciais no estado, nos recibos ou nos relatórios.
+O prune real exige `--prune apply`; o padrão é `dry-run`.
+
 ## Aprovação de Start Frames
 
-No caminho real, image_generate_prepare publica uma fila única em runs/<E>/images/QUEUE.json com `generator: codex-imagegen`. A skill interativa hsl-image-worker gera os PNGs exclusivamente pelo ImageGen integrado do Codex e o validador rejeita filas com outro gerador. Depois, image_review_prepare anexa os arquivos diretamente ao codex exec -i/--image, registra SHA-256, score, fidelidade, texto detectado e issues. Score mínimo: 75.
+No caminho real, image_generate_prepare publica uma fila única em runs/<E>/images/QUEUE.json com `generator: codex-imagegen`. image_generate_run chama `codex exec` com ImageGen nativo e o login ChatGPT do usuário, sem IDE aberta; o validador rejeita filas com outro gerador. `npm run hsl:codex:login` abre o login e `npm run hsl:codex:status` confirma a sessão. Depois, image_review_prepare anexa os arquivos diretamente ao codex exec -i/--image, registra SHA-256, score, fidelidade, texto detectado e issues. Score mínimo: 75. Detalhes em ACCOUNTS.md.
 
 Se o Codex estiver sem cota ou indisponível, a validação física permanece válida, mas o grafo interrompe obrigatoriamente em IMAGE_HUMAN_REVIEW. O Firefly só recebe trabalho após aprovação do revisor ou desse fallback humano.
 
@@ -97,3 +114,20 @@ e os logs individuais na mesma pasta.
 `--user-data-dir=%LOCALAPPDATA%\HSLVideoStudio\ChromeProfile`. Esse perfil é
 persistente para login humano no LangSmith Studio e é separado do perfil
 temporário que o Remotion cria para render.
+
+## Kling 2.5 Turbo
+
+O grafo usa `HSL_FIREFLY_AGENT_DIR` para localizar o agente externo e
+`HSL_FIREFLY_CHROME_PROFILE` para o perfil exclusivo persistente. Ambos foram
+configurados no `.env` local; credenciais e cookies permanecem fora do Git.
+
+O diagnóstico sem geração é `npm.cmd run hsl:kling:check`. Ele valida paths,
+perfil livre, sessão autenticada e o último MP4 físico. Um canário pago exige
+`HSL_ALLOW_PAID_FIREFLY_DISPATCH=true` somente no processo autorizado.
+
+Em 2026-09-03, o canário real do Kling 2.5 Turbo passou: H.264, 1920x1080,
+24 fps, 5,041667 s, 16.459.068 bytes e SHA-256
+`b34cbbcb568b26fbc1ad6029a164caa2eac6f86b335473cd7afb8818b6c2493e`.
+O primeiro e o último quadro são diferentes e a inspeção visual preservou o
+avião, o equipamento de abastecimento, a mangueira, a iluminação e a composição,
+sem pessoas, texto ou logos adicionados.

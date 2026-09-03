@@ -15,6 +15,9 @@ import { createFfmpeg } from './lib/ffmpeg';
 import { prepareAndRunIdeTask } from '../ide/ideRunner';
 import * as firefly from './lib/firefly';
 import { renderSfx } from './lib/sfx';
+import { generateCodexImages } from './lib/codexImages';
+import { checkCodexAccount } from '../ide/codexAccount';
+import { driveCheckAuth,driveUploadVerified,driveVerify } from './storage/drive';
 export function realDependencies(root: string) {
   return {
     plan: HslSceneDirectorAgent.planEpisodeFromScratch.bind(HslSceneDirectorAgent),
@@ -32,6 +35,8 @@ export function realDependencies(root: string) {
     runFireflyTake: firefly.runAgentTake, detailedProbe: firefly.detailedProbe,
     extractLastFrame: firefly.extractLastFrame, concatTakes: firefly.concatTakes,
     renderSfx,
+    codexAccount:()=>checkCodexAccount(root), generateImages:(queue:string)=>generateCodexImages(root,queue),
+    driveCheckAuth:()=>driveCheckAuth(root),driveUploadVerified:(manifest:string,result:string)=>driveUploadVerified(root,manifest,result),driveVerify:(manifest:string,result:string)=>driveVerify(root,manifest,result),
     ...assets, ...server, ...remotion, ...createFfmpeg(root),
   };
 }

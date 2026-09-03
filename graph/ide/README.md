@@ -65,7 +65,7 @@ significa JSON conforme schema, nao aprovacao editorial do scene plan.
 
 Gates que dependem de uma ferramenta disponível apenas na interface usam o padrão **fila → skill → resume**. O nó prepare publica uma fila única e idempotente; o nó wait emite um único interrupt para a fila inteira. Um agente interativo executa a skill indicada, valida os artefatos por um script determinístico e só então executa o resumeCommand gravado na fila.
 
-Para Start Frames, runs/<E>/images/QUEUE.json é consumido pela skill hsl-image-worker exclusivamente com o ImageGen integrado do Codex. A fila declara `generator: codex-imagegen`; outro valor falha fechado. O worker não despacha Firefly nem altera prompts ou código. Itens inválidos permanecem pendentes com lastError; o grafo aceita no máximo três rodadas de validação antes de falhar.
+Para Start Frames, `image_generate_run` consome runs/<E>/images/QUEUE.json automaticamente via `codex exec`, usando exclusivamente ImageGen nativo. A fila declara `generator: codex-imagegen`; outro valor falha fechado. O processo pai valida/copia PNGs e continua; o filho não despacha Firefly nem retoma o grafo. A skill hsl-image-worker também documenta esse transporte. Não é necessário abrir a IDE. Login: `npm run hsl:codex:login`; status: `npm run hsl:codex:status`. Configuração e prova real em `docs/graph/ACCOUNTS.md`.
 
 ## Regras de idempotência para nós com interrupt
 

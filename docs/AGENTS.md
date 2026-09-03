@@ -61,6 +61,7 @@ Os tres primeiros diretores preservam o pacote editorial em sidecars. O `Cinemat
 | `KlingProviderPromptAdapter` | adapta movimento para image-to-video | prompt sem drift semantico |
 | `FireflyAdapter` | executa Kling no Firefly e coleta MP4 | jobs externos concluidos |
 | `FireflyToIntakeBridge` | valida video e hashes antes da montagem | intake manifest aprovado |
+| `KlingSupervisorAgent` | valida sessão, perfil, recibo idempotente, MP4, movimento e orçamento | `hsl.kling-health.v1` aprovado |
 
 ## Pos-producao
 

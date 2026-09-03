@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 export interface ToolOptions {
   cwd: string; timeoutMs?: number; env?: NodeJS.ProcessEnv; logPath?: string;
@@ -74,4 +74,23 @@ export async function spawnTool(cmd: string, argv: string[], opts: ToolOptions):
 export function requireSuccess(result: ToolResult, label: string): ToolResult {
   if (result.exitCode !== 0 || result.timedOut || result.errorCode) throw new Error(`${label}: ${result.stderr || result.errorCode || 'timeout'}`);
   return result;
+}
+
+// For synchronous engines isolated inside a worker process. Keep the same
+// executable resolution, literal argv and hidden Windows process behavior.
+export function spawnToolSync(cmd: string, argv: readonly string[], opts: ToolOptions): ToolResult {
+  const cli = resolveTool(cmd, opts.env), started = Date.now();
+  const result = spawnSync(cli.command, [...cli.prefix, ...argv], {
+    cwd: opts.cwd, env: opts.env ?? process.env, shell: false, windowsHide: true,
+    encoding: 'utf8', input: opts.stdin, timeout: opts.timeoutMs ?? 300_000, maxBuffer: 10 * 1024 * 1024,
+  });
+  const errorCode = (result.error as NodeJS.ErrnoException | undefined)?.code;
+  const output: ToolResult = {exitCode: result.status ?? undefined, stdout: result.stdout ?? '',
+    stderr: result.stderr || result.error?.message || '', errorCode,
+    timedOut: errorCode === 'ETIMEDOUT', durationMs: Date.now() - started};
+  if (opts.logPath) {
+    fs.mkdirSync(path.dirname(opts.logPath), {recursive: true});
+    fs.appendFileSync(opts.logPath, JSON.stringify({command: cli.command, argv: [...cli.prefix, ...argv], ...output}) + '\n');
+  }
+  return output;
 }

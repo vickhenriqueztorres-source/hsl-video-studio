@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Overwrite, START } from '@langchain/langgraph';
 import { ProductionGraph, NODE_ORDER, NODE_ALIASES, NodeName } from './graph';
-import { State, Update, threadId, NodeError } from './state';
+import { State, Update, threadId, NodeError,GraphOptions } from './state';
 import { readJson, writeJson } from './runtime';
 import { HslRunManifest, StageName } from '../../hsl/core/hslRunManifest';
 export function configFor(episodeId: string) { return { configurable: { thread_id: threadId(episodeId) }, recursionLimit: 128 }; }
@@ -39,15 +39,17 @@ export function counts(items: { status: string; beatId?: string; index?: number 
   return Object.fromEntries(['ok', 'skipped', 'failed'].map(status => [status, [...latest.values()].filter(x => x.status === status).length]));
 }
 const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
+  codex_auth_prepare:['codexAuth'],image_generate_run:['imageGenerationIssue','imageGenerationRetry'],
   env_check:['environment'],visual_prompts_prepare:['visualPrompts','visualPromptsPath'],visual_prompts_review_prepare:['promptReview'],image_generate_prepare:['imageSpecs','imageQueuePath'],image_generate_wait:['frames','imageValidationRounds'],
   image_review_prepare:['imageReview','imageReviewRounds'],image_review_wait:['imageHumanApproved'],
-  firefly_guide:['videoTakes','fireflyGuidePath'],firefly_dispatch:['videoTakes','generationCount'],firefly_intake_wait:['videoTakes'],firefly_finalize:['videos'],sfx_render:['sfxTrackPath','sfxResolved','sfxUnresolved'],
+  firefly_guide:['videoTakes','fireflyGuidePath'],firefly_dispatch:['videoTakes','generationCount'],firefly_intake_wait:['videoTakes'],firefly_finalize:['videos'],sfx_render:['sfxTrackPath','sfxPlanPath','sfxQaPath','sfxResolved','sfxUnresolved'],
   scene_plan: ['scenePlan', 'scenePlanPath'], image_frames: ['frames'], firefly_videos: ['videos', 'fireflyGuidePath'],
   narration_stage: ['narration'], sound_design: ['soundDesign'], gatekeeper_stage: ['gatekeeper'],
   render_prepare: ['assetServer', 'renderProps'], render_chunk: ['renderChunks'], stitch: ['visualTrackPath'],
   pre_mux_gate: ['preMux'], mux: ['finalVideo'], packaging_stage: ['packaging'], compliance_stage: ['compliance'],
+  archive_scene_plan:['storageIndex'],archive_images:['storageIndex'],archive_firefly:['storageIndex'],archive_audio:['storageIndex'],archive_compliance:['storageIndex'],prune_verified:['storageIndex'],
 };
-export async function rewind(graph: ProductionGraph, root: string, episodeId: string, requested: string) {
+export async function rewind(graph: ProductionGraph, root: string, episodeId: string, requested: string,graphOptions?:Partial<GraphOptions>) {
   const node = (NODE_ALIASES[requested] ?? requested) as NodeName;
   const index = NODE_ORDER.indexOf(node);
   if (index < 0) throw new Error(`Nó desconhecido: ${requested}`);
@@ -55,13 +57,14 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
   if (!snapshot.values.episodeId) throw new Error('--from requer thread existente');
   const first = node === 'fan_out_frames' ? NODE_ORDER.indexOf('image_frames') : node === 'fan_out_videos' ? NODE_ORDER.indexOf('firefly_videos') : index;
   const patch: Record<string, unknown> = { productionStatus: 'RUNNING', errors: new Overwrite([]), timings: new Overwrite([]), gateDecisions: new Overwrite([]) };
-  for (const n of NODE_ORDER.slice(first)) for (const field of outputFields[n] ?? []) patch[field] = ['frames', 'videos', 'renderChunks'].includes(field) ? new Overwrite([]) : null;
+  if(graphOptions)patch.options={...snapshot.values.options,graph:{...snapshot.values.options.graph,...graphOptions}};
+  for (const n of NODE_ORDER.slice(first)) for (const field of outputFields[n] ?? []) patch[field] = ['frames', 'videos', 'renderChunks','storageIndex'].includes(field) ? new Overwrite([]) : null;
   // fan_out_render must also invalidate renderChunks, so routing reschedules work.
   if (index <= NODE_ORDER.indexOf('render_chunk')) patch.renderChunks = new Overwrite([]);
   const m = new HslRunManifest(episodeId, root);
   const stageNodes: NodeName[] = ['scene_plan', 'fan_out_frames', 'fan_out_videos', 'narration_stage', 'sound_design', 'gatekeeper_stage', 'render_prepare', 'pre_mux_gate', 'mux', 'packaging_stage', 'compliance_stage'];
   const data = m.getData();
-  for (const [i, id] of (Object.keys(data.stages) as StageName[]).entries()) {
+  for (const [i, id] of (Object.keys(data.stages) as StageName[]).filter(id=>id!=='STAGE_12_CLOUD_ARCHIVE').entries()) {
     const next = i === stageNodes.length - 1 ? NODE_ORDER.length : NODE_ORDER.indexOf(stageNodes[i + 1]);
     if (index < next) data.stages[id] = { name: id, status: 'PENDING' };
   }

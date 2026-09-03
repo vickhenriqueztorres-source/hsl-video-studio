@@ -1,0 +1,4 @@
+interface:
+  display_name: "HSL Sound FX Design"
+  short_description: "Planeja e aplica SFX narrativos na edicao HSL"
+  default_prompt: "Planeje, produza, aplique e valide sound effects narrativos para a fase de edicao do Hidden Systems Lab."

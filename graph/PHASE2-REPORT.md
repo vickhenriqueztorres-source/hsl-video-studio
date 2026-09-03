@@ -1,5 +1,49 @@
 # Fase 2 — motor de mídia real
 
+Atualização 2026-09-03: geração nativa por `codex exec` foi comprovada com uma
+imagem real, sem IDE aberta e com login ChatGPT. O grafo agora executa
+`codex_auth_prepare/wait` e `image_generate_run`; o IMAGE_QUEUE interativo
+descrito no histórico abaixo foi substituído por geração automática e gates
+apenas em falhas. Login/status: `npm run hsl:codex:login` /
+`npm run hsl:codex:status`. Evidência e instruções em `docs/graph/ACCOUNTS.md`.
+O C4 completo do EP 011 foi concluído em 2026-09-03 com duas gerações novas e
+um take canário reaproveitado.
+
+### Correção de planejamento e orçamento 2026-09-03
+
+O episódio de 6 minutos expôs que o diretor legado altera o cabeçalho para 360
+segundos, mas conserva os 96 beats e aproximadamente 600 segundos do storyboard
+canônico. O wrapper do grafo agora reduz o plano de modo determinístico,
+preserva os oito atos e distribui exatamente 10.800 frames. Para o EP 012, o
+resultado é 58 beats: 43 imagens estáticas e 15 beats `firefly_video`.
+
+O `firefly_guide` passou a planejar takes somente para beats marcados como
+`firefly_video`, conforme o contrato do Remotion e a engine legada. A CLI não
+pede mais um teto arbitrário no início. Produção completa executa primeiro o
+planejamento e as imagens; no `KLING_BUDGET`, mostra beats de vídeo, takes,
+reaproveitamentos e novas gerações, e só despacha após a palavra `KLING`. No EP
+012, o plano atual prevê 20 takes para 15 beats, sem geração já consumida.
+
+O Codex CLI foi atualizado de 0.152.1 para 0.153.0. O 404 deixou de ocorrer. Um
+segundo bloqueio foi corrigido concedendo ao subprocesso isolado acesso à skill
+`imagegen`; o canário produziu e validou um PNG 1920x1080. A fila agora guarda o
+hash do prompt e invalida imagens quando o prompt muda.
+
+### Atualização Kling 2026-09-03
+
+O canário real passou com H.264, 1920x1080, 24 fps, 5,041667 s, 16.459.068
+bytes e SHA-256 `b34cbbcb568b26fbc1ad6029a164caa2eac6f86b335473cd7afb8818b6c2493e`.
+O primeiro frame foi copiado para o sandbox do agente, corrigindo a antiga
+incompatibilidade de path absoluto. A revisão visual confirmou fidelidade ao
+avião e ao sistema de abastecimento, movimento coerente e ausência de pessoas,
+texto e logos adicionados.
+
+Foi adicionado um recibo idempotente por take. O retry genérico foi removido do
+nó pago; resultado incerto interrompe em `FIREFLY_RECOVERY` e não reenfileira.
+O teste também comprovou que o código 2 do watchdog significa fila vazia após
+sucesso e deve ser reconciliado pela presença do MP4 validado. Detalhes em
+`docs/graph/KLING-SUPERVISOR.md`.
+
 Data: 2026-09-02. Branch: `codex/phase2-real-media`.
 
 ## Implementação
@@ -36,7 +80,7 @@ O agente externo é referenciado por `HSL_FIREFLY_AGENT_DIR`; credenciais e perf
 | 2 | take ausente, FIREFLY_RECOVERY e resume | passou |
 | 3 | gate manual por beat | substituído pelos testes 11–12 da fila única |
 | 4 | review 40, segunda iteração 95 | passou |
-| 5 | maxGenerations excedido antes do despacho | passou |
+| 5 | gate mostra o número exato, bloqueia, aceita o limite exato e só então despacha | passou |
 | 6 | SFX não resolvido visível; demais mixados | passou |
 | 7 | suíte integral da Fase 1 em mediaMode legacy | passou |
 | 8 | 4,9 s = 1; 7 s = 2; 12 s = 3; continuidade no take 2 | passou |
@@ -55,9 +99,20 @@ Validações: `npx tsc --noEmit`, `npx ts-node graph/production/__tests__/phase2
 
 Comando: `run --episode HSL_EPISODE_011 --beats 2 --media-mode real --max-generations 3 --test-render`.
 
-Estado atual: checkpoint migrado com --from image_generate_prepare e interrompido uma única vez em IMAGE_QUEUE, antes de qualquer nova geração. Fila: runs/HSL_EPISODE_011/images/QUEUE.json, com SCENE_001 e SCENE_002 pendentes. O worker deve ser disparado na IDE com: “execute a skill hsl-image-worker para runs/HSL_EPISODE_011/images/QUEUE.json”.
+Resultado: `COMPLETED`, `next: []`, `generationCount: 2`. O take 1 de
+SCENE_001 foi reaproveitado do canário; SCENE_001-take-2 e SCENE_002-take-1
+foram gerados, baixados e validados com 5,041667 s cada. O MP4 final está em
+`out/test/HSL_EPISODE_011-2beats.mp4`: H.264 1920x1080 a 30 fps, áudio AAC,
+10,000 s e 7.830.963 bytes. O SFX resolveu 2 cues Kenney e preservou silêncio
+para 8 camadas sem asset narrativo específico.
 
-Depois que o worker validar os PNGs, o resume executará a revisão Codex com as imagens anexadas. Após aprovação, a previsão continua sendo duas gerações: take 2 de SCENE_001 e take 1 de SCENE_002. O MP4 final e seu ffprobe serão adicionados após o resume.
+Durante o primeiro despacho de SCENE_001-take-2, o upload terminou no Firefly,
+mas o seletor global não reconheceu a miniatura dentro do Shadow DOM. O banco
+comprovou `generation_started_at: null` e ausência de saída. A reconciliação
+restrita recolocou o mesmo job na fila, sem novo feed, e a execução seguinte
+concluiu o take. Também foi corrigido o isolamento de paths do render de teste:
+um MP4 legado completo não pode mais fazer o grafo pular os 300 frames, e o nó
+valida o mesmo `temp_p1_*.mp4` produzido pelo argv real do Remotion.
 
 ## SFX e dívidas
 

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HSL Graph Observer</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <aside class="sidebar">
+    <div class="window-bar"><i></i><i></i><i></i><button title="Recolher sidebar">◫</button></div>
+    <label class="search"><span>⌕</span><input id="search" placeholder="Filtrar episódios"></label>
+    <div class="workspace-label"><span>WORKSPACE</span><button id="refresh" title="Atualizar">↻</button></div>
+    <div class="workspace-name"><span class="cube">◇</span><div><b>Hidden Systems Lab</b><small>Production graphs</small></div></div>
+    <div class="section-label">EPISÓDIOS <b id="episode-count">0</b></div>
+    <div id="episodes" class="episodes"><div class="loading"></div></div>
+    <div class="sidebar-footer"><span><i></i> OBSERVER</span><small>Execução somente pela CLI</small><code>npm run hsl:matrix</code></div>
+  </aside>
+
+  <main class="workspace">
+    <header class="canvas-header">
+      <div><b id="header-title">HSL GRAPH OBSERVER</b><span id="header-thread">Somente leitura</span></div>
+      <div class="toolset"><button class="tool active" title="Selecionar">⌁</button><button class="tool" id="fit" title="Enquadrar mapa">⌗</button><span></span><button class="tool" id="zoom-out">−</button><b id="zoom-label">100%</b><button class="tool" id="zoom-in">+</button></div>
+      <div class="read-only"><i></i><span>READ ONLY</span></div>
+    </header>
+
+    <div id="viewport" class="viewport">
+      <div id="stage" class="stage">
+        <svg id="connections" viewBox="0 0 1900 1050" aria-hidden="true"></svg>
+        <div id="map-nodes"></div>
+      </div>
+      <div class="canvas-help">ARRASTE PARA MOVER · SCROLL PARA ZOOM · CLI PARA EXECUTAR</div>
+      <div class="minimap"><div id="mini-view"></div><span>MAPA</span></div>
+    </div>
+
+    <aside id="inspector" class="inspector">
+      <div class="inspector-head"><div><span>INSPECTOR</span><b id="inspect-kind">NODE</b></div><button id="close-inspector">×</button></div>
+      <div id="inspector-content"></div>
+    </aside>
+  </main>
+  <div id="toast"></div><script src="/app.js"></script>
+</body></html>

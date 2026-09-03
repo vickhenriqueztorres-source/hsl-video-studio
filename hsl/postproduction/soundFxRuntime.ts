@@ -5,7 +5,23 @@ import path from 'path';
 import {
   KENNEY_CC0_LICENSE_URL, KENNEY_SFX_PACKS, KENNEY_SFX_SELECTIONS, kenneySoundFxRoot
 } from '../../config/kenneySoundFxCatalog';
-import {HslExecutableScene} from '../execution/types/execution';
+
+// The sound designer consumes this projection; it does not manufacture visual
+// approval fields from HslExecutableScene when called by the production graph.
+export interface SoundFxScene {
+  readonly scene_id: string;
+  readonly episode_id: string;
+  readonly chapter_id: string;
+  readonly planned_duration_seconds: number;
+  readonly narrative_function: string;
+  readonly visual_subject: string;
+  readonly micro_events: readonly {at_percent: number; action: string; subject: string}[];
+  readonly remotion_choreography: readonly {type: string; at_percent: number}[];
+}
+export interface SoundFxTools {
+  ffmpeg(args: readonly string[], errorCode: string): void;
+  probe(filePath: string): {duration: number; sampleRate: number; channels: number};
+}
 
 export type HslSoundFxCueType = 'SNAP_POP' | 'SUBTLE_STRIKE' | 'CHAPTER_DROP';
 
@@ -100,9 +116,11 @@ function audioProbe(filePath: string): {duration: number; sampleRate: number; ch
 }
 
 export class KenneySoundFxAssetAgent {
+  constructor(private readonly tools: SoundFxTools = {ffmpeg: runFfmpeg, probe: audioProbe},
+    private readonly projectRoot = process.cwd()) {}
   ensure(outputDirectory: string): ReadonlyMap<HslSoundFxCueType, SoundFxAsset> {
     fs.mkdirSync(outputDirectory, {recursive: true});
-    const sourceRoot = kenneySoundFxRoot();
+    const sourceRoot = kenneySoundFxRoot(this.projectRoot);
     const assets = new Map<HslSoundFxCueType, SoundFxAsset>();
     for (const selection of KENNEY_SFX_SELECTIONS) {
       const sourcePath = path.join(sourceRoot, selection.packId, ...selection.pathInPack.split('/'));
@@ -116,8 +134,8 @@ export class KenneySoundFxAssetAgent {
       ];
       if (selection.maxDurationSeconds) ffmpegArgs.push('-t', String(selection.maxDurationSeconds));
       ffmpegArgs.push(filePath);
-      runFfmpeg(ffmpegArgs, `HSL_KENNEY_SFX_TRANSCODE_FAILED:${selection.cueType}`);
-      const probe = audioProbe(filePath);
+      this.tools.ffmpeg(ffmpegArgs, `HSL_KENNEY_SFX_TRANSCODE_FAILED:${selection.cueType}`);
+      const probe = this.tools.probe(filePath);
       if (probe.sampleRate !== 48000 || probe.channels !== 2 || probe.duration <= 0) {
         throw new Error(`HSL_SFX_ASSET_INVALID:${selection.cueType}:${JSON.stringify(probe)}`);
       }
@@ -141,7 +159,7 @@ interface PendingCue {
 
 export class SoundFxDesignAgent {
   plan(
-    scenes: readonly HslExecutableScene[],
+    scenes: readonly SoundFxScene[],
     assets: ReadonlyMap<HslSoundFxCueType, SoundFxAsset>,
     fps = 30,
     suppressSceneIds: ReadonlySet<string> = new Set()
@@ -220,6 +238,7 @@ export class SoundFxDesignAgent {
 }
 
 export class SoundFxMixAgent {
+  constructor(private readonly tools: SoundFxTools = {ffmpeg: runFfmpeg, probe: audioProbe}) {}
   mix(plan: HslSoundFxPlan, outputPath: string): void {
     fs.mkdirSync(path.dirname(outputPath), {recursive: true});
     const args: string[] = [
@@ -241,18 +260,19 @@ export class SoundFxMixAgent {
       '-filter_complex', filters.join(';'), '-map', '[out]', '-ar', '48000', '-ac', '2',
       '-c:a', 'pcm_s16le', outputPath
     );
-    runFfmpeg(args, 'HSL_SFX_MIX_FAILED');
+    this.tools.ffmpeg(args, 'HSL_SFX_MIX_FAILED');
   }
 }
 
 export class SoundFxQaAgent {
+  constructor(private readonly tools: SoundFxTools = {ffmpeg: runFfmpeg, probe: audioProbe}) {}
   validate(plan: HslSoundFxPlan, bedPath: string): HslSoundFxRuntimeResult['qa'] {
     if (!fs.existsSync(bedPath) || fs.statSync(bedPath).size === 0) throw new Error('HSL_SFX_BED_REQUIRED');
     for (const cue of plan.cues) {
       if (cue.time_seconds < 0 || cue.time_seconds >= plan.total_duration_seconds) throw new Error(`HSL_SFX_CUE_OUT_OF_RANGE:${cue.cue_id}`);
       if (!fs.existsSync(cue.asset_path) || sha256(cue.asset_path) !== cue.asset_sha256) throw new Error(`HSL_SFX_ASSET_HASH_MISMATCH:${cue.cue_id}`);
     }
-    const probe = audioProbe(bedPath);
+    const probe = this.tools.probe(bedPath);
     if (probe.sampleRate !== 48000 || probe.channels !== 2 || Math.abs(probe.duration - plan.total_duration_seconds) > 0.08) {
       throw new Error(`HSL_SFX_BED_QA_FAILED:${JSON.stringify(probe)}`);
     }
@@ -264,20 +284,22 @@ export class SoundFxQaAgent {
 }
 
 export class HslSoundFxRuntime {
+  constructor(private readonly tools: SoundFxTools = {ffmpeg: runFfmpeg, probe: audioProbe},
+    private readonly projectRoot = process.cwd()) {}
   run(input: Readonly<{
-    scenes: readonly HslExecutableScene[];
+    scenes: readonly SoundFxScene[];
     outputDirectory: string;
     fps?: number;
     suppressSceneIds?: ReadonlySet<string>;
   }>): HslSoundFxRuntimeResult {
     const outputRoot = path.resolve(input.outputDirectory);
-    const assets = new KenneySoundFxAssetAgent().ensure(path.join(outputRoot, 'assets'));
+    const assets = new KenneySoundFxAssetAgent(this.tools, this.projectRoot).ensure(path.join(outputRoot, 'assets'));
     const plan = new SoundFxDesignAgent().plan(input.scenes, assets, input.fps || 30, input.suppressSceneIds);
     const planPath = path.join(outputRoot, 'soundfx-plan.json');
     writeJson(planPath, plan);
     const bedPath = path.join(outputRoot, 'soundfx-bed.wav');
-    new SoundFxMixAgent().mix(plan, bedPath);
-    const qa = new SoundFxQaAgent().validate(plan, bedPath);
+    new SoundFxMixAgent(this.tools).mix(plan, bedPath);
+    const qa = new SoundFxQaAgent(this.tools).validate(plan, bedPath);
     writeJson(path.join(outputRoot, 'soundfx-qa.json'), qa);
     return {planPath, bedPath, plan, qa};
   }

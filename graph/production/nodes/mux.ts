@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Context, NodeFn, paths, withStage, validMedia, copyFile } from '../runtime';
 import { HSL_AUDIO_BITRATE } from '../../../spec/hsl-spec';
 export const mux = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_09_FFMPEG_MUX', async () => {
-  const p = paths(c, s); const target=s.options.graph.testRender?path.join(c.root,'out','test',`${s.episodeId}-2beats.mp4`):p.final;
+  const p = paths(c, s); const target=p.final;
   const skipped = validMedia(c, target);
   if (!skipped) {
     const music = path.join(c.root, 'assets/audio-library/music/cinematic/suspense/suspense_oppressive_gloom.mp3');

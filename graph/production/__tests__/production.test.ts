@@ -42,8 +42,9 @@ async function main() {
     assert.equal(again.values.productionStatus, 'COMPLETED');
     for (const key of Object.keys(before)) assert.equal(a.calls[key], before[key], 'idempotent ' + key);
     assert.ok(again.values.timings.slice(timingCount).every((t: Timing) => t.status === 'skipped'), 'all entered nodes skipped on cached run');
-    assert.ok(again.values.frames.slice(-3).every((f: AssetResult) => f.status === 'skipped'));
-    assert.ok(again.values.videos.slice(-2).every((f: AssetResult) => f.status === 'skipped'));
+    const expectedFrames=done.values.scenePlan!.beats.length,expectedVideos=done.values.scenePlan!.beats.filter((b:any)=>b.visualMode==='firefly_video').length;
+    assert.ok(again.values.frames.slice(-expectedFrames).every((f: AssetResult) => f.status === 'skipped'));
+    assert.ok(expectedVideos===0||again.values.videos.slice(-expectedVideos).every((f: AssetResult) => f.status === 'skipped'));
     await rewind(a.graph, a.root, 'PASS', 'mux');
     const rewound = await a.run(null); assert.equal(rewound.values.productionStatus, 'COMPLETED');
     console.log('PASS 1, 3 (disabled), 5: compile/Mermaid, pass-through, artifact idempotency, --from mux');

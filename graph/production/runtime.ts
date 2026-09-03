@@ -5,11 +5,13 @@ import { HslRunManifest, StageName, RunManifestData } from '../../hsl/core/hslRu
 import { Dependencies } from './deps';
 import { State, Update, Timing, NodeError } from './state';
 export interface Context { root: string; deps: Dependencies }
-export const paths = (c: Context, s: Pick<State, 'episodeId'>) => {
+export const paths = (c: Context, s: Pick<State, 'episodeId'> & Partial<Pick<State, 'options'>>) => {
   const run = path.join(c.root, 'runs', s.episodeId), e = s.episodeId.toLowerCase();
+  const testRender = s.options?.graph.testRender === true;
   return { run, audit: path.join(run, 'graph'), manifest: path.join(run, 'run-manifest.json'),
     plan: path.join(run, 'scene-plan.json'), props: path.join(c.root, 'out', `${e}_render-props.json`),
-    visual: path.join(c.root, 'out', `temp_visual_${e}.mp4`), final: path.join(c.root, 'out', `${e}.mp4`),
+    visual: testRender ? path.join(c.root,'out','test',`temp_visual_${e}-2beats.mp4`) : path.join(c.root, 'out', `temp_visual_${e}.mp4`),
+    final: testRender ? path.join(c.root,'out','test',`${s.episodeId}-2beats.mp4`) : path.join(c.root, 'out', `${e}.mp4`),
     narration: path.join(run, 'audio', 'narration.mp3'), publicNarration: path.join(c.root, 'public', 'audio', 'narration.mp3') };
 };
 export function readJson<T>(file: string): T | undefined { try { return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')); } catch { return undefined; } }

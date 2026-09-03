@@ -15,6 +15,9 @@ database/langgraph-checkpoints.sqlite*
 service-account*.json
 *client_secret*.json
 *token*.json
+config/token.json
+*.credentials.json
+*service_account*.json
 
 
 # Dependencies and build output.

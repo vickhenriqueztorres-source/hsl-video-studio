@@ -26,6 +26,21 @@ registrar stderr e testar caminhos com espaços, aspas e caracteres Unicode.
 
 ## Outros limites herdados
 
+## P1 — storage legado do Drive não garante upload antes do prune
+
+O legado permanece intacto nesta fase. `hsl/core/hslDriveStorage.ts` resolve
+Python com `spawnSync('python')`, inicia checkpoints em modo detached sem
+aguardar recibo verificável e permite limpeza sem comparar MD5 remoto e local.
+`scripts/driveSync.py` ainda conserva o folder ID histórico como fallback para
+os comandos antigos. Em `hsl/pipeline/masterOrchestrator.ts`,
+`STAGE_12_CLOUD_ARCHIVE` pode chamar o prune mesmo quando `syncEpisode()`
+retorna `false`.
+
+Correção futura: migrar o legado para `graph/lib/proc.ts`, exigir resultado
+síncrono por item e reutilizar a política `upload-verified -> verify -> prune`
+do grafo. Até isso ocorrer, somente `prune_verified` do grafo fornece a
+invariante de MD5 para intermediários e entregáveis.
+
 - `tests/integration.test.ts` já falha em `main` (`54740c8`): procura o
   contrato externo `D:\HSL STUDIO AGENTS\shared-contracts\production.schema.json`,
   que não existe no checkout. A mesma suíte individual teve 17/19 tanto em

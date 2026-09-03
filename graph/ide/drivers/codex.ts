@@ -41,10 +41,11 @@ export async function runCodex(prepared: PreparedTask): Promise<DriverResult> {
   }
   if (hasOutput) args.push('-o', prepared.outputPath);
   const prompt = fs.readFileSync(prepared.promptPath, 'utf8');
-  args.push(prompt + '\n\nCodex transport instructions: The complete task is included above. ' +
+  const input=prompt + '\n\nCodex transport instructions: The complete task is included above. ' +
     'Evaluate the embedded task and attached images directly. Do not use tools, read files, edit repository files or access the network. ' +
-    'Return only the final JSON. The CLI output transport writes that final response to output.json; do not attempt a shell write.');
-  const result = await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath);
+    'Return only the final JSON. The CLI output transport writes that final response to output.json; do not attempt a shell write.';
+  args.push('-');
+  const result = await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath,input);
   if (!hasOutput) {
     const output = extractFinalJson(result.stdout);
     if (output !== undefined) fs.writeFileSync(prepared.outputPath, JSON.stringify(output, null, 2) + '\n');
