@@ -39,6 +39,8 @@ export function counts(items: { status: string; beatId?: string; index?: number 
   return Object.fromEntries(['ok', 'skipped', 'failed'].map(status => [status, [...latest.values()].filter(x => x.status === status).length]));
 }
 const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
+  env_check:['environment'],visual_prompts_prepare:['visualPrompts','visualPromptsPath'],visual_prompts_review_prepare:['promptReview'],image_generate_prepare:['imageSpecs'],image_generate_wait:['frames'],
+  firefly_guide:['videoTakes','fireflyGuidePath'],firefly_dispatch:['videoTakes','generationCount'],firefly_intake_wait:['videoTakes'],firefly_finalize:['videos'],sfx_render:['sfxTrackPath','sfxResolved','sfxUnresolved'],
   scene_plan: ['scenePlan', 'scenePlanPath'], image_frames: ['frames'], firefly_videos: ['videos', 'fireflyGuidePath'],
   narration_stage: ['narration'], sound_design: ['soundDesign'], gatekeeper_stage: ['gatekeeper'],
   render_prepare: ['assetServer', 'renderProps'], render_chunk: ['renderChunks'], stitch: ['visualTrackPath'],

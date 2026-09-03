@@ -1,5 +1,9 @@
 # Backlog da Fase 2
 
+## P1 — restaurar assets/audio-library/ (copiar da máquina original ou repopular via sfx-agent)
+
+A biblioteca ampla de SFX não está neste checkout. O caminho real da Fase 2 mantém itens sem correspondência em `sfxUnresolved` e usa somente os três OGG Kenney comprovados no C4, sem inventar ou sintetizar substitutos.
+
 ## P1 — narration adapter: shell:true quebra com espaços no path; migrar para graph/lib/proc.ts na Fase 2
 
 Local: `adapters/elevenLabsNarrationAdapter.ts:76`, spawnSync do Edge-TTS,

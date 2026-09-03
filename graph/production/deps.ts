@@ -12,6 +12,9 @@ import * as assets from './lib/assets';
 import * as server from './lib/assetServer';
 import * as remotion from './lib/remotion';
 import { createFfmpeg } from './lib/ffmpeg';
+import { prepareAndRunIdeTask } from '../ide/ideRunner';
+import * as firefly from './lib/firefly';
+import { renderSfx } from './lib/sfx';
 export function realDependencies(root: string) {
   return {
     plan: HslSceneDirectorAgent.planEpisodeFromScratch.bind(HslSceneDirectorAgent),
@@ -23,6 +26,12 @@ export function realDependencies(root: string) {
     package: ThumbnailSeoEngine.generatePackage.bind(ThumbnailSeoEngine),
     exportPackage: ThumbnailSeoEngine.exportPackagingDeliverables.bind(ThumbnailSeoEngine),
     inspect: inspectMediaWithFfprobe, isPng: isValidPngFile,
+    ide: prepareAndRunIdeTask,
+    fireflyEnvironment: firefly.fireflyEnvironment, profileInUse: firefly.profileInUse,
+    probeFireflySession: firefly.probeSession, openFireflyLogin: firefly.openLoginChrome,
+    runFireflyTake: firefly.runAgentTake, detailedProbe: firefly.detailedProbe,
+    extractLastFrame: firefly.extractLastFrame, concatTakes: firefly.concatTakes,
+    renderSfx,
     ...assets, ...server, ...remotion, ...createFfmpeg(root),
   };
 }

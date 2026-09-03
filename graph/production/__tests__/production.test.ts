@@ -13,6 +13,7 @@ import { spawnTool } from '../../lib/proc';
 import { fixtures } from './fixtures';
 import { writeJson } from '../runtime';
 import { compareManifests } from '../parity';
+const legacyState = (o: any) => initialState({ ...o, graph: { ...o.graph, mediaMode: 'legacy' } });
 
 async function main() {
   const base = path.join(REPO_ROOT, 'runs', 'phase1-tests-' + Date.now()); fs.mkdirSync(base, { recursive: true });
@@ -26,7 +27,7 @@ async function main() {
   try {
     const mermaid = a.graph.getGraph().drawMermaid();
     for (const node of NODE_ORDER) assert.ok(mermaid.includes(node));
-    const done = await a.run(initialState({ episodeId: 'PASS' }));
+    const done = await a.run(legacyState({ episodeId: 'PASS' }));
     assert.equal(done.values.productionStatus, 'COMPLETED');
     assert.equal(done.values.gateDecisions.length, 0);
     assert.equal(done.values.renderChunks.length, 4);
@@ -37,7 +38,7 @@ async function main() {
     assert.ok(compareManifests(manifest, changed).some(r => r.item.endsWith('.totalGenerated') && r.status === 'diferente'));
     const before = { ...a.calls };
     const timingCount = done.values.timings.length;
-    const again = await a.run(initialState({ episodeId: 'PASS' }));
+    const again = await a.run(legacyState({ episodeId: 'PASS' }));
     assert.equal(again.values.productionStatus, 'COMPLETED');
     for (const key of Object.keys(before)) assert.equal(a.calls[key], before[key], 'idempotent ' + key);
     assert.ok(again.values.timings.slice(timingCount).every((t: Timing) => t.status === 'skipped'), 'all entered nodes skipped on cached run');
@@ -52,7 +53,7 @@ async function main() {
     const name = 'GATE_' + decision;
     const x = scenario(name);
     try {
-      let s = await x.run(initialState({ episodeId: name, graph: { gates: { render: true, publish: true } } }));
+      let s = await x.run(legacyState({ episodeId: name, graph: { gates: { render: true, publish: true } } }));
       assert.deepEqual(s.next, ['gate_render_wait']); assert.equal(x.calls.bundle, undefined);
       x.saver.db.close();
       const saver = createCheckpointer(x.root);
@@ -77,7 +78,7 @@ async function main() {
   const untilMock = fixtures(untilRoot, 'UNTIL');
   let untilSaver = createCheckpointer(untilRoot);
   let untilGraph = createProductionGraph(untilSaver, untilMock.deps, untilRoot, { interruptAfter: ['gatekeeper_stage'] });
-  let untilState = await executeProduction(untilGraph, untilRoot, 'UNTIL', initialState({ episodeId: 'UNTIL' }));
+  let untilState = await executeProduction(untilGraph, untilRoot, 'UNTIL', legacyState({ episodeId: 'UNTIL' }));
   assert.deepEqual(untilState.next, ['gate_render_wait']);
   assert.equal(untilMock.calls.bundle, undefined);
   const callsAtCutoff = { ...untilMock.calls };
@@ -93,14 +94,14 @@ async function main() {
 
   const pubAbort = scenario('PUBLISH_ABORT');
   try {
-    await pubAbort.run(initialState({ episodeId: 'PUBLISH_ABORT', graph: { gates: { publish: true } } }));
+    await pubAbort.run(legacyState({ episodeId: 'PUBLISH_ABORT', graph: { gates: { publish: true } } }));
     const aborted = await pubAbort.run(new Command({ resume: { decision: 'abort' } }));
     assert.equal(aborted.values.productionStatus, 'ABORTED');
   } finally { pubAbort.saver.db.close(); }
 
   const b = scenario('BLOCKED', { failedBeat: true, blocked: true });
   try {
-    const s = await b.run(initialState({ episodeId: 'BLOCKED' }));
+    const s = await b.run(legacyState({ episodeId: 'BLOCKED' }));
     assert.equal(b.calls.frames, 2); assert.equal(s.values.frames.filter((f: AssetResult) => f.status === 'failed').length, 1);
     assert.equal(s.values.productionStatus, 'BLOCKED_PRE_RENDER'); assert.equal(b.calls.bundle, undefined);
     assert.ok(s.values.errors.length > 0); console.log('PASS 4: retry exhausted, physical gate blocks');
@@ -111,7 +112,7 @@ async function main() {
   console.log('PASS 6: destructive paths confined');
   const off = scenario('OFFLINE', { noCache: true });
   try {
-    await assert.rejects(off.run(initialState({ episodeId: 'OFFLINE', graph: { offline: true } })), /narration cache ausente em modo offline/);
+    await assert.rejects(off.run(legacyState({ episodeId: 'OFFLINE', graph: { offline: true } })), /narration cache ausente em modo offline/);
     assert.equal(off.calls.narrate, undefined); console.log('PASS 7: offline refuses before adapter');
   } finally { off.saver.db.close(); }
 

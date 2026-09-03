@@ -12,8 +12,8 @@ export function parseArgs(argv: string[]) {
   const args: Record<string, string | boolean> = {};
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
-    if (key === '--offline') args[key] = true;
-    else if (['--episode', '--gates', '--asset-concurrency', '--render-concurrency', '--from', '--decision', '--until'].includes(key)) {
+    if (key === '--offline' || key === '--test-render') args[key] = true;
+    else if (['--episode', '--gates', '--asset-concurrency', '--render-concurrency', '--from', '--decision', '--until','--beats','--media-mode','--max-generations'].includes(key)) {
       if (!argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error(`Falta valor: ${key}`);
       args[key] = argv[++i];
     } else throw new Error(`Argumento desconhecido: ${key}`);
@@ -39,6 +39,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === 'status') {
       console.log(JSON.stringify({ thread_id: config.configurable.thread_id, next: snapshot.next,
         frames: counts(snapshot.values.frames ?? []), videos: counts(snapshot.values.videos ?? []), chunks: counts(snapshot.values.renderChunks ?? []),
+        generationCount:snapshot.values.generationCount,videoTakes:snapshot.values.videoTakes,sfxResolved:snapshot.values.sfxResolved,sfxUnresolved:snapshot.values.sfxUnresolved,
         productionStatus: snapshot.values.productionStatus, errors: snapshot.values.errors, journalErrors: readErrors(REPO_ROOT, episodeId), tasks: snapshot.tasks }, null, 2));
       return 0;
     }
@@ -59,13 +60,16 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (snapshot.next.length) throw new Error('Thread pendente: utilize resume ou --from');
       const gates = String(args['--gates'] ?? '').split(',').filter(Boolean);
       if (gates.some(g => !['render', 'publish'].includes(g))) throw new Error('--gates aceita render,publish');
-      input = initialState({ episodeId, graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1), gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
+      const mediaMode=String(args['--media-mode']??'real');if(!['legacy','real'].includes(mediaMode))throw new Error('--media-mode aceita legacy|real');
+      input = initialState({ episodeId, graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1),
+        mediaMode:mediaMode as 'legacy'|'real',beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??4),gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
     } else {
       if (!snapshot.next.length) throw new Error('Thread inexistente ou já finalizada');
       if (snapshot.tasks.some(t => t.interrupts.length)) {
+        const kind=(snapshot.tasks.flatMap(t=>t.interrupts)[0]?.value as any)?.kind;
         const decision = args['--decision'];
-        if (decision !== 'proceed' && decision !== 'abort') throw new Error('Resume de gate requer --decision proceed|abort');
-        input = new Command({ resume: { decision } });
+        if (!kind && decision !== 'proceed' && decision !== 'abort') throw new Error('Resume de gate requer --decision proceed|abort');
+        input = new Command({ resume: kind ? { resumed:true } : { decision } });
       } else if (args['--decision']) throw new Error('Nenhum gate aguarda decisão');
     }
     snapshot = await executeProduction(graph, REPO_ROOT, episodeId, input);

@@ -2,14 +2,28 @@
 graph TD;
 	__start__([<p>__start__</p>]):::first
 	scene_plan(scene_plan)
+	env_check(env_check)
+	visual_prompts_prepare(visual_prompts_prepare)
+	visual_prompts_wait(visual_prompts_wait)
+	visual_prompts_review_prepare(visual_prompts_review_prepare)
+	visual_prompts_review_wait(visual_prompts_review_wait)
+	image_generate_prepare(image_generate_prepare)
+	image_generate_wait(image_generate_wait)
 	fan_out_frames(fan_out_frames)
 	image_frames(image_frames)
 	join_frames(join_frames)
+	firefly_session_prepare(firefly_session_prepare)
+	firefly_session_wait(firefly_session_wait)
+	firefly_guide(firefly_guide)
+	firefly_dispatch(firefly_dispatch)
+	firefly_intake_wait(firefly_intake_wait)
+	firefly_finalize(firefly_finalize)
 	fan_out_videos(fan_out_videos)
 	firefly_videos(firefly_videos)
 	join_videos(join_videos)
 	narration_stage(narration_stage)
 	sound_design(sound_design)
+	sfx_render(sfx_render)
 	gatekeeper_stage(gatekeeper_stage)
 	gate_render_wait(gate_render_wait)
 	render_prepare(render_prepare)
@@ -24,13 +38,19 @@ graph TD;
 	finalize(finalize)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> scene_plan;
+	env_check --> visual_prompts_prepare;
 	fan_out_frames --> image_frames;
 	fan_out_videos --> firefly_videos;
 	finalize --> __end__;
+	firefly_dispatch --> firefly_intake_wait;
+	firefly_finalize --> join_videos;
+	firefly_guide --> firefly_dispatch;
+	firefly_session_prepare --> firefly_session_wait;
 	firefly_videos --> join_videos;
 	gate_publish_wait --> finalize;
 	image_frames --> join_frames;
-	join_frames --> fan_out_videos;
+	image_generate_prepare --> image_generate_wait;
+	image_generate_wait --> join_frames;
 	join_videos --> narration_stage;
 	mux --> packaging_stage;
 	narration_stage --> sound_design;
@@ -38,9 +58,23 @@ graph TD;
 	pre_mux_gate --> mux;
 	render_chunk --> fan_out_render;
 	render_prepare --> fan_out_render;
-	scene_plan --> fan_out_frames;
-	sound_design --> gatekeeper_stage;
+	sfx_render --> gatekeeper_stage;
 	stitch --> pre_mux_gate;
+	visual_prompts_prepare --> visual_prompts_wait;
+	visual_prompts_review_prepare --> visual_prompts_review_wait;
+	visual_prompts_wait --> visual_prompts_review_prepare;
+	scene_plan -.-> fan_out_frames;
+	scene_plan -.-> env_check;
+	visual_prompts_review_wait -.-> visual_prompts_prepare;
+	visual_prompts_review_wait -.-> image_generate_prepare;
+	join_frames -.-> fan_out_videos;
+	join_frames -.-> firefly_session_prepare;
+	firefly_session_wait -.-> firefly_guide;
+	firefly_session_wait -.-> firefly_session_prepare;
+	firefly_intake_wait -.-> firefly_dispatch;
+	firefly_intake_wait -.-> firefly_finalize;
+	sound_design -.-> sfx_render;
+	sound_design -.-> gatekeeper_stage;
 	gatekeeper_stage -.-> gate_render_wait;
 	gatekeeper_stage -.-> finalize;
 	gate_render_wait -.-> finalize;

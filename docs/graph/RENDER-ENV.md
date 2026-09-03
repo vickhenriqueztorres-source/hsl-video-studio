@@ -1,5 +1,18 @@
 # Ambiente de render Remotion no Windows
 
+## Perfil persistente do Firefly
+
+O motor real exige `HSL_FIREFLY_AGENT_DIR`. `HSL_FIREFLY_CHROME_PROFILE` é opcional e usa `D:\\HSL-FIREFLY-PROFILE` por padrão. Esse perfil limpo foi validado com sessão Adobe e upload de primeiro frame. Antes de cada take, o adaptador consulta processos `chrome.exe` por `CommandLine`; se o perfil estiver aberto, falha com `FIREFLY_PROFILE_IN_USE` e não encerra o Chrome.
+
+Uma sessão inválida abre Chrome visível com esse perfil no nó prepare e interrompe em `FIREFLY_LOGIN`. O resume volta à preparação e faz novo `--probe-session`. O agente roda por argv literal, sem shell:
+
+```text
+<agent>/.venv/Scripts/python.exe <agent>/main.py --root <runtime-do-take> --feed-guide <guide.json>
+<agent>/.venv/Scripts/python.exe <agent>/main.py --root <runtime-do-take> --concurrency 1 --run
+```
+
+O upload virtual do Playwright foi aceito no perfil limpo. O helper UI Automation está em `graph/production/lib/firefly/nativeFileChooserUia.ps1` para recuperação; no perfil antigo, o navegador não expunha um diálogo nativo detectável.
+
 Data do diagnóstico: 2026-09-02. Root testado:
 `D:\HSL STUDIO AGENTS\hsl-video-studio`.
 

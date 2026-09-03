@@ -10,7 +10,7 @@ export const preMuxGate = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_08
   const visual = c.deps.inspect(validMedia(c, p.visual) ? p.visual : p.final), audio = c.deps.inspect(p.narration);
   let diff = Math.abs(visual.durationSeconds - audio.durationSeconds);
   const result: NonNullable<State['preMux']> = { visualDuration: visual.durationSeconds, audioDuration: audio.durationSeconds, durationDiffSeconds: diff, applied: false };
-  if (diff > HSL_DURATION_TOLERANCE_SECONDS) {
+  if (diff > HSL_DURATION_TOLERANCE_SECONDS && !s.options.graph.testRender) {
     const factor = audio.durationSeconds / visual.durationSeconds;
     const dest = path.join(p.run, 'narration_synced.mp3');
     result.tempoFactor = factor; result.syncedAudioPath = dest;

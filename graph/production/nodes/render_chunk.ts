@@ -1,9 +1,10 @@
 import { Context, NodeFn, paths, validMedia, readJson, writeJson } from '../runtime';
 import { State } from '../state';
 import { chunkPath } from '../lib/remotion';
+import path from 'node:path';
 export type ChunkInput = State & { index: number; frameRange: [number, number] };
 export const renderChunkNode = (c: Context): NodeFn<ChunkInput> => async (s, config) => {
-  const started = Date.now(), outPath = chunkPath(c.root, s.episodeId, s.index);
+  const started = Date.now(), outPath = s.options.graph.testRender ? path.join(c.root,'out','test',`.visual-${s.episodeId}-2beats.mp4`) : chunkPath(c.root, s.episodeId, s.index);
   const attempts = config.executionInfo?.nodeAttempt ?? 1;
   const skip = validMedia(c, outPath);
   if (!skip) {

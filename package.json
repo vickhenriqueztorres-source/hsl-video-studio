@@ -8,6 +8,7 @@
     "hsl:master:graph:resume": "ts-node graph/production/cli.ts resume",
     "hsl:master:graph:status": "ts-node graph/production/cli.ts status",
     "hsl:master:graph:mermaid": "ts-node graph/production/cli.ts mermaid",
+    "hsl:phase2:test": "ts-node graph/production/__tests__/phase2.test.ts",
     "hsl:master:parity": "ts-node graph/production/parity.ts",
     "hsl:master:studio": "langgraphjs dev -c graph/langgraph.json --host 127.0.0.1 --port 2025 --no-browser",
     "ide-runner:smoke": "ts-node graph/smoke/runSmoke.ts --mode all",

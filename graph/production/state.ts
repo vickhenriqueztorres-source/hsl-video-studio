@@ -3,10 +3,26 @@ import type { MasterPipelineOptions } from '../../hsl/pipeline/masterOrchestrato
 import type { EpisodeTopicInput, HslLongFormProjectPlan } from '../../hsl/core/types';
 import type { HslPublicationPackage } from '../../hsl/packaging/thumbnailSeoEngine';
 import type { ComplianceReport } from '../../spec/hsl-compliance-checker';
-export const STATE_VERSION = 1;
-export interface GraphOptions { assetConcurrency: number; renderConcurrency: number; offline: boolean; gates: { render: boolean; publish: boolean } }
+export const STATE_VERSION = 2;
+export type MediaMode = 'legacy' | 'real';
+export interface GraphOptions {
+  assetConcurrency: number; renderConcurrency: number; offline: boolean;
+  gates: { render: boolean; publish: boolean };
+  mediaMode: MediaMode; beats?: number; testRender: boolean; maxGenerations: number;
+  promptReviewThreshold: number; images: { tryHeadless: boolean };
+  video: { takeSeconds: 5; splitOver: 5.5 };
+}
 export type Options = MasterPipelineOptions & { graph: GraphOptions };
 export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string }
+export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
+export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
+export interface VideoTake {
+  beatId: string; takeIndex: number; dependsOnTake?: string; requestedSeconds: 5;
+  actualSeconds?: number; firstFrameSource: 'image' | 'previous-take'; firstFramePath: string;
+  outputPath: string; status: 'pending' | 'dispatched' | 'ok' | 'skipped' | 'failed';
+  generationCounted?: boolean; startedAt?: string; endedAt?: string; error?: string;
+}
+export interface SfxItem { id: string; description: string; sourcePath?: string; offsetSeconds: number; targetDb: number; reason?: string }
 export interface ChunkResult { index: number; frameRange: [number, number]; outPath: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; durationMs: number; error?: string }
 export interface NodeError { node: string; message: string; stack?: string; at: string }
 export interface Timing { node: string; startedAt: string; endedAt: string; ms: number; status?: 'ok' | 'skipped' | 'failed' }
@@ -16,9 +32,17 @@ export const ProductionState = Annotation.Root({
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => STATE_VERSION }),
   episodeId: Annotation<string>(), topicInput: Annotation<EpisodeTopicInput>(), options: Annotation<Options>(),
   scenePlan: nullable<HslLongFormProjectPlan>(), scenePlanPath: nullable<string>(),
+  environment: nullable<{ agentDir: string; profileDir: string; sessionValid?: boolean }>(),
+  visualPrompts: Annotation<VisualPrompt[]>({ reducer: (_, b) => b, default: () => [] }),
+  visualPromptsPath: nullable<string>(), promptReview: nullable<PromptReview>(), promptIteration: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
+  imageSpecs: Annotation<{ beatId: string; promptPath: string; expectedPath: string }[]>({ reducer: (_, b) => b, default: () => [] }),
   frames: append<AssetResult>(), videos: append<AssetResult>(), fireflyGuidePath: nullable<string>(),
+  videoTakes: Annotation<VideoTake[]>({ reducer: (_, b) => b, default: () => [] }),
+  generationCount: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   narration: nullable<{ path: string; publicCopyPath: string; durationSeconds: number }>(),
   soundDesign: nullable<{ audioPlanPath: string; audioTsxPath: string }>(),
+  sfxTrackPath: nullable<string>(), sfxResolved: Annotation<SfxItem[]>({ reducer: (_, b) => b, default: () => [] }),
+  sfxUnresolved: Annotation<SfxItem[]>({ reducer: (_, b) => b, default: () => [] }),
   gatekeeper: nullable<{ passed: boolean; blockedReason?: string; verifiedBeats: number; autoRecovered: boolean; attempts: number }>(),
   assetServer: nullable<{ baseUrl: string }>(), renderProps: nullable<{ path: string }>(),
   renderChunks: append<ChunkResult>(), visualTrackPath: nullable<string>(),
@@ -43,7 +67,13 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
     thesis: options.thesis || 'The visible product is a flight; the hidden product is synchronized fuel logistics.',
   };
   threadId(topicInput.episodeId);
-  const graph: GraphOptions = { assetConcurrency: 1, renderConcurrency: 1, offline: false, ...options.graph, gates: { render: false, publish: false, ...options.graph?.gates } };
+  const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
+    maxGenerations: 4, promptReviewThreshold: 75, ...options.graph,
+    gates: { render: false, publish: false, ...options.graph?.gates }, images: { tryHeadless: false, ...options.graph?.images },
+    video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
   for (const value of [graph.assetConcurrency, graph.renderConcurrency]) if (!Number.isSafeInteger(value) || value < 1) throw new Error('Concurrency deve ser inteiro positivo');
+  if (graph.beats !== undefined && (!Number.isSafeInteger(graph.beats) || graph.beats < 1)) throw new Error('beats deve ser inteiro positivo');
+  if (!Number.isSafeInteger(graph.maxGenerations) || graph.maxGenerations < 0) throw new Error('maxGenerations deve ser inteiro não negativo');
+  if (graph.promptReviewThreshold < 0 || graph.promptReviewThreshold > 100) throw new Error('promptReviewThreshold deve estar entre 0 e 100');
   return { stateVersion: STATE_VERSION, episodeId: topicInput.episodeId, topicInput, options: { ...options, graph }, productionStatus: 'RUNNING' };
 }
