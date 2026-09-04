@@ -1,164 +1,219 @@
-﻿# 🛰️ HSL Video Studio — Autonomous Documentary Engine
+# HSL Video Studio — instalação e migração
 
-> **Hidden Systems Lab (HSL)** is an autonomous multi-agent production studio engineered to research, script, storyboard, voice, score, animate, render, and package 10-to-12-minute high-impact technical documentaries (18,000 frames @ 30 FPS Full HD).
+A produção roda pelo **Matrix CLI**. O painel HTML apenas mostra episódios,
+mapas de agentes, logs e arquivos. Este projeto usa **LangGraph.js/TypeScript**:
+as dependências principais estão em `package.json` e `package-lock.json`.
+Python atende Drive, fallback de narração e ferramentas auxiliares. Não existe
+`cli.py`; a entrada real é `npm.cmd run hsl:matrix`. Não instalamos os pacotes
+Python langgraph, langchain, typer ou rich, pois não são importados pelo projeto.
 
----
+## Instalar no outro PC
 
-## 🏛️ Architecture Overview
+O pipeline completo é Windows-first. Ambiente da origem: Node **22.17.0** e
+Python **3.13.5**. Instale Git, Node/npm, Python, Chrome e FFmpeg/ffprobe, com
+seus comandos no PATH. Instale também as CLIs usadas pelo projeto: `codex` e
+`agy` (Antigravity). Instalar só a IDE não garante a presença dessas CLIs.
 
-HSL Video Studio automates the complete lifecycle of investigative, systems-engineering documentaries with **zero human intervention required** between topic ingestion and final YouTube publication deliverables.
-
-```
-                               ┌────────────────────────┐
-                               │  Editorial Topic Input │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
- ┌─────────────────────────────────────────────────────────────────────────────────┐
- │                       11-STAGE MASTER AUTONOMOUS PIPELINE                       │
- ├─────────────────────────────────────────────────────────────────────────────────┤
- │  [01] Scene Director         ➔ 8 Canonical Acts // 96 Metric-Driven Beats        │
- │  [02] Image Frame Engine     ➔ 40% 35mm Photoreal + 15% Diagram Infographics    │
- │  [03] Firefly Video Engine   ➔ 30% Continuous Action Video Takes (MP4 / 30 FPS) │
- │  [04] Narration Engine       ➔ ElevenLabs Chris Voice // Auto-Sync (±0.01s)     │
- │  [05] Sound Design Agent     ➔ Multi-Layer Foley (-28dB Score + Kenney CC0 SFX) │
- │  [06] Validation Gatekeeper  ➔ Physical Disk Audit (Zero-Black-Screen Contract) │
- │  [07] Remotion Multi-Part    ➔ 4x Chunks @ 1080p // Lossless FFmpeg Stitch      │
- │  [08] Pre-Mux Gatekeeper     ➔ Visual vs Audio Coherence Audit (Δ ≤ 0.05s)      │
- │  [09] FFmpeg Muxer           ➔ Master Stream Assembly (AAC + H.264 High Profile)│
- │  [10] Packaging Agent        ➔ 3x 4K Thumbnails (A/B/C) + Semantic SEO Package  │
- │  [11] PRD Compliance Auditor ➔ 8/8 Automated Quality Gates Verification         │
- └─────────────────────────────────────────────────────────────────────────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │ Final Master Delivery  │
-                               │  - 1080p MP4 (600s)    │
-                               │  - 3x 4K Thumbnails    │
-                               │  - SEO Publication MD  │
-                               └────────────────────────┘
+```powershell
+git clone https://github.com/vickhenriqueztorres-source/hsl-video-studio.git C:\HSL\hsl-video-studio
+cd C:\HSL\hsl-video-studio
+# Enquanto esta entrega nao estiver integrada em main:
+git switch codex/phase2.5-drive-storage
+node --version
+python --version
+ffmpeg -version
+ffprobe -version
+npm.cmd ci
+python -m venv .venv
+# Ativacao opcional: .\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+npx.cmd remotion browser ensure
+if (-not (Test-Path -LiteralPath .env)) { Copy-Item -LiteralPath .env.example -Destination .env }
+notepad .env
 ```
 
----
+Após ativar a venv, `pip install -r requirements.txt` também funciona. Não copie
+`node_modules/` nem `.venv/` da origem. Se o npm precisar compilar SQLite,
+instale as ferramentas C++ de compilação do Visual Studio. Linux/macOS não
+foram validados para este pipeline completo.
 
-## 📊 Media Distribution Matrix (40 / 30 / 15 / 15)
+## Configuração e contas
 
-The visual rhythm is governed at the project root (`spec/hsl-spec.ts`) across 96 beats (600.00 seconds):
+Ajuste os caminhos absolutos da `.env`. `HSL_PYTHON` aponta para a venv acima.
+Coloque o JSON OAuth do Google fora do repo, na pasta privada indicada por
+`HSL_GOOGLE_CLIENT_SECRET_FILE`. O ID da pasta Drive está no exemplo, sem tokens.
 
-| Media Archetype | Proportion | Target Beats | Visual & Motion Governance |
-| :--- | :---: | :---: | :--- |
-| **Photorealistic 35mm Images** (`generated_image_35mm`) | **40%** | **38 Beats** | Industrial documentary aesthetic without burned-in text. Animated via 2.5D camera moves (*Slow Dolly, Camera Drift, Pan*). |
-| **Continuous Action Video** (`firefly_video`) | **30%** | **29 Beats** | Full-motion MP4 video takes with fluid dynamics, wake turbulence, and camera panning. |
-| **Kinetic Motion Graphics** (`vector_remotion`) | **15%** | **14 Beats** | Pure Remotion overlays, counters, telemetry badges, and monumental Vox typography. |
-| **Technical Diagram Images** (`motion_image_diagram`) | **15%** | **15 Beats** | Cutaway schematics, flow vectors, and isometric charts. **Anti-Collision Rule:** Typography overlays are automatically suppressed to avoid double text. |
-
----
-
-## 🎙️ Sound Design & Audio Architecture
-
-- **Narrator Voice:** ElevenLabs Voice *Chris* (Authoritative, calm, investigative documentary tone).
-- **Pitch-Perfect Sync:** Audio length dynamically calibrated to match 600.00s video duration (Delta $\le 0.01\text{s}$).
-- **Suspense Score:** Tension soundtrack mixed strictly at **-28dB** to prevent voice masking.
-- **Dynamic Ducking:** Automatic -4dB ducking when critical telemetry or alarms trigger.
-- **Foley & SFX:** Layered tactile mechanical sounds curated from Kenney CC0 audio library.
-
----
-
-## 🖼️ High-CTR YouTube Packaging (Rule 1+1=3)
-
-Every episode generates 3 distinct multivariable 4K thumbnails designed for high click-through rate:
-
-1. **Variant A (The Hero Scale):** Colossal system asset in context + high-contrast headline (`5 KM TO BRAKE`) + metric badge.
-2. **Variant B (The Split Contrast):** Normal operational state vs. catastrophic failure separated by a glowing laser line (`1.2M CLEARANCE // SUEZ LOCK`).
-3. **Variant C (The Crisis Hero):** Action emergency scene with HUD targeting reticle on the failure mechanism (`BANK SUCTION // 14 OCEAN TUGS`).
-
----
-
-## 🛠️ Project Structure
-
-```
-.
-├── .agents/                    # Multi-agent skill manifests and subagent definitions
-│   └── skills/
-│       ├── hsl-master-pipeline/     # Stage orchestration and execution controller
-│       ├── hsl-scene-direction/     # 8-Act narrative structure & shot planning
-│       ├── hsl-sound-design/        # Foley, narration synthesis & audio mixing
-│       ├── hsl-youtube-packaging/   # Thumbnails A/B/C & SEO semantic tagging
-│       └── hsl-artifact-registry/   # SHA-256 lineage tracking & deliverable catalog
-├── docs/                       # PRD, Rules, Brand System, and Cinematic guidelines
-├── hsl/
-│   ├── core/                   # ImageFrameEngine, FireflyVideoEngine, Gatekeeper, PathResolver
-│   ├── packaging/              # ThumbnailSeoEngine, YouTube metadata generator
-│   └── pipeline/               # Stage orchestrator and runner
-├── remotion/                   # Remotion compositions (HslLongFormComposition, HslThumbnail)
-├── scripts/                    # Episode generation scripts and utility runners
-├── spec/                       # Canonical visual spec, duration math, and types
-├── public/                     # Static assets, fonts, icons, sound library, and images
-└── deliveries/                 # Final output folder (MP4 video, 4K thumbnails, SEO packages)
+```powershell
+npm.cmd run hsl:codex:login
+npm.cmd run hsl:codex:status
+npm.cmd run hsl:antigravity:login
+npm.cmd run hsl:antigravity:status
+npm.cmd run hsl:drive:auth
+npm.cmd run hsl:drive:check
+npm.cmd run hsl:elevenlabs:keys
 ```
 
----
+Complete os logins no navegador indicado pela ferramenta. No Matrix, `[A]`
+gerencia contas e `[E]` gerencia chaves ElevenLabs. Não publique `.env`, tokens,
+cookies, `auth.json` ou cofres no GitHub. Pode transferir a `.env` por canal
+privado, ajustando os paths. **O cofre ElevenLabs usa DPAPI do usuário Windows:
+cadastre as chaves novamente no destino.** Refaça os logins das CLIs e Adobe.
 
-## 🚀 Getting Started
+## Agente Firefly e assets externos
 
-### Prerequisites
-- Node.js >= 18.0.0
-- FFmpeg & FFprobe installed and available in system `PATH`
-- ElevenLabs API Key (set in `.env` as `ELEVENLABS_API_KEY`)
+O adaptador está em `graph/production/lib/firefly/`, mas o motor Python é externo.
+O clone sozinho não contém `firefly_bot`. Transfira o código da pasta definida
+por `HSL_FIREFLY_AGENT_DIR` na origem, incluindo `main.py`, `firefly_bot/`,
+`requirements.txt` e demais recursos do agente; exclua venv, cookies e perfis.
 
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/vickhenriqueztorres-source/hsl-video-studio.git
-cd hsl-video-studio
-
-# Install dependencies
-npm install
+```powershell
+cd C:\HSL\firefly-agent
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+New-Item -ItemType Directory -Force C:\HSL-FIREFLY-PROFILE | Out-Null
+cd C:\HSL\hsl-video-studio
 ```
 
-### Environment Configuration
-Create a `.env` file in the root directory:
-```env
-ELEVENLABS_API_KEY="your_api_key_here"
-ELEVENLABS_VOICE_ID="iP95p4xoKVk53GoZ742B" # Chris voice
-HSL_ASSET_BASE_URL=""
+Configure `HSL_FIREFLY_AGENT_DIR=C:/HSL/firefly-agent` e
+`HSL_FIREFLY_CHROME_PROFILE=C:/HSL-FIREFLY-PROFILE`. Faça login Adobe quando o
+grafo solicitar. O agente exige sua própria `.venv/Scripts/python.exe`,
+independentemente de `HSL_PYTHON`.
+
+Restaure por Drive/backup privado, mantendo os caminhos relativos:
+
+| Conteúdo | Finalidade |
+| --- | --- |
+| `assets/audio-library/` e assets próprios | Acervo original de áudio e referências |
+| Mídias de `assets/` e `public/` | Assets exigidos pelos respectivos fluxos |
+| `runs/`, incluindo `.catalog/theme-registry.json` | Histórico, filas e bloqueio de temas repetidos |
+| `deliveries/` e `public/audio/` | Entregas e áudio dos episódios |
+| `database/langgraph-checkpoints.sqlite` | Retomada de execuções anteriores |
+
+`docs/graph/EXPORT-MEDIA.json` lista as mídias retiradas do índice nesta preparação.
+Não contém os arquivos nem comprova upload ao Drive. `npm.cmd run hsl:sfx-sync`
+baixa o catálogo Kenney, mas não restaura assets personalizados.
+
+Antes de copiar SQLite, pare todos os processos que escrevem no banco ou use
+backup/VACUUM INTO. Não copie apenas o `.sqlite` durante escrita em WAL.
+Checkpoints e recibos podem guardar caminhos absolutos antigos: retomada em
+outro diretório exige validação/migração desses caminhos e não é automática.
+Novos episódios não dependem de copiar checkpoints antigos.
+
+## Rodar
+
+Entre sempre na pasta que contém este `package.json`:
+
+```powershell
+cd C:\HSL\hsl-video-studio
+npm.cmd run hsl:matrix
 ```
 
----
+Escolha `[1] Criar novo episódio`, depois o número do tema. Nome e ID são
+automáticos. O modo de planejamento para antes das imagens/Kling, mas ainda
+usa as contas dos agentes. Gates ficam visíveis na CLI e no checkpoint.
 
-## 🎬 Generating an Episode
-
-To execute the end-to-end master pipeline for an episode:
-
-```bash
-# Run Episode 011 (Megaship Hydrodynamics)
-npx ts-node -T scripts/generateMegashipEpisode.ts
-
-# Re-render Thumbnails Only
-npx ts-node scripts/renderMegashipThumbnails.ts
-
-# Refresh YouTube SEO Packaging
-npx ts-node scripts/refreshMegashipPackaging.ts
-
-# Audit PRD Compliance
-npx ts-node scripts/auditMegashipCompliance.ts
+```powershell
+npm.cmd run hsl:matrix -- ajuda
+npm.cmd run hsl:matrix -- doctor
+npm.cmd run hsl:matrix -- episodios
+npm.cmd run hsl:matrix -- status HSL_EPISODE_011
+npm.cmd run hsl:matrix -- logs HSL_EPISODE_011
+npm.cmd run hsl:matrix -- continuar HSL_EPISODE_011
+# Em outro terminal: painel somente de observacao, http://127.0.0.1:2030/
+npm.cmd run hsl:dashboard
 ```
 
----
+Para passar um tema por argumento (equivalente à ideia de `python cli.py run
+"prompt"`), use a CLI real com ID ainda não usado. Este diagnóstico executa
+**somente scene_plan**, grava checkpoint e retorna **exit 3** por `--until`:
 
-## 🛡️ PRD Quality Gates (Automated Compliance)
+```powershell
+npm.cmd run hsl:master:graph -- --episode HSL_EPISODE_100 --topic "Como uma cidade mantem a pressao da agua" --target-minutes 3 --storage off --max-generations 0 --until scene_plan
+```
 
-The pipeline enforces 8 strict quality gates before delivery:
-1. **Target Duration Gate:** Exactly 600.00s (18,000 frames @ 30 FPS).
-2. **Audio-Visual Sync Gate:** Delta between visual video and narration $\le 0.05\text{s}$.
-3. **Physical Asset Gate:** 100% of beat frames/videos verified on disk (Zero Black Screen).
-4. **Media Ratio Gate:** 40% photoreal images, 30% continuous video, 15% motion graphics, 15% diagrams.
-5. **Collision Prevention Gate:** Zero typography overlays on diagram frames.
-6. **Sound Balancing Gate:** Score locked at -28dB with dynamic ducking.
-7. **Packaging Gate:** 3x 4K thumbnail variants (A/B/C) + 3 SEO titles generated.
-8. **Manifest Integrity Gate:** Valid `run-manifest.json` with SHA-256 lineage tracking.
+Isso não testa o pipeline completo. Storage tem default `drive`; prune tem
+default `dry-run`. Não execute `--prune apply` na migração nem habilite despacho
+Kling pago na `.env`. O fallback humano da revisão de imagens ainda existe;
+sua remoção não faz parte desta preparação de exportação.
 
----
+## Estrutura de pastas
 
-## 📜 License
-Private & Confidential — Hidden Systems Lab © 2026. All rights reserved.
+```text
+hsl-video-studio/
+├── .agents/skills/          # Contratos dos workers
+├── graph/
+│   ├── console/            # Matrix CLI + painel HTML
+│   ├── ide/                # Drivers CLI, contas e workers
+│   ├── production/         # StateGraph, nos, testes, render e storage
+│   ├── lib/                # Processos externos seguros
+│   ├── checkpointer.ts     # SQLite
+│   └── langgraph.json      # LangGraph.js Studio
+├── hsl/                    # Engines e orquestrador legado
+├── adapters/               # Integracoes
+├── remotion/               # Composicoes
+├── sfx-agent/              # Agente de som
+├── scripts/                # Drive Python e utilitarios
+├── assets/                 # Catalogos; acervo transferido separadamente
+├── public/                 # Assets e midias locais
+├── database/               # Schema versionado; checkpoints locais
+├── runs/                   # Filas, catalogo, logs e estado auxiliar (local)
+├── deliveries/             # Entregas (local/Drive)
+├── docs/graph/             # Guias e inventario de migracao
+├── .env.example            # Modelo sem segredos
+├── .gitignore
+├── package.json
+├── package-lock.json       # Dependencias Node resolvidas
+├── requirements.txt        # Dependencias Python auxiliares
+└── README.md
+```
+
+## Commit e push
+
+Este diretório já possui Git e `origin`. Não precisa executar `git init`,
+adicionar outro remote ou renomear a branch para main. No PC original:
+
+```powershell
+cd "D:\HSL STUDIO AGENTS\hsl-video-studio"
+git status --short
+git diff --stat
+git diff --cached --stat
+# Confira tambem as alteracoes anteriores que ja estavam na pasta:
+git add .
+git diff --cached --stat
+# Deve listar apenas .env.example, nenhum arquivo real de credenciais:
+git ls-files -- .env '.env.*' '*client_secret*.json' '*credentials*.json' '*token*.json' auth.json
+git commit -m "Prepare Matrix LangGraph project for another Windows PC"
+git push -u origin codex/phase2.5-drive-storage
+```
+
+O commit inclui alterações anteriores selecionadas por `git add .`; confira o
+diff antes. Depois integre por pull request em main. Até lá, use a branch acima.
+
+Somente para uma **pasta nova sem `.git`** e um repositório remoto vazio:
+
+```powershell
+git init -b main
+git add .
+git diff --cached --stat
+git commit -m "Initial commit"
+git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git push -u origin main
+```
+
+O `.gitignore` exclui ambientes, bancos, temporários, saídas, mídia e segredos.
+`git rm --cached` preserva os arquivos locais, mas não remove objetos de commits
+antigos. Esta preparação não reescreve o histórico nem elimina mídias que já
+tenham sido publicadas anteriormente.
+
+## Verificar sem produzir vídeo
+
+```powershell
+npx.cmd tsc --noEmit
+npm.cmd run hsl:matrix -- ajuda
+.\.venv\Scripts\python.exe -m unittest graph.production.storage.test_drive_sync
+```
+
+Esses comandos não geram mídia nem fazem upload. Para validar contas, use
+`hsl:drive:check` e, após instalar o agente/perfil, `hsl:kling:check`. O último
+consulta o ambiente externo sem gerar vídeo. Mais detalhes nos documentos
+`docs/graph/RENDER-ENV.md`, `MATRIX-LIVE.md` e `ELEVENLABS-KEYS.md`.

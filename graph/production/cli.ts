@@ -1,3 +1,4 @@
+import {deriveProgress} from '../console/progress';
 import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,6 +42,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (snapshot.values.episodeId && snapshot.values.stateVersion !== STATE_VERSION) throw new Error('Checkpoint incompatível; utilize nova stateVersion');
     if (command === 'status') {
       console.log(JSON.stringify({ thread_id: config.configurable.thread_id, next: snapshot.next,
+        Progress:deriveProgress(REPO_ROOT,episodeId,snapshot.values,snapshot.next,snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value))),
         Accounts:{codex:await checkCodexAccount(REPO_ROOT),loginCommand:'npm run hsl:codex:login'},
         frames: counts(snapshot.values.frames ?? []), videos: counts(snapshot.values.videos ?? []), chunks: counts(snapshot.values.renderChunks ?? []),
         generationCount:snapshot.values.generationCount??0,videoTakes:snapshot.values.videoTakes??[],sfxResolved:snapshot.values.sfxResolved??[],sfxUnresolved:snapshot.values.sfxUnresolved??[],
@@ -85,7 +87,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     }
     snapshot = await executeProduction(graph, REPO_ROOT, episodeId, input);
     const executedThisCommand=[...new Set(readHistory(REPO_ROOT,episodeId).slice(historyOffset).map((event:any)=>event.node).filter(Boolean))];
-    console.log(JSON.stringify({ thread_id: config.configurable.thread_id, productionStatus: snapshot.values.productionStatus, executedThisCommand, next: snapshot.next, interrupts: snapshot.tasks.flatMap(t => t.interrupts), kling:{plannedTakes:snapshot.values.videoTakes?.length??0,approvedLimit:snapshot.values.options?.graph.maxGenerations??0}, generationCount:snapshot.values.generationCount??0, finalVideo: snapshot.values.finalVideo }, null, 2));
+    console.log(JSON.stringify({ thread_id: config.configurable.thread_id, productionStatus: snapshot.values.productionStatus, executedThisCommand, progress:deriveProgress(REPO_ROOT,episodeId,snapshot.values,snapshot.next,snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value))).percent, next: snapshot.next, interrupts: snapshot.tasks.flatMap(t => t.interrupts), kling:{plannedTakes:snapshot.values.videoTakes?.length??0,approvedLimit:snapshot.values.options?.graph.maxGenerations??0}, generationCount:snapshot.values.generationCount??0, finalVideo: snapshot.values.finalVideo }, null, 2));
     if (snapshot.tasks.some(t => t.interrupts.length)) return 2;
     if (until && snapshot.next.length) return 3;
     return snapshot.values.productionStatus === 'COMPLETED' ? 0 : 1;

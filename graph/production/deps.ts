@@ -1,7 +1,8 @@
 import { HslSceneDirectorAgent } from '../../hsl/core/hslSceneDirectorAgent';
 import { HslImageFrameEngine } from '../../hsl/core/hslImageFrameEngine';
 import { HslFireflyVideoEngine } from '../../hsl/core/hslFireflyVideoEngine';
-import { ElevenLabsNarrationAdapter, NarrationGenerateOptions } from '../../adapters/elevenLabsNarrationAdapter';
+import type { NarrationGenerateOptions } from '../../adapters/elevenLabsNarrationAdapter';
+import {narrateWithManagedKey} from './lib/elevenLabsNarration';
 import { SoundDesignAgent } from '../../sound-agent';
 import { validateBeforeRender } from '../../hsl/core/hslValidationGatekeeper';
 import { HslComplianceChecker } from '../../spec/hsl-compliance-checker';
@@ -23,7 +24,7 @@ export function realDependencies(root: string) {
     plan: HslSceneDirectorAgent.planEpisodeFromScratch.bind(HslSceneDirectorAgent),
     frames: HslImageFrameEngine.generateFramesForEpisode.bind(HslImageFrameEngine),
     videos: HslFireflyVideoEngine.processVideoBeatsForEpisode.bind(HslFireflyVideoEngine),
-    narrate: (options: NarrationGenerateOptions) => new ElevenLabsNarrationAdapter().generateSpeech(options),
+    narrate: (options: NarrationGenerateOptions) => narrateWithManagedKey(root,options),
     sound: (input: VideoAnalysisInput, tsx: string, json: string) => new SoundDesignAgent(root).runFullPipeline(input, tsx, json),
     gatekeeper: validateBeforeRender, compliance: HslComplianceChecker.checkCompliance.bind(HslComplianceChecker),
     package: ThumbnailSeoEngine.generatePackage.bind(ThumbnailSeoEngine),

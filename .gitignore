@@ -8,6 +8,8 @@ database/langgraph-checkpoints.sqlite*
 
 # Local secrets and environment overrides.
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 *google-drive-key*.json
@@ -18,6 +20,10 @@ service-account*.json
 config/token.json
 *.credentials.json
 *service_account*.json
+auth.json
+*cookies*.json
+*storage-state*.json
+*.vault.json
 
 
 # Dependencies and build output.
@@ -28,6 +34,11 @@ out/
 .cache/
 .remotion/
 coverage/
+.venv/
+venv/
+temp/
+output/
+checkpoints.db
 *.log
 backups/
 backup/
@@ -41,6 +52,9 @@ public/hsl-publication/
 public/audio/
 deliveries/
 *.mp4
+*.jpg
+*.jpeg
+*.png
 *.wav
 *.aif
 *.aiff

@@ -12,14 +12,24 @@ import { fixtures, media } from './fixtures';
 import { takeCount, planTakes } from '../lib/firefly/guide';
 import { validateQueue } from '../lib/imageQueue';
 import { normalizePlanDuration } from '../lib/plan';
+import { renderFrameRanges, FRAME_RANGES } from '../lib/remotion';
+import { reviewBatches, imageReviewPrepare } from '../nodes/image_review';
 import { HslSceneDirectorAgent } from '../../../hsl/core/hslSceneDirectorAgent';
 
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'hsl-phase2-'));
 const imageFixture=path.join(base,'valid-1920x1080.png');
+const regeneratedFixture=path.join(base,'regenerated-1920x1080.png');
+
+const threeMinuteState = initialState({targetMinutes:3});
+const threeMinutePlan = normalizePlanDuration(HslSceneDirectorAgent.planEpisodeFromScratch(threeMinuteState.topicInput!),3);
+assert.equal(threeMinutePlan.totalFrames,5400);
+assert.deepEqual(renderFrameRanges({options:threeMinuteState.options!,scenePlan:threeMinutePlan}),[[0,4499],[4500,5399]]);
+assert.deepEqual(renderFrameRanges({options:initialState({graph:{mediaMode:'legacy'}}).options!,scenePlan:threeMinutePlan}),FRAME_RANGES);
+assert.deepEqual(renderFrameRanges({options:initialState({graph:{testRender:true}}).options!,scenePlan:threeMinutePlan}),[[0,299]]);
 
 function prompts(plan:any){return{beats:plan.beats.map((b:any)=>({beatId:b.beatId,imagePrompt:`Photorealistic cinematic industrial documentary scene for ${b.beatId}, no text or logos`,videoPrompt:`Slow controlled documentary camera motion through the physical system for ${b.beatId}`,cameraMotion:b.cameraMovement,durationSeconds:b.durationSeconds,firstFrameFrom:'image'}))};}
 
-function setup(name:string,opts:{missingTake?:number;lowReview?:boolean;imageLow?:boolean;codexSkipped?:boolean;sessionInvalid?:boolean;unresolved?:boolean;busy?:boolean;authMissing?:boolean}={}){
+function setup(name:string,opts:{missingTake?:number;lowReview?:boolean;reviewUnavailable?:boolean;reviewAlwaysLow?:boolean;imageLow?:boolean;codexSkipped?:boolean;sessionInvalid?:boolean;unresolved?:boolean;busy?:boolean;authMissing?:boolean}={}){
   const root=path.join(base,name);fs.mkdirSync(root,{recursive:true});const f=fixtures(root,name);
   let ideCalls=0,runCalls=0,probeCalls=0,visualReviewCalls=0,imageReviewCalls=0,authChecks=0,imageRuns=0;
   const plan=f.deps.plan!({} as any),selected={...plan,beats:plan.beats.slice(0,2).map((b:any,i:number)=>i===1?{...b,durationSeconds:7,durationFrames:210}:b)};
@@ -28,7 +38,7 @@ function setup(name:string,opts:{missingTake?:number;lowReview?:boolean;imageLow
     plan:()=>selected,
     codexAccount:async()=>({authenticated:!opts.authMissing||++authChecks>1}),
     generateImages:async(queuePath:string)=>{imageRuns++;const q=JSON.parse(fs.readFileSync(queuePath,'utf8'));
-      for(const item of q.items){if(name!=='IMAGE_QUEUE'){fs.mkdirSync(path.dirname(item.outputPath),{recursive:true});fs.copyFileSync(imageFixture,item.outputPath);}const v=require('../lib/imageQueue').validateImage(item.outputPath);item.status=v.ok?'done':'pending';item.lastError=v.ok?undefined:v.error;}
+      for(const item of q.items){if(name!=='IMAGE_QUEUE'){fs.mkdirSync(path.dirname(item.outputPath),{recursive:true});fs.copyFileSync(opts.imageLow&&imageRuns>1?regeneratedFixture:imageFixture,item.outputPath);}const v=require('../lib/imageQueue').validateImage(item.outputPath);item.status=v.ok?'done':'pending';item.lastError=v.ok?undefined:v.error;}
       fs.writeFileSync(queuePath,JSON.stringify(q));return q.items.some((x:any)=>x.status!=='done')?{kind:'IMAGE_GENERATION_RECOVERY',reason:'mock generation pending'}:null;},
     fireflyEnvironment:()=>({agentDir:root,profileDir:path.join(root,'profile'),python:'python'}),profileInUse:async()=>false,
     probeFireflySession:async()=>{probeCalls++;return opts.sessionInvalid?probeCalls>1:true;},openFireflyLogin:async()=>({exitCode:0,stdout:'',stderr:'',timedOut:false,durationMs:1}),
@@ -41,7 +51,8 @@ function setup(name:string,opts:{missingTake?:number;lowReview?:boolean;imageLow
         return{prepared:{} as any,headlessResult:{provider:'codex',ok:true,outputPath:'mock',durationMs:1,output:{items:selected.beats.map((b:any)=>({beatId:b.beatId,score,fidelity:score>75?'faithful':'subject drift',hasText:false,issues:score>75?[]:['regenerate with exact subject']}))}}};
       }
       if(task.node==='visual-prompts-review'){
-        visualReviewCalls++;const score=opts.lowReview&&visualReviewCalls===1?40:95;
+        if(opts.reviewUnavailable)return{prepared:{} as any,headlessResult:{provider:'codex',ok:false,reason:'review transport unavailable',outputPath:'mock',durationMs:1}};
+        visualReviewCalls++;const score=opts.reviewAlwaysLow||(opts.lowReview&&visualReviewCalls===1)?40:95;
         return{prepared:{} as any,headlessResult:{provider:'codex',ok:true,outputPath:'mock',durationMs:1,output:{score,issues:score>75?[]:[{beatId:selected.beats[0].beatId,message:'more concrete'}]}}};
       }
       return{prepared:{} as any,headlessResult:{provider:task.provider,ok:true,outputPath:'mock',durationMs:1,output:prompts(selected)}};
@@ -61,6 +72,27 @@ async function runNew(x:ReturnType<typeof setup>,name:string,max=3){return execu
 
 async function main(){
   requireSuccess(await spawnTool('ffmpeg',['-y','-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=navy:s=1920x1080','-frames:v','1',imageFixture],{cwd:base}),'TEST_IMAGE');
+  requireSuccess(await spawnTool('ffmpeg',['-y','-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=blue:s=1920x1080','-frames:v','1',regeneratedFixture],{cwd:base}),'TEST_REGENERATED_IMAGE');
+  const reviewInputs=Array.from({length:29},(_,i)=>({beatId:`SCENE_${i+1}`,prompt:'scene',imagePath:imageFixture,imageHash:'fixture',continuityRefs:i===28?['SCENE_1','SCENE_4']:undefined}));
+  const batches=reviewBatches(reviewInputs);
+  assert.deepEqual(batches.flatMap(b=>b.inputs.map(x=>x.beatId)),reviewInputs.map(x=>x.beatId));
+  assert.ok(batches.every(b=>b.inputs.length+b.references.length<=8));
+  const last=batches.find(b=>b.inputs.some(x=>x.beatId==='SCENE_29'))!;
+  assert.ok(last.references.some(x=>x.beatId==='SCENE_1'));assert.ok(last.references.some(x=>x.beatId==='SCENE_4'));
+  assert.throws(()=>reviewBatches([{...reviewInputs[0],continuityRefs:['MISSING']}]),/IMAGE_REVIEW_REFERENCE_MISSING/);
+  console.log('PASS review batching: 29 scenes exactly once, bounded attachments, distant continuity references retained');
+  const reviewRoot=path.join(base,'review-cache');fs.mkdirSync(reviewRoot,{recursive:true});
+  const reviewPrompt=path.join(reviewRoot,'prompt.md'),reviewQueue=path.join(reviewRoot,'QUEUE.json');fs.writeFileSync(reviewPrompt,'industrial scene');
+  fs.writeFileSync(reviewQueue,JSON.stringify({items:reviewInputs.slice(0,7).map(x=>({beatId:x.beatId,promptPath:reviewPrompt,outputPath:x.imagePath,status:'done'}))}));
+  let batchCalls=0;
+  const reviewNode=imageReviewPrepare({root:reviewRoot,deps:{ide:async(task:any)=>{
+    batchCalls++;const targets=JSON.parse(task.vars.images.split('\nContinuity references')[0]);
+    return{headlessResult:{ok:true,output:{items:targets.map((x:any)=>({beatId:x.beatId,score:90,fidelity:'faithful',hasText:false,issues:[]}))}}};
+  }}} as any);
+  const reviewState={...initialState({episodeId:'BATCH_CACHE'}),imageQueuePath:reviewQueue,imageReviewRounds:0} as any;
+  const aggregate=await reviewNode(reviewState,{} as any);assert.equal((aggregate.imageReview as any)?.items.length,7);assert.equal(batchCalls,3);
+  await reviewNode({...reviewState,imageReviewRounds:1},{} as any);assert.equal(batchCalls,3,'unchanged hashes reuse successful batch receipts across resume');
+  console.log('PASS review batch aggregation and receipt reuse without repeated CLI requests');
   const canonical=HslSceneDirectorAgent.planEpisodeFromScratch((initialState({episodeId:'DURATION_CHECK'}) as any).topicInput),six=normalizePlanDuration(canonical,6);
   assert.equal(normalizePlanDuration(canonical,10),canonical);assert.equal(six.totalBeatsCount,58);assert.equal(six.totalFrames,10800);assert.equal(six.beats.reduce((n,b)=>n+b.durationFrames,0),10800);assert.equal(six.acts.length,8);assert.equal(six.beats.at(-1)?.beatId,'SCENE_058');
   console.log('PASS duration: 6-minute plan is normalized to 58 beats and exactly 10,800 frames');
@@ -98,6 +130,10 @@ async function main(){
 
   const recovery=setup('RECOVERY',{missingTake:2});try{let s=await runNew(recovery,'RECOVERY');assert.equal((s.tasks[0].interrupts[0].value as any).kind,'FIREFLY_RECOVERY');const t=s.values.videoTakes.find((x:any)=>x.status==='dispatched')!;media(t.outputPath,false,5);s=await executeProduction(recovery.graph,recovery.root,'RECOVERY',new Command({resume:{resumed:true}}));assert.deepEqual(s.next,['packaging_stage']);console.log('PASS 2: FIREFLY_RECOVERY interrupt and resume');}finally{recovery.saver.db.close();}
   const review=setup('REVIEW',{lowReview:true});try{const s=await runNew(review,'REVIEW');assert.equal(s.values.promptIteration,2);console.log('PASS 4: prompt review loops once then passes');}finally{review.saver.db.close();}
+  for(const [name,opts,error] of [['REVIEW_UNAVAILABLE',{reviewUnavailable:true},/VISUAL_PROMPTS_REVIEW_UNAVAILABLE/],['REVIEW_FAILED',{reviewAlwaysLow:true},/VISUAL_PROMPTS_REVIEW_FAILED/]] as const){
+    const x=setup(name,opts);try{await assert.rejects(runNew(x,name),error);assert.equal(x.imageRuns,0);assert.equal(x.runCalls,0);}finally{x.saver.db.close();}
+  }
+  console.log('PASS review failures: unavailable or twice rejected prompts never start images or Kling');
   const limit=setup('LIMIT');try{let s=await runNew(limit,'LIMIT',0);const gate=s.tasks.flatMap(t=>t.interrupts)[0]?.value as any;assert.equal(gate.kind,'KLING_BUDGET');assert.equal(gate.requiredGenerations,2);assert.equal(limit.runCalls,0);s=await executeProduction(limit.graph,limit.root,'LIMIT',new Command({resume:{decision:'proceed'},update:{options:{...s.values.options,graph:{...s.values.options.graph,maxGenerations:2}}}}));assert.deepEqual(s.next,['packaging_stage']);assert.equal(s.values.generationCount,2);console.log('PASS 5: exact Kling budget gate blocks, approves exact limit, then dispatches');}finally{limit.saver.db.close();}
   const busy=setup('PROFILE_BUSY',{busy:true});try{const s=await runNew(busy,'PROFILE_BUSY');const gate=s.tasks.flatMap(t=>t.interrupts)[0]?.value as any;assert.equal(gate.kind,'FIREFLY_RECOVERY');assert.match(gate.reason,/FIREFLY_PROFILE_IN_USE/);assert.equal(gate.retryPolicy,'manual-reconcile-no-auto-resubmit');console.log('PASS 9: profile in use opens safe recovery before generation');}finally{busy.saver.db.close();}
   const login=setup('LOGIN',{sessionInvalid:true});try{let s=await runNew(login,'LOGIN');assert.equal((s.tasks[0].interrupts[0].value as any).kind,'FIREFLY_LOGIN');s=await executeProduction(login.graph,login.root,'LOGIN',new Command({resume:{resumed:true}}));assert.deepEqual(s.next,['packaging_stage']);console.log('PASS 10: invalid session login interrupt and revalidation');}finally{login.saver.db.close();}

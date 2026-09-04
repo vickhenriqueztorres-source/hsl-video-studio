@@ -23,4 +23,6 @@ Trabalhe somente na fila indicada pelo usuário. Se nenhuma for indicada, locali
 
 Use o ImageGen nativo do Codex, inclusive pelo Codex CLI (`codex exec`) com a conta ChatGPT autenticada. O grafo chama `npm run hsl:images:generate -- --queue <QUEUE.json>` e dispensa uma IDE aberta. Não use o script Python image_gen.py, chave de API, Antigravity, Adobe Firefly, navegador ou outro gerador/fallback. Se `image_gen` estiver indisponível, reporte o erro; o grafo grava checkpoint em CODEX_IMAGE_UNAVAILABLE. A ferramenta pode variar o aspecto, limitar a resolução ou devolver JPG/WebP; `--fix` converte e faz upscale determinístico antes da validação.
 
+Para uma imagem nova, omita completamente `num_last_images_to_include` e `referenced_image_paths`; não envie zero, null ou listas vazias. Siga o schema da ferramenta disponível. Se houver rejeição explícita dos argumentos antes de iniciar a geração, corrija a chamada e tente uma única vez com a mesma ferramenta nativa. Nunca repita automaticamente em timeout, recusa de autorização/política, limite de uso, falha do provedor ou resultado incerto. O limite é uma geração bem-sucedida por solicitação; não use outro gerador.
+
 Nunca altere prompt.md, gere fora de outputPath, despache Firefly, edite código ou marque manualmente um item como done.

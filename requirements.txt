@@ -1,0 +1,20 @@
+# Python auxiliar do HSL; Python 3.13.5 foi usado na maquina de origem.
+# O grafo usa LangGraph.js: instalar as dependencias Node com npm ci.
+# Nao usa langgraph/langchain/langgraph-cli/typer/rich do PyPI.
+# Dependencias diretas abaixo fixadas nas versoes instaladas na origem.
+# O agente Firefly EXTERNO usa seu proprio requirements.txt e sua propria .venv.
+
+# Google Drive / OAuth
+google-api-python-client==2.190.0
+google-auth==2.48.0
+google-auth-oauthlib==1.2.2
+requests==2.34.2
+
+# Fallback de narracao e ferramentas locais de imagem
+edge-tts==7.2.8
+Pillow==12.3.0
+
+# Utilitarios Python legados de diagnostico de desktop (nao iniciados pelo setup)
+PyAutoGUI==0.9.54; sys_platform == "win32"
+pywin32==311; sys_platform == "win32"
+uiautomation==2.0.29; sys_platform == "win32"

@@ -72,8 +72,14 @@ export async function spawnTool(cmd: string, argv: string[], opts: ToolOptions):
 }
 
 export function requireSuccess(result: ToolResult, label: string): ToolResult {
-  if (result.exitCode !== 0 || result.timedOut || result.errorCode) throw new Error(`${label}: ${result.stderr || result.errorCode || 'timeout'}`);
+  if (result.exitCode !== 0 || result.timedOut || result.errorCode) throw new Error(`${label}: ${result.stderr || result.errorCode || (result.timedOut ? 'timeout' : `process exited with code ${result.exitCode ?? 'unknown'}`)}`);
   return result;
+}
+
+/** Native interactive login owns stdin/TTY; credentials remain in the CLI keyring. */
+export function spawnInteractiveTool(cmd:string,argv:string[],opts:{cwd:string}):Promise<number>{
+  const cli=resolveTool(cmd);
+  return new Promise((resolve,reject)=>{const child=spawn(cli.command,[...cli.prefix,...argv],{cwd:opts.cwd,shell:false,stdio:'inherit'});child.on('error',reject);child.on('close',code=>resolve(code??1));});
 }
 
 // For synchronous engines isolated inside a worker process. Keep the same

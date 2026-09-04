@@ -1,5 +1,15 @@
 import {findCli} from './drivers/process';
-import {spawnTool, ToolResult} from '../lib/proc';
+import {spawnTool,spawnInteractiveTool,requireSuccess, ToolResult} from '../lib/proc';
+export async function loginCodexAccount(root:string):Promise<number>{
+  const cli=findCli('codex');if(!cli)throw new Error('Codex CLI não encontrado');
+  console.log('No navegador, escolha a conta ChatGPT desejada. Use "Usar outra conta" se necessário.');
+  return spawnInteractiveTool(cli.command,[...cli.prefix,'login'],{cwd:root});
+}
+export async function switchCodexAccount(root:string,command=codexCommand,login=loginCodexAccount):Promise<number>{
+  console.log('Trocando a conta ativa do Codex CLI neste perfil de usuário.');
+  requireSuccess(await command(root,['logout'],{timeoutMs:30000}),'CODEX_LOGOUT');
+  return login(root);
+}
 export async function codexCommand(root: string, args: string[], options: {
   stdin?: string; timeoutMs?: number; logPath?: string; interactive?: boolean
 } = {}): Promise<ToolResult> {
@@ -15,11 +25,11 @@ export async function checkCodexAccount(root: string) {
 }
 if (require.main === module) {
   const action = process.argv[2] ?? 'status';
-  if (action === 'login') codexCommand(process.cwd(), ['login'], {interactive: true, timeoutMs: 600_000})
-    .then(r => {process.exitCode = r.exitCode ?? 1;});
+  if (action === 'login' || action === 'switch') (action==='switch'?switchCodexAccount(process.cwd()):loginCodexAccount(process.cwd()))
+    .then(code => {process.exitCode = code;}).catch(e=>{console.error(e.message);process.exitCode=1;});
   else if (action === 'status') checkCodexAccount(process.cwd()).then(result => {
     console.log(JSON.stringify({provider: 'codex', ...result, command: 'npm run hsl:codex:login'}, null, 2));
     process.exitCode = result.authenticated ? 0 : 2;
   });
-  else throw new Error('Use login|status');
+  else throw new Error('Use login|switch|status');
 }

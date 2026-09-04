@@ -1,6 +1,14 @@
 import path from 'node:path';
+import type { State } from '../state';
 import { spawnTool, requireSuccess } from '../../lib/proc';
 export const FRAME_RANGES: [number, number][] = [[0, 4499], [4500, 8999], [9000, 13499], [13500, 17999]];
+export function renderFrameRanges(s: Pick<State, 'options' | 'scenePlan'>): [number, number][] {
+  if (s.options.graph.testRender) return [[0, 299]];
+  if (s.options.graph.mediaMode === 'legacy') return FRAME_RANGES;
+  const frames = s.scenePlan?.totalFrames;
+  if (!Number.isSafeInteger(frames) || !frames || frames < 1) throw new Error('RENDER_DURATION_INVALID');
+  return Array.from({ length: Math.ceil(frames / 4500) }, (_, index) => [index * 4500, Math.min(frames - 1, (index + 1) * 4500 - 1)]);
+}
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 export function chunkPath(root: string, episodeId: string, index: number) { return path.join(root, 'out', `temp_p${index + 1}_${episodeId.toLowerCase()}.mp4`); }
 export async function bundleRemotion(root: string) {

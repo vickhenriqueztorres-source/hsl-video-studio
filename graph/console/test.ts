@@ -11,6 +11,9 @@ async function main(){
     const episodes=await fetch(`${base}/api/episodes`);assert.equal(episodes.status,200);assert.ok(Array.isArray(await episodes.json()));
     const overview=await fetch(`${base}/api/overview/HSL_EPISODE_011`);assert.equal(overview.status,200);
     const data:any=await overview.json();assert.equal(data.episode,'HSL_EPISODE_011');assert.ok(Array.isArray(data.nodes));
+    const progress=await fetch(`${base}/api/progress/HSL_EPISODE_011`);assert.equal(progress.status,200);
+    const live:any=await progress.json();assert.ok(live.percent>=0&&live.percent<=100);assert.ok(Array.isArray(live.logs));assert.equal(live.percent,data.progress);
+    assert.equal((await fetch(`${base}/api/progress/HSL_EPISODE_011`,{method:'POST'})).status,405);
     const traversal=await fetch(`${base}/api/media?path=../package.json`);assert.equal(traversal.status,404);
     const invalid=await fetch(`${base}/api/actions`,{method:'POST',headers:{'content-type':'application/json',origin:base},body:JSON.stringify({action:'invalid',episode:'HSL_EPISODE_011'})});
     assert.equal(invalid.status,405);

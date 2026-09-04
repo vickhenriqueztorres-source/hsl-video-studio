@@ -19,11 +19,13 @@ export const visualPromptsWait=(c:Context):NodeFn=>s=>{
 export const visualPromptsReviewPrepare=(c:Context):NodeFn=>async s=>{
  if(s.options.graph.mediaMode==='legacy') return {__status:'skipped'}; const result=await c.deps.ide({threadId:s.episodeId,node:'visual-prompts-review',attempt:s.promptIteration||1,provider:'codex',ioMode:'file',readOnly:true,maxAttempts:2,
  promptTemplate:'graph/prompts/visual-prompts-review.md',schemaPath:'graph/prompts/visual-prompts-review.schema.json',vars:{visualPrompts:JSON.stringify(s.visualPrompts)}},{repoRoot:c.root});
- const review=result.headlessResult?.ok ? result.headlessResult.output as Omit<PromptReview,'iteration'> : {score:100,issues:[],skipped:true};
+ if(!result.headlessResult?.ok) throw new Error('VISUAL_PROMPTS_REVIEW_UNAVAILABLE: '+(result.headlessResult?.reason??result.headlessResult?.validationErrors?.join('; ')??'Codex did not return a validated review'));
+ const review=result.headlessResult.output as Omit<PromptReview,'iteration'>;
  return {promptReview:{...review,iteration:s.promptIteration||1}};
 };
 export const visualPromptsReviewWait=(_c:Context):NodeFn=>s=>{
  if(s.options.graph.mediaMode==='legacy') return {__status:'skipped'}; if(!s.promptReview) { interrupt({kind:'VISUAL_PROMPTS_REVIEW',threshold:s.options.graph.promptReviewThreshold}); return {}; }
+ if(s.promptReview.skipped || (s.promptReview.score<s.options.graph.promptReviewThreshold && s.promptIteration>=2)) throw new Error(`VISUAL_PROMPTS_REVIEW_FAILED: score=${s.promptReview.score}, threshold=${s.options.graph.promptReviewThreshold}; correct prompts and rerun review before image generation`);
  return {};
 };
 export const routePromptReview=(s:any)=>s.options.graph.mediaMode==='legacy'?'fan_out_frames':(s.promptReview.score>=s.options.graph.promptReviewThreshold||s.promptIteration>=2?'image_generate_prepare':'visual_prompts_prepare');

@@ -5,7 +5,9 @@ export type ChunkInput = State & { index: number; frameRange: [number, number] }
 export const renderChunkNode = (c: Context): NodeFn<ChunkInput> => async (s, config) => {
   const started = Date.now(), outPath = chunkPath(c.root, s.episodeId, s.index);
   const attempts = config.executionInfo?.nodeAttempt ?? 1;
-  const skip = validMedia(c, outPath);
+  const previous = [...s.renderChunks].reverse().find(chunk => chunk.index === s.index);
+  const matchingRange = !previous || (previous.frameRange[0] === s.frameRange[0] && previous.frameRange[1] === s.frameRange[1]);
+  const skip = matchingRange && validMedia(c, outPath);
   if (!skip) {
     const p = paths(c, s);
     // A resume can enter this node directly without entering render_prepare.

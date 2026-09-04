@@ -18,6 +18,8 @@ export function readErrors(root: string, episodeId: string): NodeError[] {
 export async function executeProduction(graph: ProductionGraph, root: string, episodeId: string, input: Parameters<ProductionGraph['stream']>[0], signal?: AbortSignal) {
   const config = configFor(episodeId);
   const folder = path.join(root, 'runs', episodeId, 'graph'); fs.mkdirSync(folder, { recursive: true });
+  const executionFile=path.join(folder,'execution.json');
+  writeJson(executionFile,{pid:process.pid,startedAt:new Date().toISOString(),active:true});
   try {
     for await (const raw of await graph.stream(input, { ...config, streamMode: 'debug', signal })) {
       const event = raw as { type: string; step: number; timestamp: string; payload: { id?: string; name?: string; input?: { index?: number }; error?: unknown } };
@@ -27,6 +29,7 @@ export async function executeProduction(graph: ProductionGraph, root: string, ep
       }
     }
   } finally {
+    writeJson(executionFile,{pid:process.pid,active:false,endedAt:new Date().toISOString()});
     const snapshots = [];
     for await (const snapshot of graph.getStateHistory(config)) snapshots.push({ checkpointId: snapshot.config.configurable?.checkpoint_id,
       step: snapshot.metadata?.step, next: snapshot.next, tasks: snapshot.tasks.map(t => ({ id: t.id, name: t.name, error: t.error, interrupts: t.interrupts })) });

@@ -9,13 +9,15 @@ import { createProductionGraph, NODE_ORDER } from '../graph';
 import { initialState, AssetResult, Timing } from '../state';
 import { configFor, executeProduction, readHistory, rewind } from '../runner';
 import { cleanRemotionTemp, prunePublicRuns } from '../lib/assets';
-import { spawnTool } from '../../lib/proc';
+import { spawnTool, requireSuccess } from '../../lib/proc';
 import { fixtures } from './fixtures';
 import { writeJson } from '../runtime';
 import { compareManifests } from '../parity';
 const legacyState = (o: any) => initialState({ ...o, graph: { ...o.graph, mediaMode: 'legacy' } });
 
 async function main() {
+  assert.throws(()=>requireSuccess({exitCode:1,stdout:'',stderr:'',timedOut:false,durationMs:1},'CHILD'),/process exited with code 1/);
+  assert.throws(()=>requireSuccess({stdout:'',stderr:'',timedOut:true,durationMs:1},'CHILD'),/timeout/);
   const base = path.join(REPO_ROOT, 'runs', 'phase1-tests-' + Date.now()); fs.mkdirSync(base, { recursive: true });
   const scenario = (name: string, opts = {}) => {
     const root = path.join(base, name); fs.mkdirSync(root, { recursive: true });

@@ -4,6 +4,7 @@ import { LangGraphRunnableConfig, isGraphInterrupt } from '@langchain/langgraph'
 import { HslRunManifest, StageName, RunManifestData } from '../../hsl/core/hslRunManifest';
 import { Dependencies } from './deps';
 import { State, Update, Timing, NodeError } from './state';
+import {emitLive} from './telemetry';
 export interface Context { root: string; deps: Dependencies }
 export const paths = (c: Context, s: Pick<State, 'episodeId'> & Partial<Pick<State, 'options'>>) => {
   const run = path.join(c.root, 'runs', s.episodeId), e = s.episodeId.toLowerCase();
@@ -72,14 +73,22 @@ export function timed<S extends { episodeId: string }>(c: Context, node: string,
   return async (s, config) => {
     const started = Date.now(), startedAt = new Date(started).toISOString();
     const attempt = config.executionInfo?.nodeAttempt ?? 1;
+    const progress = (message: string) => { if (process.env.HSL_GRAPH_PROGRESS === '1') console.log(`[grafo] ${node}: ${message}`); };
+    progress('iniciando');
+    emitLive(c.root,s.episodeId,{node,kind:'start',message:'Iniciando'});
     audit(c, s.episodeId, { type: 'entry', node, index: (s as S & { index?: number }).index, attempt, at: startedAt });
     try {
       const { __status, ...update } = await fn(s, config);
-      const timing: Timing = { node, startedAt, endedAt: new Date().toISOString(), ms: Date.now() - started, status: __status ?? 'ok' };
+      const ownTiming = Array.isArray(update.timings) ? [...update.timings].reverse().find(t=>t.node===node) : undefined;
+      const timing: Timing = { node, startedAt, endedAt: new Date().toISOString(), ms: Date.now() - started, status: __status ?? ownTiming?.status ?? 'ok' };
       audit(c, s.episodeId, { type: 'timing', ...timing });
-      return { ...update, timings: [...(Array.isArray(update.timings) ? update.timings : []), timing] };
+      progress(`${timing.status} (${(timing.ms / 1000).toFixed(1)}s)`);
+      emitLive(c.root,s.episodeId,{node,kind:'done',message:`${timing.status} · ${(timing.ms/1000).toFixed(1)}s`});
+      return { ...update, timings: [...(Array.isArray(update.timings) ? update.timings.filter(t=>t.node!==node) : []), timing] };
     } catch (e) {
-      if (isGraphInterrupt(e)) throw e;
+      if (isGraphInterrupt(e)) { progress('aguardando no gate; checkpoint preservado');emitLive(c.root,s.episodeId,{node,kind:'gate',message:'Aguardando no gate; checkpoint preservado'}); throw e; }
+      progress('falhou; consulte o erro e retome pelo Matrix');
+      emitLive(c.root,s.episodeId,{node,kind:'error',message:e instanceof Error?e.message:String(e)});
       const error: NodeError = { node, message: e instanceof Error ? e.message : String(e), stack: e instanceof Error ? e.stack : undefined, at: new Date().toISOString() };
       const timing: Timing = { node, startedAt, endedAt: error.at, ms: Date.now() - started, status: 'failed' };
       // A throwing LangGraph node cannot commit its returned update. Durable

@@ -4,6 +4,7 @@ import {createCheckpointer,REPO_ROOT} from '../checkpointer';
 import {createProductionGraph,NODE_ORDER} from '../production/graph';
 import {configFor,readErrors,readHistory} from '../production/runner';
 import {latestEntries,readIndex,storageSummary} from '../production/storage/index';
+import {deriveProgress} from './progress';
 
 export const PHASES=[
   {id:'setup',label:'Preparação',nodes:['scene_plan','env_check','codex_auth_prepare','codex_auth_wait','drive_auth_wait','archive_scene_plan']},
@@ -56,18 +57,18 @@ function media(root:string,episode:string,storage:any[]){
   return items;
 }
 
-function stateOf(nodes:any[],ids:readonly string[]){const selected=nodes.filter(n=>ids.includes(n.id));if(selected.some(n=>n.status==='failed'))return'failed';if(selected.some(n=>n.status==='running'))return'running';if(selected.length&&selected.every(n=>['done','skipped'].includes(n.status)))return'done';if(selected.some(n=>n.status==='done'))return'active';return'pending';}
+function stateOf(nodes:any[],ids:readonly string[]){const selected=nodes.filter(n=>ids.includes(n.id));if(selected.some(n=>n.status==='waiting'))return'waiting';if(selected.some(n=>n.status==='running'))return'running';if(selected.some(n=>n.status==='failed'))return'failed';if(selected.some(n=>n.status==='paused'))return'paused';if(selected.length&&selected.every(n=>['done','skipped'].includes(n.status)))return'done';if(selected.some(n=>['done','partial'].includes(n.status)))return'active';return'pending';}
 
 export async function overview(episode:string,root=REPO_ROOT){
   validEpisode(episode);const run=path.join(root,'runs',episode),history=readHistory(root,episode),errors=readErrors(root,episode),saver=createCheckpointer(root),graph=createProductionGraph(saver,{},root);
   try{
     const snapshot=await graph.getState(configFor(episode)),v:any=snapshot.values||{},queue=readJson(path.join(run,'images','QUEUE.json')),manifest=readJson(path.join(run,'run-manifest.json')),plan=readJson(path.join(run,'scene-plan.json')),prune=readJson(path.join(run,'prune-plan.json'));
-    const timings:any[]=v.timings??[],next=[...snapshot.next],interrupts=snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value)),lastTiming=new Map(timings.map(t=>[t.node,t])),visited=new Set(history.map((h:any)=>h.node)),failed=new Set(errors.map(e=>e.node));
-    const nodes=NODE_ORDER.map(id=>({id,status:next.includes(id)?'running':failed.has(id)?'failed':lastTiming.get(id)?.status==='skipped'?'skipped':lastTiming.has(id)||visited.has(id)?'done':'pending',ms:lastTiming.get(id)?.ms??null}));
-    const images=queue?.items??[],storage=latestEntries((v.storageIndex?.length?v.storageIndex:readIndex(root,episode))??[]),library=media(root,episode,storage),done=nodes.filter(n=>['done','skipped'].includes(n.status)).length;
+    const next=[...snapshot.next],interrupts=snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value));
+    const live=deriveProgress(root,episode,v,next,interrupts),nodes=live.nodes;
+    const images=queue?.items??[],storage=latestEntries((v.storageIndex?.length?v.storageIndex:readIndex(root,episode))??[]),library=media(root,episode,storage);
     const driveId=process.env.HSL_DRIVE_FOLDER_ID,folders=readJson(path.join(run,'drive-folders.json'))??{},imageFolder=storage.find(x=>x.driveFolderId&&/(^|\/)images\//i.test(x.path))?.driveFolderId,videoFolder=storage.find(x=>x.driveFolderId&&/(^|\/)(firefly|videos?)\//i.test(x.path))?.driveFolderId,driveUrl=(id?:string|null)=>id?`https://drive.google.com/drive/folders/${encodeURIComponent(id)}`:null,driveRoot=driveUrl(folders.root??driveId),driveSearch=`https://drive.google.com/drive/u/0/search?q=${encodeURIComponent(episode)}`;
-    return{episode,title:plan?.episodeTitle??episode,subtitle:plan?.subtitle??'',thesis:plan?.thesis??'',threadId:configFor(episode).configurable.thread_id,status:v.productionStatus??manifest?.overallStatus??'NOT_STARTED',updatedAt:manifest?.updatedAt??null,next,interrupts,nodes,phases:PHASES,progress:Math.round(done/Math.max(nodes.length,1)*100),
-      agents:AGENTS.map(a=>({...a,status:stateOf(nodes,a.nodes),progress:Math.round(a.nodes.filter(id=>['done','skipped'].includes(nodes.find(n=>n.id===id)?.status??'')).length/a.nodes.length*100)})),klingBudget:{totalTakes:(v.videoTakes??[]).length,approvedLimit:v.options?.graph?.maxGenerations??0,approvedAt:(v.options?.graph?.maxGenerations??0)>0},
+    return{episode,title:plan?.episodeTitle??episode,subtitle:plan?.subtitle??'',thesis:plan?.thesis??'',threadId:configFor(episode).configurable.thread_id,status:live.status,updatedAt:live.updatedAt,next,interrupts,nodes,phases:PHASES,progress:live.percent,live,
+      agents:AGENTS.map(a=>({...a,status:stateOf(nodes,a.nodes),progress:Math.round(a.nodes.reduce((sum,id)=>sum+(nodes.find(n=>n.id===id)?.progress??0),0)/a.nodes.length)})),klingBudget:{totalTakes:(v.videoTakes??[]).length,approvedLimit:v.options?.graph?.maxGenerations??0,approvedAt:(v.options?.graph?.maxGenerations??0)>0},
       metrics:{beats:plan?.totalBeatsCount??images.length,imagesDone:images.filter((x:any)=>x.status==='done').length,imagesTotal:images.length,takesDone:(v.videoTakes??[]).filter((x:any)=>['ok','skipped'].includes(x.status)).length,takesTotal:(v.videoTakes??[]).length,generations:v.generationCount??0,sfxResolved:(v.sfxResolved??[]).length,sfxUnresolved:(v.sfxUnresolved??[]).length,renderChunks:(v.renderChunks??[]).filter((x:any)=>x.status==='ok').length,duration:plan?.totalDurationSeconds??0},
       acts:(plan?.acts??[]).map((x:any)=>({number:x.actNumber,title:x.title,duration:x.durationSeconds,beats:x.beatsCount})),storage:storageSummary(storage),storageItems:storage.slice(0,300),history:history.slice(-120).reverse(),errors:errors.slice(-30).reverse(),media:library,
       drive:{rootUrl:driveRoot,episodeUrl:driveUrl(folders.episode)??driveSearch,imagesUrl:driveUrl(folders.images??imageFolder)??`https://drive.google.com/drive/u/0/search?q=${encodeURIComponent(episode+' images')}`,videosUrl:driveUrl(folders.videos??videoFolder)??`https://drive.google.com/drive/u/0/search?q=${encodeURIComponent(episode+' video')}`},

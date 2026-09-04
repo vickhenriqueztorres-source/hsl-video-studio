@@ -19,6 +19,12 @@
       <div class="read-only"><i></i><span>READ ONLY</span></div>
     </header>
 
+    <section class="live-strip" aria-label="Progresso do episódio">
+      <div class="live-heading"><span id="live-state">CONECTANDO</span><strong id="live-percent">—</strong><span id="live-node">Lendo checkpoint…</span><small id="live-sync">Atualização a cada 2s</small></div>
+      <div class="live-track" role="progressbar" aria-label="Etapas concluídas" aria-valuemin="0" aria-valuemax="100"><i id="live-bar"></i></div>
+      <div class="live-meta"><span id="live-counts">Etapas concluídas; não representa tempo restante</span><span id="live-gate"></span></div>
+    </section>
+    <details class="live-console" open><summary>ATIVIDADE DO GRAFO <span id="log-count"></span><small>Somente leitura · recolher / expandir</small></summary><div id="live-logs" role="log" aria-label="Logs do grafo"></div></details>
     <div id="viewport" class="viewport">
       <div id="stage" class="stage">
         <svg id="connections" viewBox="0 0 1900 1050" aria-hidden="true"></svg>

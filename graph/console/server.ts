@@ -6,6 +6,7 @@ import type {Server} from 'node:http';
 import {REPO_ROOT} from '../checkpointer';
 import {spawnTool} from '../lib/proc';
 import {episodes,overview,validEpisode} from './model';
+import {liveProgress} from './progress';
 
 const allowedMedia=['runs','out','deliveries'];
 function mediaPath(root:string,input:string){const target=path.resolve(root,input),relative=path.relative(root,target),top=relative.split(path.sep)[0];if(!allowedMedia.includes(top)||relative.startsWith('..')||path.isAbsolute(relative)||!fs.existsSync(target)||!fs.statSync(target).isFile())throw new Error('arquivo não permitido');if(!/\.(png|jpg|jpeg|webp|mp4|mp3|wav|json)$/i.test(target))throw new Error('formato não permitido');return target;}
@@ -15,6 +16,7 @@ export function createDashboard(root=REPO_ROOT){
   app.use((_req,res,next)=>{res.setHeader('Cache-Control','no-store');res.setHeader('X-HSL-Console-Mode','read-only');next();});
   app.use(express.static(ui));
   app.get('/api/episodes',(_req,res)=>res.json(episodes(root)));
+  app.get('/api/progress/:episode',async(req,res)=>{try{res.json(await liveProgress(validEpisode(req.params.episode),root));}catch(e){res.status(400).json({error:(e as Error).message});}});
   app.get('/api/overview/:episode',async(req,res)=>{try{res.json(await overview(validEpisode(req.params.episode),root));}catch(e){res.status(400).json({error:(e as Error).message});}});
   app.get('/api/media',(req,res)=>{try{res.sendFile(mediaPath(root,String(req.query.path??'')));}catch(e){res.status(404).json({error:(e as Error).message});}});
   app.all('/api/*',(_req,res)=>res.status(405).json({error:'Painel somente leitura. Use a CLI para executar operações.'}));

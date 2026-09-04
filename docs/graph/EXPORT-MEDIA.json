@@ -1,0 +1,841 @@
+{
+  "purpose": "Files removed from Git index only; restore required runtime assets separately. This is not an upload receipt.",
+  "sourceCommit": "16afbd5d9590f997f8f2a99ad01154278e128399",
+  "files": [
+    {
+      "path": "assets/hsl/motion-reference-set-v1/buffer-and-flow.png",
+      "gitBlob": "f070e16050290d5f2ccf3f6ec025853916d4cca5",
+      "sizeBytes": 2021583
+    },
+    {
+      "path": "assets/hsl/motion-reference-set-v1/delay-spreads.png",
+      "gitBlob": "1284043f7c84eb6024f939a12120512cd7a5b3f4",
+      "sizeBytes": 1900183
+    },
+    {
+      "path": "assets/hsl/motion-reference-set-v1/flow-journey-map.png",
+      "gitBlob": "37993d5f0c12a41eac488c5c30017ce85e9005ad",
+      "sizeBytes": 1865058
+    },
+    {
+      "path": "assets/hsl/motion-reference-set-v1/last-meters.png",
+      "gitBlob": "19b63e1dafb5a96bd4c1fddadf708ed4f91b043b",
+      "sizeBytes": 2046495
+    },
+    {
+      "path": "assets/hsl/motion-reference-set-v1/systems-in-motion.png",
+      "gitBlob": "860405ace7c8502920fd3a45ae8423eed9b21456",
+      "sizeBytes": 1811078
+    },
+    {
+      "path": "assets/hsl/visual-identity/01_3d_terrain_pipeline_map.jpg",
+      "gitBlob": "e34791837fc0c66cef5b4f141a9cfa4ed25270e8",
+      "sizeBytes": 235979
+    },
+    {
+      "path": "assets/hsl/visual-identity/02_cutaway_storage_buffer_flow.jpg",
+      "gitBlob": "ce01737de6a799d1863c49003e100527b70f23f9",
+      "sizeBytes": 274755
+    },
+    {
+      "path": "assets/hsl/visual-identity/03_aircraft_tarmac_systems_in_motion.jpg",
+      "gitBlob": "8d08990c1055af46d967b03ff253d920b798fc51",
+      "sizeBytes": 220270
+    },
+    {
+      "path": "assets/hsl/visual-identity/04_bottleneck_departure_board_delay_spreads.jpg",
+      "gitBlob": "6c87a9daa0140be80278c0a5d7f8d6f56f89325c",
+      "sizeBytes": 275536
+    },
+    {
+      "path": "assets/hsl/visual-identity/05_high_pressure_nozzle_last_meters.jpg",
+      "gitBlob": "7084ad889cd8053fd095ed176cccbabe0a5f5cb7",
+      "sizeBytes": 285812
+    },
+    {
+      "path": "assets/hsl/water-motion-reference-set-v1/distribution-cutaway.png",
+      "gitBlob": "7a09ad1a5dc85bdbcb7a8f78a3bcb6066882e049",
+      "sizeBytes": 2578834
+    },
+    {
+      "path": "assets/hsl/water-motion-reference-set-v1/main-break.png",
+      "gitBlob": "b63be0932b7cd80b8a49041b54f38a207a0a4d08",
+      "sizeBytes": 2400587
+    },
+    {
+      "path": "assets/hsl/water-motion-reference-set-v1/pump-station.png",
+      "gitBlob": "0749411ca1fdd8ab3dfd995120afefcc56bcf817",
+      "sizeBytes": 2135238
+    },
+    {
+      "path": "assets/hsl/water-motion-reference-set-v1/treatment-plant.png",
+      "gitBlob": "c9c38bac493187c76765790ab3e8121d23d8d672",
+      "sizeBytes": 2395852
+    },
+    {
+      "path": "assets/hsl/water-motion-reference-set-v1/water-intake.png",
+      "gitBlob": "ef832dabddb644181b410ba05aa50831ce321688",
+      "sizeBytes": 2423925
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/CHAOS-005/corrupted_video.mp4",
+      "gitBlob": "c46b15f339ee0975826cbb99940f1b197d44d85d",
+      "sizeBytes": 33
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-001/video_result_take_1.mp4",
+      "gitBlob": "7c4bfafe9ca8c067332425b3a6bac363e2ba1774",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-001/video_result_take_2.mp4",
+      "gitBlob": "766654ceffe6e2e6ed4f9e1369aa4458c82cbcac",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-001/video_result_take_3.mp4",
+      "gitBlob": "389def2447c21f4ea466010844873a461fe691d8",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-001/video_result_take_4.mp4",
+      "gitBlob": "9d69334f81fb32a180776bd9516ae6bdba83c10b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-002/video_result_take_1.mp4",
+      "gitBlob": "a586b84b652f2b8fa6975c0cc4d9397705fd3e31",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-002/video_result_take_2.mp4",
+      "gitBlob": "b6309ca3ca8c7ec10e4f7311d757b68742c123db",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-002/video_result_take_3.mp4",
+      "gitBlob": "1624d01a60a5a09c9a4393a170830a7a093ac6e4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-002/video_result_take_4.mp4",
+      "gitBlob": "3c9cee90ab113818867b933a8c650a2d542ab597",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-003/video_result_take_1.mp4",
+      "gitBlob": "a3332bb443bc1a4e0b8835f36a07d8669512d2cf",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-003/video_result_take_2.mp4",
+      "gitBlob": "3786de782d120275a88fd675882c724e48c9082b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-003/video_result_take_3.mp4",
+      "gitBlob": "5cadb29e79403fc9b19714382bfe17dce2d49943",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-003/video_result_take_4.mp4",
+      "gitBlob": "80eb41570aed94623d8796af4a1af0a28a6b6d37",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-004/video_result_take_1.mp4",
+      "gitBlob": "212c5cac789f8f1d2c4414d7e8d6154bb6a58e29",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-004/video_result_take_2.mp4",
+      "gitBlob": "84255a11ae37d75b4dbf7d6c38085fba644a28c4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-004/video_result_take_3.mp4",
+      "gitBlob": "a715e0f0b0292e1d8f6eea54f9f594b7537fdcb0",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-004/video_result_take_4.mp4",
+      "gitBlob": "3a44bdaf8defd9601686a4b282b43ce9543e5043",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-005/video_result_take_1.mp4",
+      "gitBlob": "16fdeb7f50f0f8bf85f20648e3076b2516acd805",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-005/video_result_take_2.mp4",
+      "gitBlob": "5e6998a0a162d724c6d41996c2313710ce821a01",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-005/video_result_take_3.mp4",
+      "gitBlob": "99b40dbec1e2eeb2eb51a78842685f0cd9020e34",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/PILOT-005/video_result_take_4.mp4",
+      "gitBlob": "623f43b654b95bb24e69052aeecb92fcf0c41674",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-001/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-001/imagens/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-001/video_result.mp4",
+      "gitBlob": "fdbf00d5eb6a6b7d93f6e5fa591c1149d3bfa1e6",
+      "sizeBytes": 4033013
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_01_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_02_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_03_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/video_result_take_1.mp4",
+      "gitBlob": "44c11b811466d68c480a5f6e0409fe2c61e9b85d",
+      "sizeBytes": 3697202
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/video_result_take_2.mp4",
+      "gitBlob": "3ef13152f79c3f98781059c6a3cc497d60acc19b",
+      "sizeBytes": 3803072
+    },
+    {
+      "path": "backups/AUDIT_BKP_001/runs/REAL-E2E-003/video_result_take_3.mp4",
+      "gitBlob": "a6781be7233278d50b8ff24869f628ff547686f2",
+      "sizeBytes": 4572153
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/CHAOS-005/corrupted_video.mp4",
+      "gitBlob": "c46b15f339ee0975826cbb99940f1b197d44d85d",
+      "sizeBytes": 33
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-001/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-001/imagens/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-001/video_result.mp4",
+      "gitBlob": "fdbf00d5eb6a6b7d93f6e5fa591c1149d3bfa1e6",
+      "sizeBytes": 4033013
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_01_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_02_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_03_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/video_result_take_1.mp4",
+      "gitBlob": "44c11b811466d68c480a5f6e0409fe2c61e9b85d",
+      "sizeBytes": 3697202
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/video_result_take_2.mp4",
+      "gitBlob": "3ef13152f79c3f98781059c6a3cc497d60acc19b",
+      "sizeBytes": 3803072
+    },
+    {
+      "path": "backups/BKP_1786038117839/runs/REAL-E2E-003/video_result_take_3.mp4",
+      "gitBlob": "a6781be7233278d50b8ff24869f628ff547686f2",
+      "sizeBytes": 4572153
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/CHAOS-005/corrupted_video.mp4",
+      "gitBlob": "c46b15f339ee0975826cbb99940f1b197d44d85d",
+      "sizeBytes": 33
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-001/video_result_take_1.mp4",
+      "gitBlob": "7c4bfafe9ca8c067332425b3a6bac363e2ba1774",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-001/video_result_take_2.mp4",
+      "gitBlob": "766654ceffe6e2e6ed4f9e1369aa4458c82cbcac",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-001/video_result_take_3.mp4",
+      "gitBlob": "389def2447c21f4ea466010844873a461fe691d8",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-001/video_result_take_4.mp4",
+      "gitBlob": "9d69334f81fb32a180776bd9516ae6bdba83c10b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-002/video_result_take_1.mp4",
+      "gitBlob": "a586b84b652f2b8fa6975c0cc4d9397705fd3e31",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-002/video_result_take_2.mp4",
+      "gitBlob": "b6309ca3ca8c7ec10e4f7311d757b68742c123db",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-002/video_result_take_3.mp4",
+      "gitBlob": "1624d01a60a5a09c9a4393a170830a7a093ac6e4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-002/video_result_take_4.mp4",
+      "gitBlob": "3c9cee90ab113818867b933a8c650a2d542ab597",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-003/video_result_take_1.mp4",
+      "gitBlob": "a3332bb443bc1a4e0b8835f36a07d8669512d2cf",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-003/video_result_take_2.mp4",
+      "gitBlob": "3786de782d120275a88fd675882c724e48c9082b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-003/video_result_take_3.mp4",
+      "gitBlob": "5cadb29e79403fc9b19714382bfe17dce2d49943",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-003/video_result_take_4.mp4",
+      "gitBlob": "80eb41570aed94623d8796af4a1af0a28a6b6d37",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-004/video_result_take_1.mp4",
+      "gitBlob": "212c5cac789f8f1d2c4414d7e8d6154bb6a58e29",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-004/video_result_take_2.mp4",
+      "gitBlob": "84255a11ae37d75b4dbf7d6c38085fba644a28c4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-004/video_result_take_3.mp4",
+      "gitBlob": "a715e0f0b0292e1d8f6eea54f9f594b7537fdcb0",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-004/video_result_take_4.mp4",
+      "gitBlob": "3a44bdaf8defd9601686a4b282b43ce9543e5043",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-005/video_result_take_1.mp4",
+      "gitBlob": "16fdeb7f50f0f8bf85f20648e3076b2516acd805",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-005/video_result_take_2.mp4",
+      "gitBlob": "5e6998a0a162d724c6d41996c2313710ce821a01",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-005/video_result_take_3.mp4",
+      "gitBlob": "99b40dbec1e2eeb2eb51a78842685f0cd9020e34",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/PILOT-005/video_result_take_4.mp4",
+      "gitBlob": "623f43b654b95bb24e69052aeecb92fcf0c41674",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RC2-MEDIA-E2E-001/imagens/RC2_MEDIA_E2E_001_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RC2-MEDIA-E2E-001/video_result.mp4",
+      "gitBlob": "2a99e601a3c3f22c79d57ca922c139a4c1719034",
+      "sizeBytes": 3830391
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-001/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-001/imagens/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-001/video_result.mp4",
+      "gitBlob": "fdbf00d5eb6a6b7d93f6e5fa591c1149d3bfa1e6",
+      "sizeBytes": 4033013
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_01_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_02_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_03_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/video_result_take_1.mp4",
+      "gitBlob": "44c11b811466d68c480a5f6e0409fe2c61e9b85d",
+      "sizeBytes": 3697202
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/video_result_take_2.mp4",
+      "gitBlob": "3ef13152f79c3f98781059c6a3cc497d60acc19b",
+      "sizeBytes": 3803072
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/REAL-E2E-003/video_result_take_3.mp4",
+      "gitBlob": "a6781be7233278d50b8ff24869f628ff547686f2",
+      "sizeBytes": 4572153
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/CHAOS-005/corrupted_video.mp4",
+      "gitBlob": "c46b15f339ee0975826cbb99940f1b197d44d85d",
+      "sizeBytes": 33
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-001/video_result_take_1.mp4",
+      "gitBlob": "7c4bfafe9ca8c067332425b3a6bac363e2ba1774",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-001/video_result_take_2.mp4",
+      "gitBlob": "766654ceffe6e2e6ed4f9e1369aa4458c82cbcac",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-001/video_result_take_3.mp4",
+      "gitBlob": "389def2447c21f4ea466010844873a461fe691d8",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-001/video_result_take_4.mp4",
+      "gitBlob": "9d69334f81fb32a180776bd9516ae6bdba83c10b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-002/video_result_take_1.mp4",
+      "gitBlob": "a586b84b652f2b8fa6975c0cc4d9397705fd3e31",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-002/video_result_take_2.mp4",
+      "gitBlob": "b6309ca3ca8c7ec10e4f7311d757b68742c123db",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-002/video_result_take_3.mp4",
+      "gitBlob": "1624d01a60a5a09c9a4393a170830a7a093ac6e4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-002/video_result_take_4.mp4",
+      "gitBlob": "3c9cee90ab113818867b933a8c650a2d542ab597",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-003/video_result_take_1.mp4",
+      "gitBlob": "a3332bb443bc1a4e0b8835f36a07d8669512d2cf",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-003/video_result_take_2.mp4",
+      "gitBlob": "3786de782d120275a88fd675882c724e48c9082b",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-003/video_result_take_3.mp4",
+      "gitBlob": "5cadb29e79403fc9b19714382bfe17dce2d49943",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-003/video_result_take_4.mp4",
+      "gitBlob": "80eb41570aed94623d8796af4a1af0a28a6b6d37",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-004/video_result_take_1.mp4",
+      "gitBlob": "212c5cac789f8f1d2c4414d7e8d6154bb6a58e29",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-004/video_result_take_2.mp4",
+      "gitBlob": "84255a11ae37d75b4dbf7d6c38085fba644a28c4",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-004/video_result_take_3.mp4",
+      "gitBlob": "a715e0f0b0292e1d8f6eea54f9f594b7537fdcb0",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-004/video_result_take_4.mp4",
+      "gitBlob": "3a44bdaf8defd9601686a4b282b43ce9543e5043",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-005/video_result_take_1.mp4",
+      "gitBlob": "16fdeb7f50f0f8bf85f20648e3076b2516acd805",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-005/video_result_take_2.mp4",
+      "gitBlob": "5e6998a0a162d724c6d41996c2313710ce821a01",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-005/video_result_take_3.mp4",
+      "gitBlob": "99b40dbec1e2eeb2eb51a78842685f0cd9020e34",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/PILOT-005/video_result_take_4.mp4",
+      "gitBlob": "623f43b654b95bb24e69052aeecb92fcf0c41674",
+      "sizeBytes": 73
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-001/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-001/imagens/SHOT_REAL_E2E_001_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-001/video_result.mp4",
+      "gitBlob": "fdbf00d5eb6a6b7d93f6e5fa591c1149d3bfa1e6",
+      "sizeBytes": 4033013
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_01_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_02_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/imagens/SHOT_01_TAKE_03_TAKE_01_start.png",
+      "gitBlob": "c6649cf678e80cc4d815ad20c35d5cd74c6a69ea",
+      "sizeBytes": 2027145
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/video_result_take_1.mp4",
+      "gitBlob": "44c11b811466d68c480a5f6e0409fe2c61e9b85d",
+      "sizeBytes": 3697202
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/video_result_take_2.mp4",
+      "gitBlob": "3ef13152f79c3f98781059c6a3cc497d60acc19b",
+      "sizeBytes": 3803072
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/RESTORE_CLEAN_TEST/runs/REAL-E2E-003/video_result_take_3.mp4",
+      "gitBlob": "a6781be7233278d50b8ff24869f628ff547686f2",
+      "sizeBytes": 4572153
+    },
+    {
+      "path": "backups/BKP_1786043467199/runs/test_run/imagens/SHOT_01_TAKE_01_start.png",
+      "gitBlob": "08cd6f2bfd1b53ec5a4db72bed55f40907e8bdfa",
+      "sizeBytes": 70
+    },
+    {
+      "path": "docs/ChatGPT Image 26 de ago. de 2026, 16_12_00.png",
+      "gitBlob": "7e2b6bba39ce0a3aded5001624392f51663fef7b",
+      "sizeBytes": 2006622
+    },
+    {
+      "path": "docs/assets/hsl/identity-board.png",
+      "gitBlob": "e056a14e77cb4566041e39d9e163e70b58b2fbf2",
+      "sizeBytes": 1740354
+    },
+    {
+      "path": "docs/assets/hsl/logo.png",
+      "gitBlob": "de06acefdba5a4cfb8c8b7b29a25fadd3bcab663",
+      "sizeBytes": 886733
+    },
+    {
+      "path": "docs/logo.png",
+      "gitBlob": "de06acefdba5a4cfb8c8b7b29a25fadd3bcab663",
+      "sizeBytes": 886733
+    },
+    {
+      "path": "docs2/ChatGPT Image 26 de ago. de 2026, 16_12_00.png",
+      "gitBlob": "7e2b6bba39ce0a3aded5001624392f51663fef7b",
+      "sizeBytes": 2006622
+    },
+    {
+      "path": "docs2/logo.png",
+      "gitBlob": "de06acefdba5a4cfb8c8b7b29a25fadd3bcab663",
+      "sizeBytes": 886733
+    },
+    {
+      "path": "public/identity/01_3d_terrain_pipeline_map.jpg",
+      "gitBlob": "e34791837fc0c66cef5b4f141a9cfa4ed25270e8",
+      "sizeBytes": 235979
+    },
+    {
+      "path": "public/identity/02_cutaway_storage_buffer_flow.jpg",
+      "gitBlob": "ce01737de6a799d1863c49003e100527b70f23f9",
+      "sizeBytes": 274755
+    },
+    {
+      "path": "public/identity/03_aircraft_tarmac_systems_in_motion.jpg",
+      "gitBlob": "8d08990c1055af46d967b03ff253d920b798fc51",
+      "sizeBytes": 220270
+    },
+    {
+      "path": "public/identity/04_bottleneck_departure_board_delay_spreads.jpg",
+      "gitBlob": "6c87a9daa0140be80278c0a5d7f8d6f56f89325c",
+      "sizeBytes": 275536
+    },
+    {
+      "path": "public/identity/05_high_pressure_nozzle_last_meters.jpg",
+      "gitBlob": "7084ad889cd8053fd095ed176cccbabe0a5f5cb7",
+      "sizeBytes": 285812
+    },
+    {
+      "path": "public/images/kessler/act1_leo_orbit.jpg",
+      "gitBlob": "67d43e6da8789f0cc353345f553ed960c5a5ddcc",
+      "sizeBytes": 836049
+    },
+    {
+      "path": "public/images/kessler/act2_crossing_planes.jpg",
+      "gitBlob": "bb6c9e5507492c924c0fb39705b80e4787f42317",
+      "sizeBytes": 979306
+    },
+    {
+      "path": "public/images/kessler/act3_impact_physics.jpg",
+      "gitBlob": "21a538435dcaa54767d143f56875472ce9ab5dc8",
+      "sizeBytes": 945213
+    },
+    {
+      "path": "public/images/kessler/act4_mission_control.jpg",
+      "gitBlob": "46d779e9e4cf2993e546772e73f28ead10637b12",
+      "sizeBytes": 854190
+    },
+    {
+      "path": "public/images/kessler/act5_collision_cascade.jpg",
+      "gitBlob": "60970ba063b02297269347aec9b2bc77e11f089b",
+      "sizeBytes": 870621
+    },
+    {
+      "path": "public/images/kessler/act6_whipple_shield.jpg",
+      "gitBlob": "2a3f1eb541b86c880295359987bc1fa3286c5cab",
+      "sizeBytes": 1051346
+    },
+    {
+      "path": "public/images/megaship/act1.jpg",
+      "gitBlob": "69e710e54ef7349e3699d3dac9e576f73dd6ccad",
+      "sizeBytes": 844049
+    },
+    {
+      "path": "public/images/megaship/act2.jpg",
+      "gitBlob": "b7602df73fc118c2454c9bf33bd282df41329794",
+      "sizeBytes": 986534
+    },
+    {
+      "path": "public/images/megaship/act3.jpg",
+      "gitBlob": "c791f032cab5b8b0331b2c6e27b6fee6ae282210",
+      "sizeBytes": 777288
+    },
+    {
+      "path": "public/images/megaship/act4.jpg",
+      "gitBlob": "13aa82368c46e3b155a4c97d26fae5a7006a6a75",
+      "sizeBytes": 849698
+    },
+    {
+      "path": "public/images/megaship/act5.jpg",
+      "gitBlob": "7a92deab5e750db6322ac3625af84a30e0ed0ec6",
+      "sizeBytes": 984059
+    },
+    {
+      "path": "public/images/megaship/act6.jpg",
+      "gitBlob": "aabdc103b0031ce62b3aee59314746dd763c4bac",
+      "sizeBytes": 912841
+    },
+    {
+      "path": "public/images/megaship/act7.jpg",
+      "gitBlob": "7a92deab5e750db6322ac3625af84a30e0ed0ec6",
+      "sizeBytes": 984059
+    },
+    {
+      "path": "public/images/megaship/act8.jpg",
+      "gitBlob": "69e710e54ef7349e3699d3dac9e576f73dd6ccad",
+      "sizeBytes": 844049
+    },
+    {
+      "path": "public/images/scenes/01_3d_terrain_pipeline_map.png",
+      "gitBlob": "b037e7a107ef0be2b8bbf704e6031fa61d7e0b3f",
+      "sizeBytes": 622512
+    },
+    {
+      "path": "public/images/scenes/02_cutaway_storage_buffer_flow.png",
+      "gitBlob": "debe0dff369b791cf40f85290bc9c7c0b38f5935",
+      "sizeBytes": 689236
+    },
+    {
+      "path": "public/images/scenes/03_aircraft_tarmac_systems_in_motion.png",
+      "gitBlob": "5f19671e56734b46e1a08813de770085b2520417",
+      "sizeBytes": 568059
+    },
+    {
+      "path": "public/images/scenes/04_bottleneck_departure_board_delay_spreads.png",
+      "gitBlob": "36fabccee603a3c1cea26776f3cc5284fb43b919",
+      "sizeBytes": 676256
+    },
+    {
+      "path": "public/images/scenes/05_high_pressure_nozzle_last_meters.png",
+      "gitBlob": "55f0b497e7044c4749f2d6a5bc9110108857b9ce",
+      "sizeBytes": 728439
+    },
+    {
+      "path": "public/images/scenes/scene_01_macro_glow.png",
+      "gitBlob": "b9836cd5a94dbc0268aeba878a12e377bb76e975",
+      "sizeBytes": 2253888
+    },
+    {
+      "path": "public/images/scenes/scene_02_server_vault.png",
+      "gitBlob": "129d983587c46489431f357105e22579193840f6",
+      "sizeBytes": 3217348
+    },
+    {
+      "path": "public/images/scenes/scene_03_optical_fiber.png",
+      "gitBlob": "fd41e615f57fd5150816dd7577253b446d3c25dd",
+      "sizeBytes": 3216674
+    },
+    {
+      "path": "public/images/scenes/scene_04_control_room.png",
+      "gitBlob": "3b740eb9ab50d0a841cc23c02bac9f58c6548e5a",
+      "sizeBytes": 3030328
+    },
+    {
+      "path": "public/images/scenes/scene_05_city_aerial.png",
+      "gitBlob": "d42fef841253787cb5b0bc10c25dd88267b4a23f",
+      "sizeBytes": 3127945
+    },
+    {
+      "path": "public/images/taipei101_tmd/act1.jpg",
+      "gitBlob": "2d6350d880d53bab1854f0986bb08c22684115d8",
+      "sizeBytes": 898701
+    },
+    {
+      "path": "public/images/taipei101_tmd/act2.jpg",
+      "gitBlob": "45d1dd665037943dc3f5a790fbfd3d8d8781ecb5",
+      "sizeBytes": 811970
+    },
+    {
+      "path": "public/images/taipei101_tmd/act3.jpg",
+      "gitBlob": "57287adb6af19dfd1f236fef73e27c956d511e20",
+      "sizeBytes": 940948
+    },
+    {
+      "path": "public/images/taipei101_tmd/act4.jpg",
+      "gitBlob": "2d6350d880d53bab1854f0986bb08c22684115d8",
+      "sizeBytes": 898701
+    },
+    {
+      "path": "public/images/taipei101_tmd/act5.jpg",
+      "gitBlob": "45d1dd665037943dc3f5a790fbfd3d8d8781ecb5",
+      "sizeBytes": 811970
+    },
+    {
+      "path": "public/images/taipei101_tmd/act6.jpg",
+      "gitBlob": "57287adb6af19dfd1f236fef73e27c956d511e20",
+      "sizeBytes": 940948
+    },
+    {
+      "path": "public/images/taipei101_tmd/act7.jpg",
+      "gitBlob": "2d6350d880d53bab1854f0986bb08c22684115d8",
+      "sizeBytes": 898701
+    },
+    {
+      "path": "public/images/taipei101_tmd/act8.jpg",
+      "gitBlob": "2d6350d880d53bab1854f0986bb08c22684115d8",
+      "sizeBytes": 898701
+    },
+    {
+      "path": "public/images/wall-street-latency/microwave-tower-hero.png",
+      "gitBlob": "49bd637a9de2c04a9553900cd20109262d89bce2",
+      "sizeBytes": 1672952
+    },
+    {
+      "path": "public/infographics/01_hero_systems_in_motion.jpg",
+      "gitBlob": "8d08990c1055af46d967b03ff253d920b798fc51",
+      "sizeBytes": 220270
+    },
+    {
+      "path": "public/infographics/02_bottleneck_delay_spreads.jpg",
+      "gitBlob": "6c87a9daa0140be80278c0a5d7f8d6f56f89325c",
+      "sizeBytes": 275536
+    },
+    {
+      "path": "public/infographics/03_satellite_pipeline_map.jpg",
+      "gitBlob": "e34791837fc0c66cef5b4f141a9cfa4ed25270e8",
+      "sizeBytes": 235979
+    },
+    {
+      "path": "public/infographics/04_cutaway_buffer_and_flow.jpg",
+      "gitBlob": "ce01737de6a799d1863c49003e100527b70f23f9",
+      "sizeBytes": 274755
+    },
+    {
+      "path": "public/infographics/05_macro_last_meters.jpg",
+      "gitBlob": "7084ad889cd8053fd095ed176cccbabe0a5f5cb7",
+      "sizeBytes": 285812
+    }
+  ]
+}
