@@ -32,7 +32,7 @@ export interface ExecutionStateData {
 /**
  * Validador e Gatekeeper Físico Canônico do Pipeline HSL com Auto-Cura.
  */
-export async function validateBeforeRender(episodeId: string = 'HSL_EPISODE_001'): Promise<GatekeeperResult> {
+export async function validateBeforeRender(episodeId: string = 'HSL_EPISODE_001', options?: { disableAutoRecovery?: boolean }): Promise<GatekeeperResult> {
   const root = process.cwd();
   const statePath = path.resolve(root, 'HSL_EXECUTION_STATE.json');
 
@@ -43,7 +43,7 @@ export async function validateBeforeRender(episodeId: string = 'HSL_EPISODE_001'
   let autoRecovered = false;
 
   // 2. Se houver falha de contrato físico, aciona Auto-Cura Autônoma
-  if (!verification.passed && verification.errors.length > 0) {
+  if (!verification.passed && verification.errors.length > 0 && !options?.disableAutoRecovery) {
     console.warn(`⚠️ [Gatekeeper] ${verification.failedBeats} assets com falha física detectados. Disparando auto-cura autônoma...`);
 
     const scenePlanPath = path.resolve(root, 'runs', episodeId, 'scene-plan.json');

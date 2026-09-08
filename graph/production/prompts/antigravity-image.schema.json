@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "sourcePath", "reason"],
+  "properties": {
+    "status": {"type": "string", "enum": ["generated", "unavailable"]},
+    "sourcePath": {"type": ["string", "null"]},
+    "reason": {"type": "string", "minLength": 1}
+  }
+}

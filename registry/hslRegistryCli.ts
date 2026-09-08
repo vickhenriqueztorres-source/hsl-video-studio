@@ -79,7 +79,8 @@ export class HslRegistryCli {
       }
 
       case 'audios': {
-        const audios = registry.listArtifacts({ type: 'narration_audio' });
+        const audios = registry.listArtifacts({ type: 'narration_audio' })
+          .filter(audio => audio.complianceStatus === 'APPROVED');
         console.log('\n🎙️ ÁUDIOS APROVADOS E REAPROVEITÁVEIS:');
         console.log('----------------------------------------------------------------');
         console.log('| Handle | Duração | SHA-256 | Caminho |');
@@ -113,6 +114,25 @@ export class HslRegistryCli {
         break;
       }
 
+      case 'derive-clean': {
+        const fromArg = args.find(a => a.startsWith('--from='))?.split('=')[1] || args[1];
+        const versionArg = args.find(a => a.startsWith('--version='))?.split('=')[1];
+        if (!fromArg) {
+          console.error('❌ ERRO: Run de origem não informada. Uso: npm run hsl:registry -- derive-clean --from=<run> --version=2');
+          process.exit(1);
+        }
+        try {
+          HslRunDerivator.deriveCleanRevision({
+            sourceRunId: fromArg,
+            newVersion: versionArg ? Number(versionArg) : undefined
+          });
+        } catch (err: any) {
+          console.error(`❌ ERRO DE DERIVAÇÃO LIMPA: ${err.message}`);
+          process.exit(1);
+        }
+        break;
+      }
+
       case 'clean': {
         const target = args[1] || 'HSL_EPISODE_001';
         try {
@@ -126,7 +146,7 @@ export class HslRegistryCli {
 
       default:
         console.log(`Comando desconhecido: ${command}`);
-        console.log('Comandos válidos: list, inspect, resolve, audios, rebuild, derive, clean');
+        console.log('Comandos válidos: list, inspect, resolve, audios, rebuild, derive, derive-clean, clean');
         process.exit(1);
     }
   }

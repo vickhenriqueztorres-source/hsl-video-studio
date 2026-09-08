@@ -17,7 +17,99 @@ export interface DerivationResult {
   readonly targetDirectory: string;
 }
 
+export interface CleanRevisionResult {
+  readonly success: boolean;
+  readonly sourceRunId: string;
+  readonly targetRunId: string;
+  readonly targetHandle: string;
+  readonly sourceScenePlanSha256: string;
+  readonly targetScenePlanSha256: string;
+  readonly inheritedArtifacts: readonly [];
+  readonly targetDirectory: string;
+}
+
 export class HslRunDerivator {
+  /**
+   * Cria uma revisão com o mesmo plano temporal, mas sem copiar áudio, frames ou
+   * vídeos. É o caminho seguro quando nenhum asset da origem é compatível.
+   */
+  public static deriveCleanRevision(params: {
+    sourceRunId: string;
+    newVersion?: number;
+  }): CleanRevisionResult {
+    const root = process.cwd();
+    const sourceIdentity = HslRunIdentity.parse(params.sourceRunId);
+    const canonicalSourceRunId = HslRunIdentity.buildRunId(sourceIdentity.project, sourceIdentity.episode, sourceIdentity.version);
+    const canonicalSourceDir = HslRunIdentity.getRunDirectory(sourceIdentity, root);
+    const sourceRunDir = fs.existsSync(canonicalSourceDir)
+      ? canonicalSourceDir
+      : path.resolve(root, 'runs', params.sourceRunId);
+    const sourcePlanPath = path.resolve(sourceRunDir, 'scene-plan.json');
+    if (!fs.existsSync(sourcePlanPath)) {
+      throw new Error(`DERIVATION_BLOCKED: Plano de origem ausente em '${sourcePlanPath}'.`);
+    }
+
+    const targetVersion = params.newVersion ?? sourceIdentity.version + 1;
+    if (!Number.isSafeInteger(targetVersion) || targetVersion <= sourceIdentity.version) {
+      throw new Error('DERIVATION_BLOCKED: A nova versão deve ser um inteiro maior que a versão de origem.');
+    }
+    const targetIdentity: HslRunIdComponents = { ...sourceIdentity, version: targetVersion };
+    const targetRunId = HslRunIdentity.buildRunId(targetIdentity.project, targetIdentity.episode, targetIdentity.version);
+    const targetHandle = HslRunIdentity.buildHandle(targetIdentity.project, targetIdentity.episode, targetIdentity.version);
+    const targetRunDir = HslRunIdentity.getRunDirectory(targetIdentity, root);
+    const targetPublicDir = HslRunIdentity.getPublicRunDirectory(targetIdentity, root);
+    if (fs.existsSync(targetRunDir) || fs.existsSync(targetPublicDir)) {
+      throw new Error(`IMMUTABILITY_VIOLATION_FATAL: A run de destino '${targetRunId}' já existe.`);
+    }
+
+    const sourcePlan = JSON.parse(fs.readFileSync(sourcePlanPath, 'utf8')) as HslLongFormProjectPlan;
+    if (!Array.isArray(sourcePlan.beats) || !sourcePlan.beats.length || sourcePlan.totalFrames <= 0) {
+      throw new Error('DERIVATION_BLOCKED: Plano de origem inválido ou vazio.');
+    }
+    const targetPlan: HslLongFormProjectPlan = {
+      ...sourcePlan,
+      episodeId: targetRunId,
+      targetMinutes: sourcePlan.totalDurationSeconds / 60,
+      beats: sourcePlan.beats.map(beat => ({
+        ...beat,
+        sourceBeatId: beat.sourceBeatId ?? beat.beatId,
+        outputFramePath: `runs/${targetRunId}/frames/${beat.beatId}.png`,
+        outputVideoPath: `runs/${targetRunId}/videos/${beat.beatId}.mp4`
+      }))
+    };
+
+    fs.mkdirSync(targetRunDir, { recursive: true });
+    fs.mkdirSync(path.resolve(targetRunDir, 'thumbnails'), { recursive: true });
+    fs.mkdirSync(path.resolve(targetPublicDir, 'frames'), { recursive: true });
+    fs.mkdirSync(path.resolve(targetPublicDir, 'videos'), { recursive: true });
+    const targetPlanPath = path.resolve(targetRunDir, 'scene-plan.json');
+    fs.writeFileSync(targetPlanPath, JSON.stringify(targetPlan, null, 2), 'utf8');
+
+    const sourceScenePlanSha256 = HslArtifactRegistry.computeSha256(sourcePlanPath);
+    const targetScenePlanSha256 = HslArtifactRegistry.computeSha256(targetPlanPath);
+    const lineage = {
+      derivedFromRunId: canonicalSourceRunId,
+      sourceScenePlanSha256,
+      inheritedArtifacts: [] as const
+    };
+    const manifest = new HslRunManifest(targetRunId, root);
+    manifest.setArtifacts({ scenePlanPath: targetPlanPath });
+    manifest.setLineage(lineage);
+    fs.writeFileSync(path.resolve(targetRunDir, 'revision-receipt.json'), JSON.stringify({
+      schema: 'hsl.clean-revision/v1', sourceRunId: canonicalSourceRunId, targetRunId,
+      sourceScenePlanSha256, targetScenePlanSha256, inheritedArtifacts: [],
+      createdAt: new Date().toISOString()
+    }, null, 2) + '\n', 'utf8');
+
+    new HslArtifactRegistry(root).registerRun(targetRunId, {
+      lineage: { derivedFromRunId: canonicalSourceRunId, inheritedArtifacts: [] }
+    });
+    return {
+      success: true, sourceRunId: canonicalSourceRunId, targetRunId, targetHandle,
+      sourceScenePlanSha256, targetScenePlanSha256, inheritedArtifacts: [], targetDirectory: targetRunDir
+    };
+  }
+
   /**
    * Deriva uma nova versão de run a partir de uma existente, herdando a narração com validação estrita.
    */
@@ -38,6 +130,12 @@ export class HslRunDerivator {
 
     if (sourceAudioArtifact.artifactType !== 'narration_audio') {
       throw new Error(`DERIVATION_BLOCKED: O artefato selecionado '${sourceAudioArtifact.handle}' não é uma narração válida.`);
+    }
+
+    if (sourceAudioArtifact.complianceStatus !== 'APPROVED') {
+      throw new Error(
+        `DERIVATION_BLOCKED: A narração '${sourceAudioArtifact.handle}' está ${sourceAudioArtifact.complianceStatus}; somente áudio APPROVED pode ser herdado.`
+      );
     }
 
     if (!fs.existsSync(sourceAudioArtifact.absolutePath)) {

@@ -1,0 +1,552 @@
+{
+  "collectedAt": "2026-09-05T22:10:47.923Z",
+  "episode": "HSL_EPISODE_003",
+  "scope": "No pipeline execution, provider calls, source edits or checkpoint writes; current files may differ from execution-time files.",
+  "checkpoints": {
+    "count": 45,
+    "firstTimestamp": "2026-09-05T21:00:53.468Z",
+    "lastTimestamp": "2026-09-05T21:53:10.512Z",
+    "lastId": "1f1a9742-f99b-68e0-802b-f0d4957596b9"
+  },
+  "state": {
+    "targetMinutes": 6,
+    "mediaMode": "legacy",
+    "testRender": false,
+    "offline": false,
+    "maxGenerations": 0,
+    "storageMode": "off",
+    "productionStatus": "COMPLETED",
+    "frames": 58,
+    "videos": 0,
+    "videoTakes": 0,
+    "generationCount": 0,
+    "sfxTrackPath": null,
+    "narration": {
+      "path": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\audio\\narration.mp3",
+      "publicCopyPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\public\\audio\\narration.mp3",
+      "durationSeconds": 155.352
+    },
+    "preMux": {
+      "visualDuration": 600,
+      "audioDuration": 155.352,
+      "durationDiffSeconds": 444.648,
+      "applied": false,
+      "tempoFactor": 0.25892,
+      "syncedAudioPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\narration_synced.mp3"
+    },
+    "renderChunks": [
+      {
+        "index": 0,
+        "frameRange": [
+          0,
+          4499
+        ],
+        "outPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\out\\temp_p1_hsl_episode_003.mp4",
+        "status": "ok",
+        "attempts": 1,
+        "durationMs": 591452
+      },
+      {
+        "index": 1,
+        "frameRange": [
+          4500,
+          8999
+        ],
+        "outPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\out\\temp_p2_hsl_episode_003.mp4",
+        "status": "ok",
+        "attempts": 1,
+        "durationMs": 566102
+      },
+      {
+        "index": 2,
+        "frameRange": [
+          9000,
+          13499
+        ],
+        "outPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\out\\temp_p3_hsl_episode_003.mp4",
+        "status": "ok",
+        "attempts": 1,
+        "durationMs": 432108
+      },
+      {
+        "index": 3,
+        "frameRange": [
+          13500,
+          17999
+        ],
+        "outPath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\out\\temp_p4_hsl_episode_003.mp4",
+        "status": "ok",
+        "attempts": 1,
+        "durationMs": 356556
+      }
+    ]
+  },
+  "plan": {
+    "title": "The Cooling System That Keeps Data Centers Alive",
+    "targetMinutes": 6,
+    "totalFrames": 10800,
+    "totalDurationSeconds": 360,
+    "beats": 58,
+    "sumFrames": 10800,
+    "sumSeconds": 359.99999999999983,
+    "modes": {
+      "generated_image_35mm": 58
+    },
+    "wordCount": 1038,
+    "promptsWithTypography": 58
+  },
+  "inventory": {
+    "frames": 58,
+    "start-frames": 0,
+    "videos": 0,
+    "temp-universal-svg-frames": 58,
+    "images": 0,
+    "firefly": 0
+  },
+  "startFrameManifest": {
+    "episode_id": "HSL_EPISODE_003",
+    "status": "APPROVED",
+    "visual_identity_contract_version": "hsl.visual-identity.v1",
+    "start_frame_provenance_sha256": "sha256_chatgpt_batch_1788642053879",
+    "items": []
+  },
+  "fireflyGuide": {
+    "production_id": "HSL_EPISODE_003",
+    "generation_mode": "topic_specific_motion_from_new_frames",
+    "total_takes": 0,
+    "video_ratio_percentage": "0.0%",
+    "takes": []
+  },
+  "timings": [
+    {
+      "node": "scene_plan",
+      "status": "ok",
+      "ms": 29,
+      "startedAt": "2026-09-05T21:00:53.503Z",
+      "endedAt": "2026-09-05T21:00:53.532Z"
+    },
+    {
+      "node": "env_check",
+      "status": "skipped",
+      "ms": 8,
+      "startedAt": "2026-09-05T21:00:53.574Z",
+      "endedAt": "2026-09-05T21:00:53.582Z"
+    },
+    {
+      "node": "codex_auth_prepare",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:00:53.600Z",
+      "endedAt": "2026-09-05T21:00:53.602Z"
+    },
+    {
+      "node": "codex_auth_wait",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:00:53.617Z",
+      "endedAt": "2026-09-05T21:00:53.619Z"
+    },
+    {
+      "node": "drive_auth_wait",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:00:53.668Z",
+      "endedAt": "2026-09-05T21:00:53.670Z"
+    },
+    {
+      "node": "archive_scene_plan",
+      "status": "ok",
+      "ms": 98,
+      "startedAt": "2026-09-05T21:00:53.691Z",
+      "endedAt": "2026-09-05T21:00:53.789Z"
+    },
+    {
+      "node": "fan_out_frames",
+      "status": "ok",
+      "ms": 7,
+      "startedAt": "2026-09-05T21:00:53.806Z",
+      "endedAt": "2026-09-05T21:00:53.813Z"
+    },
+    {
+      "node": "image_frames",
+      "status": "ok",
+      "ms": 53021,
+      "startedAt": "2026-09-05T21:00:53.828Z",
+      "endedAt": "2026-09-05T21:01:46.849Z"
+    },
+    {
+      "node": "join_frames",
+      "status": "ok",
+      "ms": 5,
+      "startedAt": "2026-09-05T21:01:46.860Z",
+      "endedAt": "2026-09-05T21:01:46.865Z"
+    },
+    {
+      "node": "fan_out_videos",
+      "status": "ok",
+      "ms": 8,
+      "startedAt": "2026-09-05T21:01:46.877Z",
+      "endedAt": "2026-09-05T21:01:46.885Z"
+    },
+    {
+      "node": "firefly_videos",
+      "status": "skipped",
+      "ms": 6,
+      "startedAt": "2026-09-05T21:01:46.895Z",
+      "endedAt": "2026-09-05T21:01:46.901Z"
+    },
+    {
+      "node": "join_videos",
+      "status": "ok",
+      "ms": 9,
+      "startedAt": "2026-09-05T21:01:46.911Z",
+      "endedAt": "2026-09-05T21:01:46.920Z"
+    },
+    {
+      "node": "narration",
+      "status": "ok",
+      "ms": 47740,
+      "startedAt": "2026-09-05T21:01:46.934Z",
+      "endedAt": "2026-09-05T21:02:34.674Z"
+    },
+    {
+      "node": "sound_design",
+      "status": "ok",
+      "ms": 41,
+      "startedAt": "2026-09-05T21:02:34.686Z",
+      "endedAt": "2026-09-05T21:02:34.727Z"
+    },
+    {
+      "node": "sfx_render",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:02:34.741Z",
+      "endedAt": "2026-09-05T21:02:34.743Z"
+    },
+    {
+      "node": "archive_audio",
+      "status": "ok",
+      "ms": 23,
+      "startedAt": "2026-09-05T21:02:34.755Z",
+      "endedAt": "2026-09-05T21:02:34.778Z"
+    },
+    {
+      "node": "gatekeeper",
+      "status": "ok",
+      "ms": 249,
+      "startedAt": "2026-09-05T21:02:34.800Z",
+      "endedAt": "2026-09-05T21:02:35.049Z"
+    },
+    {
+      "node": "gate_render_wait",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:02:35.064Z",
+      "endedAt": "2026-09-05T21:02:35.066Z"
+    },
+    {
+      "node": "render_prepare",
+      "status": "ok",
+      "ms": 22111,
+      "startedAt": "2026-09-05T21:02:35.077Z",
+      "endedAt": "2026-09-05T21:02:57.187Z"
+    },
+    {
+      "node": "fan_out_render",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:02:57.201Z",
+      "endedAt": "2026-09-05T21:02:57.203Z"
+    },
+    {
+      "node": "render_chunk",
+      "status": "ok",
+      "ms": 591454,
+      "startedAt": "2026-09-05T21:02:57.235Z",
+      "endedAt": "2026-09-05T21:12:48.689Z"
+    },
+    {
+      "node": "fan_out_render",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:12:48.701Z",
+      "endedAt": "2026-09-05T21:12:48.703Z"
+    },
+    {
+      "node": "render_chunk",
+      "status": "ok",
+      "ms": 566104,
+      "startedAt": "2026-09-05T21:12:48.855Z",
+      "endedAt": "2026-09-05T21:22:14.959Z"
+    },
+    {
+      "node": "fan_out_render",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:22:14.972Z",
+      "endedAt": "2026-09-05T21:22:14.974Z"
+    },
+    {
+      "node": "render_chunk",
+      "status": "ok",
+      "ms": 432109,
+      "startedAt": "2026-09-05T21:22:15.169Z",
+      "endedAt": "2026-09-05T21:29:27.278Z"
+    },
+    {
+      "node": "fan_out_render",
+      "status": "skipped",
+      "ms": 2,
+      "startedAt": "2026-09-05T21:29:27.295Z",
+      "endedAt": "2026-09-05T21:29:27.297Z"
+    },
+    {
+      "node": "render_chunk",
+      "status": "ok",
+      "ms": 356557,
+      "startedAt": "2026-09-05T21:29:27.542Z",
+      "endedAt": "2026-09-05T21:35:24.099Z"
+    },
+    {
+      "node": "fan_out_render",
+      "status": "skipped",
+      "ms": 1,
+      "startedAt": "2026-09-05T21:35:24.112Z",
+      "endedAt": "2026-09-05T21:35:24.113Z"
+    },
+    {
+      "node": "stitch",
+      "status": "ok",
+      "ms": 3519,
+      "startedAt": "2026-09-05T21:35:24.383Z",
+      "endedAt": "2026-09-05T21:35:27.902Z"
+    },
+    {
+      "node": "pre_mux_gate",
+      "status": "ok",
+      "ms": 325,
+      "startedAt": "2026-09-05T21:35:27.917Z",
+      "endedAt": "2026-09-05T21:35:28.242Z"
+    },
+    {
+      "node": "mux",
+      "status": "failed",
+      "ms": 508,
+      "startedAt": "2026-09-05T21:35:28.256Z",
+      "endedAt": "2026-09-05T21:35:28.764Z"
+    },
+    {
+      "node": "mux",
+      "status": "ok",
+      "ms": 40834,
+      "startedAt": "2026-09-05T21:42:31.373Z",
+      "endedAt": "2026-09-05T21:43:12.207Z"
+    },
+    {
+      "node": "packaging",
+      "status": "ok",
+      "ms": 14769,
+      "startedAt": "2026-09-05T21:43:12.241Z",
+      "endedAt": "2026-09-05T21:43:27.010Z"
+    },
+    {
+      "node": "compliance",
+      "status": "failed",
+      "ms": 601,
+      "startedAt": "2026-09-05T21:43:27.023Z",
+      "endedAt": "2026-09-05T21:43:27.624Z"
+    },
+    {
+      "node": "finalize",
+      "status": "ok",
+      "ms": 40,
+      "startedAt": "2026-09-05T21:43:27.646Z",
+      "endedAt": "2026-09-05T21:43:27.686Z"
+    },
+    {
+      "node": "archive_compliance",
+      "status": "ok",
+      "ms": 3536,
+      "startedAt": "2026-09-05T21:43:27.711Z",
+      "endedAt": "2026-09-05T21:43:31.247Z"
+    },
+    {
+      "node": "prune_verified",
+      "status": "skipped",
+      "ms": 10395,
+      "startedAt": "2026-09-05T21:43:31.275Z",
+      "endedAt": "2026-09-05T21:43:41.670Z"
+    },
+    {
+      "node": "compliance",
+      "status": "ok",
+      "ms": 1640,
+      "startedAt": "2026-09-05T21:53:01.956Z",
+      "endedAt": "2026-09-05T21:53:03.596Z"
+    },
+    {
+      "node": "gate_publish_wait",
+      "status": "skipped",
+      "ms": 3,
+      "startedAt": "2026-09-05T21:53:03.625Z",
+      "endedAt": "2026-09-05T21:53:03.628Z"
+    },
+    {
+      "node": "finalize",
+      "status": "ok",
+      "ms": 22,
+      "startedAt": "2026-09-05T21:53:03.640Z",
+      "endedAt": "2026-09-05T21:53:03.662Z"
+    },
+    {
+      "node": "archive_compliance",
+      "status": "ok",
+      "ms": 2733,
+      "startedAt": "2026-09-05T21:53:03.701Z",
+      "endedAt": "2026-09-05T21:53:06.434Z"
+    },
+    {
+      "node": "prune_verified",
+      "status": "skipped",
+      "ms": 4026,
+      "startedAt": "2026-09-05T21:53:06.465Z",
+      "endedAt": "2026-09-05T21:53:10.491Z"
+    }
+  ],
+  "errors": [
+    {
+      "node": "mux",
+      "message": "FFMPEG_MUX_FATAL: [in#1 @ 000002db889d7140] Error opening input: No such file or directory\r\nError opening input file C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\assets\\audio-library\\music\\cinematic\\suspense\\suspense_oppressive_gloom.mp3.\r\nError opening input files: No such file or directory\r\n",
+      "at": "2026-09-05T21:35:28.764Z"
+    }
+  ],
+  "hashes": [
+    {
+      "file": "runs/HSL_EPISODE_003/scene-plan.json",
+      "sha256": "5fe4d426377952d60202261127fb30bd0e315cdeedec8746fc61803089f8c258",
+      "mtime": "2026-09-05T21:00:53.529Z"
+    },
+    {
+      "file": "runs/HSL_EPISODE_003/run-manifest.json",
+      "sha256": "87ad4ae426006f20abac5b10776299e705d356321dc4f4e1f8100ee271f50000",
+      "mtime": "2026-09-05T21:53:03.642Z"
+    },
+    {
+      "file": "runs/HSL_EPISODE_003/graph/compliance.json",
+      "sha256": "67927bb87ff609427f2932e26acdf77e10872bc5810715d39487de273e6453f6",
+      "mtime": "2026-09-05T21:53:03.592Z"
+    },
+    {
+      "file": "out/hsl_episode_003.mp4",
+      "sha256": "b05d4ca2680ff08bba53aec3da71b7d108480f5d709bdd1d5c9aed35e650785d",
+      "mtime": "2026-09-05T21:43:09.742Z"
+    },
+    {
+      "file": "runs/HSL_EPISODE_003/audio/narration.mp3",
+      "sha256": "f62b3e95f46ad08fbab3a77706d20f1338a9230fb18f187896fdead085a0e87a",
+      "mtime": "2026-09-05T21:47:15.216Z"
+    }
+  ],
+  "media": {
+    "out/hsl_episode_003.mp4": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "30/1",
+          "duration": "600.000000",
+          "nb_frames": "18000",
+          "side_data_list": [
+            {}
+          ]
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "599.980408",
+          "nb_frames": "25840"
+        }
+      ],
+      "format": {
+        "duration": "600.000000",
+        "size": "150254274"
+      }
+    },
+    "runs/HSL_EPISODE_003/audio/narration.mp3": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "24000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "600.000000"
+        }
+      ],
+      "format": {
+        "duration": "600.000000",
+        "size": "2400428"
+      }
+    },
+    "runs/HSL_EPISODE_003/audio/narration_synced.mp3": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "24000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "600.000000"
+        }
+      ],
+      "format": {
+        "duration": "600.000000",
+        "size": "2400428"
+      }
+    },
+    "runs/HSL_EPISODE_003/audio/narration_test.mp3": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio",
+          "sample_rate": "24000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "600.000000"
+        }
+      ],
+      "format": {
+        "duration": "600.000000",
+        "size": "2400428"
+      }
+    }
+  },
+  "additionalReadOnlyChecks": {
+    "environmentPresence": {
+      "HSL_FIREFLY_AGENT_DIR": false,
+      "HSL_FIREFLY_CHROME_PROFILE": false,
+      "HSL_ALLOW_PAID_FIREFLY_DISPATCH": false
+    },
+    "localImageBotMainExists": false,
+    "svgsWithEmbeddedImage": 0,
+    "missingReferencedScripts": [
+      "hsl:codex:login",
+      "hsl:master:graph:resume",
+      "hsl:antigravity:login",
+      "hsl:drive:check"
+    ]
+  }
+}

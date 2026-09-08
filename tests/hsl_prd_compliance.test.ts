@@ -24,7 +24,7 @@ async function runComplianceTests() {
   // Na run atual, o áudio gerado pelo ElevenLabs na etapa anterior é de 978s enquanto o vídeo é 600s
   // O checador deve reportar com precisão cirúrgica cada regra
   assert.strictEqual(typeof intactReport.passed, 'boolean');
-  assert.strictEqual(intactReport.totalRules, 6);
+  assert.strictEqual(intactReport.totalRules, 11);
   console.log(`    Resultado: ${intactReport.passedRules}/${intactReport.totalRules} regras aprovadas.`);
 
   // ---------------------------------------------------------------------------
@@ -91,6 +91,17 @@ async function runComplianceTests() {
       }
     }
   }
+  // ---------------------------------------------------------------------------
+  // Teste 5: Auditoria do HSL_EPISODE_003 (esperado: REPROVAÇÃO de P0)
+  // ---------------------------------------------------------------------------
+  console.log('  ▶ Teste 5: Verificando reprovação correta de HSL_EPISODE_003...');
+  const ep3Report = HslComplianceChecker.checkCompliance('HSL_EPISODE_003');
+  assert.strictEqual(ep3Report.passed, false, 'HSL_EPISODE_003 deve ser reprovado pelo compliance');
+  const blackRule = ep3Report.results.find(r => r.ruleId === 'RULE_05B_MASTER_ZERO_BLACK_SCREEN');
+  const syncRule = ep3Report.results.find(r => r.ruleId === 'RULE_03_AUDIO_SYNC');
+  assert.strictEqual(blackRule?.passed, false, 'Deveria reprovar na tela preta de 4 minutos');
+  assert.strictEqual(syncRule?.passed, false, 'Deveria reprovar na narração cessando aos 154s');
+  console.log('    ✅ HSL_EPISODE_003 reprovado com precisão cirúrgica em tela preta e desync.');
 
   console.log('\n🎉 TODOS OS TESTES DA ESPECIFICAÇÃO EXECUTÁVEL FORAM APROVADOS!');
 }

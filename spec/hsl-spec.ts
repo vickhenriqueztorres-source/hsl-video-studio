@@ -177,7 +177,7 @@ export const HSL_REQUIRED_PACKAGE_FILES = [
 export const HSL_OFFICIAL_VOICE_NAME = 'Chris';
 export const HSL_OFFICIAL_NARRATION_PROVIDER = 'ElevenLabs';
 export const HSL_OFFICIAL_MODEL_ID = 'eleven_multilingual_v2';
-export const HSL_MASTER_AUDIO_FILE = 'audio/narration.mp3';
+export const HSL_MASTER_AUDIO_FILE = 'audio/narration-master.wav';
 
 // -----------------------------------------------------------------------------
 // 7. IDENTIDADE VISUAL CANÔNICA: KINETIC VELOCITY (POP-DOCUMENTARY)

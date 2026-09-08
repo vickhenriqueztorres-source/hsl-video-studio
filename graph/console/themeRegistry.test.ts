@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {findDuplicate,nextEpisodeId,reserveTheme,similarity,suggestThemes,themeRecords} from './themeRegistry';
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'hsl-theme-')),run=path.join(root,'runs','HSL_EPISODE_011');fs.mkdirSync(run,{recursive:true});
+fs.writeFileSync(path.join(run,'scene-plan.json'),JSON.stringify({episodeTitle:'THE HIDDEN SYSTEM THAT KEEPS PLANES FLYING',subtitle:'AIRPORT JET FUEL LOGISTICS',thesis:'The hidden product is synchronized fuel logistics'}));
+assert.ok(similarity('logística de combustível de aeroportos','AIRPORT JET FUEL LOGISTICS')>=.6);
+assert.equal(findDuplicate('Airport fuel logistics',root)?.record.episodeId,'HSL_EPISODE_011');
+assert.ok(!suggestThemes(root,20).some(x=>/airport fuel/i.test(x.theme)));
+assert.equal(nextEpisodeId(root),'HSL_EPISODE_012');reserveTheme('HSL_EPISODE_012','Urban water pressure',root);
+assert.equal(findDuplicate('pressure in urban water systems',root)?.record.episodeId,'HSL_EPISODE_012');assert.equal(themeRecords(root).length,2);
+console.log('THEME_REGISTRY_TEST_OK');

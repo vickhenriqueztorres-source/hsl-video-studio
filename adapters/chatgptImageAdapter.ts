@@ -100,6 +100,11 @@ export class ChatGptImageAdapter {
   }
 
   public runGeneratorBot(): void {
+    const scriptPath = path.join(this.botDir, 'src', 'main.py');
+    if (!fs.existsSync(scriptPath)) {
+      console.log(`[ChatGPTImageAdapter] Bot script principal não encontrado em: ${scriptPath}. Pulando execução externa.`);
+      return;
+    }
     console.log(`[ChatGPTImageAdapter] Executando bot gerador em: ${this.botDir}`);
     const pythonExe = process.platform === 'win32' ? 'python' : 'python3';
 

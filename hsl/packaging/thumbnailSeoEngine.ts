@@ -76,9 +76,29 @@ export class ThumbnailSeoEngine {
     const isSkyscraper = !isMegaShip && (episodeId.includes('SKYSCRAPER') || mainTopic.includes('skyscraper') || mainTopic.includes('tower') || mainTopic.includes('psi') || mainTopic.includes('hydraulic') || mainTopic.includes('megatall'));
     const isGrid = !isMegaShip && (episodeId.includes('GRID') || episodeId.includes('FREQUENCY') || mainTopic.includes('grid') || mainTopic.includes('hertz') || mainTopic.includes('hz') || mainTopic.includes('frequency') || mainTopic.includes('blackout') || mainTopic.includes('electricity') || mainTopic.includes('storage'));
     const isWallStreetLatency = !isMegaShip && (episodeId.includes('WALL_STREET') || episodeId.includes('LATENCY') || episodeId.includes('HFT') || mainTopic.includes('wall street') || mainTopic.includes('high-frequency trading') || mainTopic.includes('latency') || mainTopic.includes('millisecond') || mainTopic.includes('microwave'));
+    const isVaccineColdChain = /vaccine|vaccin|cold[ -]?chain|ultra[ -]?low|refrigerat|temperature excursion|immuni[sz]ation/.test(`${episodeId} ${mainTopic} ${entity}`);
 
     // 1. GERAÇÃO DOS 3 TÍTULOS ESTRATÉGICOS (FÓRMULAS 1+1=3)
-    const titles: HslTitleSpec[] = isMegaShip ? [
+    const titles: HslTitleSpec[] = isVaccineColdChain ? [
+      {
+        variantId: 'A', role: 'SEARCH_INTENT',
+        title: 'How the Vaccine Cold Chain Keeps Doses Effective at −70°C',
+        strategicFormula: '[Recognizable system] + [critical constraint] + [outcome]',
+        targetAudienceTrigger: 'Busca por logística de vacinas, armazenamento ultrafrio e a cadeia que preserva a eficácia de cada dose.'
+      },
+      {
+        variantId: 'B', role: 'CURIOSITY_GAP',
+        title: 'Why One Temperature Excursion Can Ruin a Vaccine Shipment',
+        strategicFormula: '[Single hidden failure] + [high-stakes consequence]',
+        targetAudienceTrigger: 'Tensão imediata entre uma pequena variação térmica e uma carga inteira que pode deixar de proteger pacientes.'
+      },
+      {
+        variantId: 'C', role: 'CONTRAST_PARADOX',
+        title: 'The Invisible Refrigeration System Behind Every Effective Vaccine',
+        strategicFormula: '[Invisible infrastructure] + [everyday outcome]',
+        targetAudienceTrigger: 'Curiosidade sobre a infraestrutura contínua que liga fábrica, transporte, freezer e clínica.'
+      }
+    ] : isMegaShip ? [
       {
         variantId: 'A',
         role: 'SEARCH_INTENT',
@@ -257,7 +277,35 @@ export class ThumbnailSeoEngine {
     ];
 
     // 2. GERAÇÃO DAS 3 THUMBNAILS MULTIVARIÁVEIS (TESTE A/B/C)
-    const thumbnails: HslThumbnailSpec[] = isMegaShip ? [
+    const thumbnails: HslThumbnailSpec[] = isVaccineColdChain ? [
+      {
+        variantId: 'A', variantType: 'A_FACE_EVIDENCE',
+        roleName: 'Especialista da cadeia fria + leitura ultrafria', headlineText: '−70°C OR LOST',
+        focalSubject: 'Profissional de cadeia fria ao lado de freezer ultrafrio com caixa térmica validada e indicador de temperatura',
+        visualComposition: 'Rosto no terço esquerdo; freezer, vials e leitura −70°C no terço direito, com contraste azul-gelo e âmbar.',
+        lookDirection: 'Olhar conduzido para a leitura crítica de temperatura', colorAccent: '#FFE500',
+        imagePrompt: 'Cinematic 35mm documentary portrait of a vaccine cold-chain specialist beside an ultra-low-temperature freezer, validated insulated shipper and vaccine vials, clear −70°C digital display, realistic clinical logistics facility, blue ice and warm amber contrast, no text overlay, 8k.',
+        outputImagePath: `runs/${input.episodeId}/thumbnails/thumbnail_variant_A_face.png`
+      },
+      {
+        variantId: 'B', variantType: 'B_BEFORE_AFTER',
+        roleName: 'Fluxo validado versus excursão térmica', headlineText: 'ONE DEGREE MATTERS',
+        focalSubject: 'Split screen: transporte de vacinas em cadeia fria estável versus caixa aberta com alerta de excursão de temperatura',
+        visualComposition: 'Divisão diagonal entre azul estável e alerta âmbar; logger de dados serve como evidência central.',
+        lookDirection: 'Contraste direto entre cadeia validada e falha térmica', colorAccent: '#FF2E00',
+        imagePrompt: 'Split-screen cinematic documentary image: left, validated vaccine cold-chain shipment with frozen packs and stable temperature data logger; right, opened insulated shipper with warm warning light and temperature excursion alarm, realistic clinical logistics, no text overlay, 8k.',
+        outputImagePath: `runs/${input.episodeId}/thumbnails/thumbnail_variant_B_split.png`
+      },
+      {
+        variantId: 'C', variantType: 'C_HERO_OBJECT',
+        roleName: 'Objeto protagonista / freezer ultrafrio e data logger', headlineText: 'KEEP IT COLD',
+        focalSubject: 'Macro de vials em rack criogênico, data logger e freezer ultrafrio com leitura −70°C',
+        visualComposition: 'Objeto clínico monumental centralizado; condensação e luz azul revelam o gargalo térmico.',
+        lookDirection: 'Foco direto no limite de temperatura e no registro verificável', colorAccent: '#00D8FF',
+        imagePrompt: 'Heroic macro documentary photograph of vaccine vials in a cryogenic rack beside a calibrated temperature data logger and ultra-low freezer display reading −70°C, realistic cold-chain facility, ice condensation, blue clinical light, no text overlay, 8k.',
+        outputImagePath: `runs/${input.episodeId}/thumbnails/thumbnail_variant_C_object.png`
+      }
+    ] : isMegaShip ? [
       {
         variantId: 'A',
         variantType: 'A_FACE_EVIDENCE',
@@ -571,7 +619,9 @@ export class ThumbnailSeoEngine {
     });
 
     // 4. MAPA SEMÂNTICO E TAGS
-    const primaryKeyword = isMegaShip
+    const primaryKeyword = isVaccineColdChain
+      ? 'vaccine cold chain logistics ultra low temperature'
+      : isMegaShip
       ? 'megaship hydrodynamics suez canal container ship'
       : isWallStreetLatency
       ? 'high frequency trading low latency microwave network'
@@ -585,7 +635,12 @@ export class ThumbnailSeoEngine {
       ? 'subsea fiber optic cable'
       : 'airport fuel logistics';
 
-    const semanticVariations = isMegaShip ? [
+    const semanticVariations = isVaccineColdChain ? [
+      'how the vaccine cold chain works',
+      'ultra low temperature vaccine storage −70c',
+      'vaccine temperature excursion explained',
+      'refrigerated vaccine transport logistics'
+    ] : isMegaShip ? [
       'how 240000 ton container ships brake',
       'suez canal bank effect suction explained',
       'squat effect under keel clearance shallow water',
@@ -622,7 +677,13 @@ export class ThumbnailSeoEngine {
       'underground jet fuel pipeline network'
     ];
 
-    const technicalEntities = isMegaShip ? [
+    const technicalEntities = isVaccineColdChain ? [
+      'Ultra-Low-Temperature Freezer (−70°C class)',
+      'Validated Insulated Vaccine Shipper',
+      'Calibrated Temperature Data Logger',
+      'Cold-Chain Temperature Excursion Protocol',
+      'Last-Mile Clinic Refrigeration Handoff'
+    ] : isMegaShip ? [
       'Ultra Large Container Vessel (24,000 TEU / 240,000t Displacement)',
       '11-Cylinder Two-Stroke Marine Diesel Engine (100,000 Brake HP)',
       '10-Meter Bronze Fixed-Pitch Propeller Cavitation Vortices',
@@ -666,7 +727,12 @@ export class ThumbnailSeoEngine {
       'Aircraft Apron Fuelling'
     ];
 
-    const audienceSearchQueries = isMegaShip ? [
+    const audienceSearchQueries = isVaccineColdChain ? [
+      'how does the vaccine cold chain work',
+      'why vaccines must stay cold during transport',
+      'what is a vaccine temperature excursion',
+      'how are vaccines stored at minus 70 degrees'
+    ] : isMegaShip ? [
       'how do giant container ships stop',
       'what is the bank effect in ship navigation',
       'why did ever given get stuck in suez canal',
@@ -698,7 +764,12 @@ export class ThumbnailSeoEngine {
       'inside airport underground fuel system'
     ];
 
-    const youtubeTags = isMegaShip ? [
+    const youtubeTags = isVaccineColdChain ? [
+      'hidden systems lab', 'vaccine cold chain', 'vaccine logistics',
+      'ultra low temperature freezer', 'vaccine storage', 'temperature excursion',
+      'refrigerated transport', 'healthcare supply chain', 'cold chain documentary',
+      'medical logistics engineering'
+    ] : isMegaShip ? [
       'hidden systems lab',
       'megaship hydrodynamics',
       'how container ships brake',
@@ -778,7 +849,9 @@ export class ThumbnailSeoEngine {
     ];
 
     // 5. DESCRIÇÃO EM CAMADAS (LAYERED DESCRIPTION)
-    const hookLines = isMegaShip
+    const hookLines = isVaccineColdChain
+      ? `This documentary investigates the invisible cold chain that keeps vaccines effective from the factory to the clinic. A dose is only useful if its temperature record remains within its validated limits at every handoff.`
+      : isMegaShip
       ? `This documentary investigates why a 240,000-ton container ship needs 5.2 kilometers to come to a complete halt. Learn how 80% of global trade depends on maritime pilots navigating 400-meter giants through razor-thin canals where 1.2 meters of under-keel clearance can trigger the catastrophic Bernoulli Bank Effect.`
       : isWallStreetLatency
       ? `This documentary investigates why Wall Street spent hundreds of millions of dollars cutting straighter routes through mountains, then replaced parts of the race with microwave towers, all to win milliseconds and nanoseconds inside exchange queues.`
@@ -792,7 +865,9 @@ export class ThumbnailSeoEngine {
       ? `This documentary investigates how ninety-nine percent of intercontinental internet traffic travels through 17-millimeter glass strands on the deep ocean floor. Learn why the global "cloud" is actually a vulnerable, high-voltage underwater machine.`
       : `This documentary investigates how invisible fuel pipelines determine modern flight schedules. Learn why passenger aviation does not simply buy fuel—it relies on an extreme, synchronized logistics network.`;
 
-    const detailedSummary = isMegaShip
+    const detailedSummary = isVaccineColdChain
+      ? `A vaccine shipment moves through a continuous thermal system: qualified packaging, refrigerated transport, calibrated data logging, controlled storage and a final handoff at the clinic. The product can look unchanged after a temperature excursion while its validated stability window has already been compromised.\n\nThis episode follows the operational controls behind that system: ultra-low-temperature freezers, insulated shippers, data-loggers, alarm response and the decision path for a suspected excursion. The critical asset is not only the vial; it is the verified temperature history that accompanies it.\n\nIn this episode of Hidden Systems Lab, we examine the engineering and logistics that turn refrigeration into a public-health safeguard.`
+      : isMegaShip
       ? `A 400-meter Ultra Large Container Vessel (ULCV) displaces a quarter of a million tons and packs over 8 billion Joules of raw kinetic energy. Powered by a 100,000-horsepower turbocharged diesel engine and swinging a 10-meter bronze propeller, these colossal vessels carry 24,000 containers across the open oceans with virtually zero rolling friction.\n\nYet when entering constrained fairways like the Suez Canal, fluid dynamics cease to be linear. Under Bernoulli's principle, water accelerated between the hull and shallow sandbanks creates a massive hydrostatic pressure drop. Known as the Bank Effect, this invisible low-pressure vacuum pulls the stern violently toward the shallow bank while pushing the bow across the fairway. Simultaneously, the Squat Effect dynamically sucks the hull downward, reducing under-keel clearance from 1.2 meters to mere centimeters.\n\nIn this episode of Hidden Systems Lab, we explore the violent hydrodynamics, 2-stroke diesel propulsion physics, and high-tension salvage mechanics that keep global maritime supply chains from suffering fatal kinetic thrombosis.`
       : isWallStreetLatency
       ? `In 2010, Spread Networks turned geography into a financial weapon: an ultra-low-latency route between Chicago and New Jersey that reportedly shaved roughly 100 miles and 3 milliseconds from older paths. The underlying business was not stock picking. It was arrival priority inside continuous electronic markets.\n\nThis episode breaks down the physical stack beneath high-frequency trading: colocation cages, cross-connects, matching engines, refractive index, microwave relay towers, rain fade, time synchronization and queue position. Fiber is reliable, but light moves slower through glass than electromagnetic waves move through air, pushing firms toward fragile line-of-sight radio networks.\n\nIn this episode of Hidden Systems Lab, we show why modern finance is not only a price system. At the frontier, it is a planetary timing system where a mountain, a storm, or a rack cable can decide who reaches the queue first.`
@@ -808,7 +883,12 @@ export class ThumbnailSeoEngine {
 
     const chapterLines = chapters.map(c => `${c.timestamp} ${c.searchIntentTitle}`).join('\n');
 
-    const sourcesAndCredits = isMegaShip ? [
+    const sourcesAndCredits = isVaccineColdChain ? [
+      'World Health Organization (WHO) vaccine management and cold-chain guidance',
+      'UNICEF vaccine cold-chain equipment and logistics guidance',
+      'CDC vaccine storage and handling toolkit',
+      'Hidden Systems Lab Archive & Telemetry Research Team'
+    ] : isMegaShip ? [
       'International Maritime Organization (IMO) Navigational Safety Standards',
       'Suez Canal Authority (SCA) Rules of Navigation & Transit Reports',
       'Society of Naval Architects and Marine Engineers (SNAME) Hydrodynamic Studies',
@@ -846,7 +926,9 @@ export class ThumbnailSeoEngine {
       'Hidden Systems Lab Archive & Telemetry Research Team'
     ];
 
-    const playlistAndNextVideo = isMegaShip
+    const playlistAndNextVideo = isVaccineColdChain
+      ? `Watch Next: The Infrastructure That Keeps Hospitals Running\nOfficial Playlist: Hidden Systems Lab — Season 1 (Critical Systems & Logistics)`
+      : isMegaShip
       ? `Watch Next: The 28,000 km/h Paint Fleck That Can Destroy The Internet in 72 Hours\nOfficial Playlist: Hidden Systems Lab — Season 1 (Throughput & Choke-Points)`
       : isWallStreetLatency
       ? `Watch Next: The 0.5 Hertz Problem That Causes Total Blackouts\nOfficial Playlist: Hidden Systems Lab — Season 1 (Invisible Infrastructure & System Bottlenecks)`
@@ -875,7 +957,7 @@ ${sourcesAndCredits.map(s => `• ${s}`).join('\n')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${playlistAndNextVideo}
 
-${isMegaShip ? '#HiddenSystemsLab #MaritimeEngineering #Megaships #SuezCanal #Hydrodynamics #GlobalTrade' : isKessler ? '#HiddenSystemsLab #SpaceDebris #KesslerSyndrome #Astronomy #Satellites #OrbitalMechanics' : isWallStreetLatency ? '#HiddenSystemsLab #HighFrequencyTrading #WallStreet #Latency #Finance #Engineering' : isGrid ? '#HiddenSystemsLab #PowerGrid #ElectricalEngineering #Blackout #Energy #Infrastructure' : isAiCooling ? '#HiddenSystemsLab #ArtificialIntelligence #Engineering #Supercomputing #LiquidCooling #Hardware' : '#HiddenSystemsLab #Engineering #Infrastructure #Logistics #Documentary'}`;
+${isVaccineColdChain ? '#HiddenSystemsLab #VaccineColdChain #VaccineLogistics #ColdChain #HealthcareEngineering #Documentary' : isMegaShip ? '#HiddenSystemsLab #MaritimeEngineering #Megaships #SuezCanal #Hydrodynamics #GlobalTrade' : isKessler ? '#HiddenSystemsLab #SpaceDebris #KesslerSyndrome #Astronomy #Satellites #OrbitalMechanics' : isWallStreetLatency ? '#HiddenSystemsLab #HighFrequencyTrading #WallStreet #Latency #Finance #Engineering' : isGrid ? '#HiddenSystemsLab #PowerGrid #ElectricalEngineering #Blackout #Energy #Infrastructure' : isAiCooling ? '#HiddenSystemsLab #ArtificialIntelligence #Engineering #Supercomputing #LiquidCooling #Hardware' : '#HiddenSystemsLab #Engineering #Infrastructure #Logistics #Documentary'}`;
 
     return {
       episodeId: input.episodeId,
@@ -971,6 +1053,7 @@ ${pkg.layeredDescription.fullFormattedText}
     const isSky = !isMegaShip && (pkg.episodeId.includes('SKYSCRAPER') || pkg.episodeTitle.toLowerCase().includes('skyscraper') || pkg.episodeTitle.toLowerCase().includes('tower'));
     const isGrid = !isMegaShip && (pkg.episodeId.includes('GRID') || pkg.episodeId.includes('FREQUENCY') || pkg.episodeTitle.toLowerCase().includes('grid') || pkg.episodeTitle.toLowerCase().includes('hertz') || pkg.episodeTitle.toLowerCase().includes('blackout'));
     const isWallStreetLatency = !isMegaShip && (pkg.episodeId.includes('WALL_STREET') || pkg.episodeId.includes('LATENCY') || pkg.episodeId.includes('HFT') || pkg.episodeTitle.toLowerCase().includes('wall street') || pkg.episodeTitle.toLowerCase().includes('latency') || pkg.episodeTitle.toLowerCase().includes('millisecond'));
+    const isVaccineColdChain = /vaccine|vaccin|cold[ -]?chain|ultra[ -]?low|refrigerat|temperature excursion|immuni[sz]ation/.test(`${pkg.episodeId} ${pkg.episodeTitle} ${pkg.strategicThesis}`);
     const assetBaseUrl = process.env.HSL_ASSET_BASE_URL;
     const thumbConfigs = [
       {
@@ -979,10 +1062,10 @@ ${pkg.layeredDescription.fullFormattedText}
           variantId: 'A',
           assetBaseUrl,
           baseImageSrc: isMegaShip ? 'images/megaship/act1.jpg' : isKessler ? `runs/${pkg.episodeId}/frames/SCENE_001.png` : `runs/${pkg.episodeId}/frames/SCENE_001.png`,
-          headlineLines: isMegaShip ? ['5 KM', 'TO BRAKE'] : isKessler ? ['28,000 KM/H', 'DEBRIS STRIKE'] : isWallStreetLatency ? ['3 MS', 'QUEUE WINS'] : isGrid ? ['59.42 HZ', 'GRID TRIP'] : isSky ? ['800 PSI', '50 BAR LIMIT'] : isAi ? ['NO LIQUID?', '105°C MELTDOWN'] : ['NO FUEL?', '150 PSI MAIN'],
-          badgeText: isMegaShip ? '240,000 TONS // HYDRODYNAMIC INERTIA' : isKessler ? 'ORBITAL BOTTLENECK // 1CM PAINT FLECK' : isWallStreetLatency ? 'LATENCY BOTTLENECK // PRICE-TIME PRIORITY' : isGrid ? 'FREQUENCY TRIP // 59.42 HZ' : isSky ? 'PRESSURE BOTTLENECK // 800 PSI' : isAi ? 'SYSTEM BOTTLENECK // 45,000 L/MIN' : 'SYSTEM BOTTLENECK // 150 PSI',
+          headlineLines: isVaccineColdChain ? ['−70°C', 'OR LOST'] : isMegaShip ? ['5 KM', 'TO BRAKE'] : isKessler ? ['28,000 KM/H', 'DEBRIS STRIKE'] : isWallStreetLatency ? ['3 MS', 'QUEUE WINS'] : isGrid ? ['59.42 HZ', 'GRID TRIP'] : isSky ? ['800 PSI', '50 BAR LIMIT'] : isAi ? ['NO LIQUID?', '105°C MELTDOWN'] : ['NO FUEL?', '150 PSI MAIN'],
+          badgeText: isVaccineColdChain ? 'VACCINE COLD CHAIN // VALIDATED TEMPERATURE' : isMegaShip ? '240,000 TONS // HYDRODYNAMIC INERTIA' : isKessler ? 'ORBITAL BOTTLENECK // 1CM PAINT FLECK' : isWallStreetLatency ? 'LATENCY BOTTLENECK // PRICE-TIME PRIORITY' : isGrid ? 'FREQUENCY TRIP // 59.42 HZ' : isSky ? 'PRESSURE BOTTLENECK // 800 PSI' : isAi ? 'SYSTEM BOTTLENECK // 45,000 L/MIN' : 'SYSTEM BOTTLENECK // 150 PSI',
           accentColor: '#FFE500',
-          telemetryLabel: isMegaShip ? '400M HULL // 14 MIN RUNOUT DISTANCE' : isKessler ? '550 KM LEO // 35,000 TRACKED OBJECTS' : isWallStreetLatency ? 'CHICAGO-NJ // 825 MILES // 13.3 MS' : isGrid ? '60.00 HZ SYNC // 3,600 RPM ROTORS' : isSky ? '500M ELEVATION // 50 BAR BASE' : isAi ? '100,000 GPUS // 1.2 GIGAWATTS' : '52M GALLONS // ZERO TRUCKS'
+          telemetryLabel: isVaccineColdChain ? 'ULTRA-LOW STORAGE // VERIFIED HANDOFF' : isMegaShip ? '400M HULL // 14 MIN RUNOUT DISTANCE' : isKessler ? '550 KM LEO // 35,000 TRACKED OBJECTS' : isWallStreetLatency ? 'CHICAGO-NJ // 825 MILES // 13.3 MS' : isGrid ? '60.00 HZ SYNC // 3,600 RPM ROTORS' : isSky ? '500M ELEVATION // 50 BAR BASE' : isAi ? '100,000 GPUS // 1.2 GIGAWATTS' : '52M GALLONS // ZERO TRUCKS'
         }
       },
       {
@@ -992,11 +1075,11 @@ ${pkg.layeredDescription.fullFormattedText}
           assetBaseUrl,
           baseImageSrc: isMegaShip ? 'images/megaship/act1.jpg' : `runs/${pkg.episodeId}/frames/SCENE_002.png`,
           secondaryImageSrc: isMegaShip ? 'images/megaship/act5.jpg' : `runs/${pkg.episodeId}/frames/SCENE_065.png`,
-          headlineLines: isMegaShip ? ['1.2M CLEARANCE', 'SUEZ LOCK'] : isKessler ? ['CASCADE', 'COLLAPSE'] : isWallStreetLatency ? ['FIBER', 'VS AIR'] : isGrid ? ['60.00 HZ', 'BLACKOUT'] : isSky ? ['50 BAR', 'PIPE BURST'] : isAi ? ['100,000 GPUS', 'THERMAL TRIP'] : ['1,200 JETS', 'GROUNDED'],
-          badgeText: isMegaShip ? 'BERNOULLI SQUAT EFFECT' : isKessler ? '72-HOUR KESSLER CASCADE' : isWallStreetLatency ? 'MICROWAVE BEATS GLASS' : isGrid ? 'CASCADING BLACKOUT' : isSky ? '800 PSI RUPTURE' : isAi ? '105°C MELTDOWN' : '150 PSI COLLAPSE',
-          leftLabel: isMegaShip ? 'OPEN OCEAN: 22 KNOTS' : 'NORMAL FLOW',
-          rightLabel: isMegaShip ? 'SUEZ FAIRWAY: 8-SEC LOCK' : 'CRITICAL STOP',
-          telemetryLabel: isMegaShip ? 'UKC: 1.2M -> 0.48M SQUAT SINK' : isKessler ? 'IRIDIUM-COSMOS // 11.7 KM/S STRIKE' : isWallStreetLatency ? 'REFRACTION LIMIT // C/1.5 VS AIR' : isGrid ? 'CONTINENTAL DESYNCHRONIZATION' : isSky ? 'HYDROSTATIC COLLAPSE' : isAi ? 'CRITICAL THERMAL TRIP' : 'TOTAL GROUND STOP'
+          headlineLines: isVaccineColdChain ? ['ONE DEGREE', 'MATTERS'] : isMegaShip ? ['1.2M CLEARANCE', 'SUEZ LOCK'] : isKessler ? ['CASCADE', 'COLLAPSE'] : isWallStreetLatency ? ['FIBER', 'VS AIR'] : isGrid ? ['60.00 HZ', 'BLACKOUT'] : isSky ? ['50 BAR', 'PIPE BURST'] : isAi ? ['100,000 GPUS', 'THERMAL TRIP'] : ['1,200 JETS', 'GROUNDED'],
+          badgeText: isVaccineColdChain ? 'TEMPERATURE EXCURSION // QUARANTINE' : isMegaShip ? 'BERNOULLI SQUAT EFFECT' : isKessler ? '72-HOUR KESSLER CASCADE' : isWallStreetLatency ? 'MICROWAVE BEATS GLASS' : isGrid ? 'CASCADING BLACKOUT' : isSky ? '800 PSI RUPTURE' : isAi ? '105°C MELTDOWN' : '150 PSI COLLAPSE',
+          leftLabel: isVaccineColdChain ? 'VALIDATED RANGE' : isMegaShip ? 'OPEN OCEAN: 22 KNOTS' : 'NORMAL FLOW',
+          rightLabel: isVaccineColdChain ? 'EXCURSION ALERT' : isMegaShip ? 'SUEZ FAIRWAY: 8-SEC LOCK' : 'CRITICAL STOP',
+          telemetryLabel: isVaccineColdChain ? 'LOGGER RECORD // INVESTIGATE BEFORE USE' : isMegaShip ? 'UKC: 1.2M -> 0.48M SQUAT SINK' : isKessler ? 'IRIDIUM-COSMOS // 11.7 KM/S STRIKE' : isWallStreetLatency ? 'REFRACTION LIMIT // C/1.5 VS AIR' : isGrid ? 'CONTINENTAL DESYNCHRONIZATION' : isSky ? 'HYDROSTATIC COLLAPSE' : isAi ? 'CRITICAL THERMAL TRIP' : 'TOTAL GROUND STOP'
         }
       },
       {
@@ -1005,9 +1088,9 @@ ${pkg.layeredDescription.fullFormattedText}
           variantId: 'C',
           assetBaseUrl,
           baseImageSrc: isMegaShip ? 'images/megaship/act6.jpg' : `runs/${pkg.episodeId}/frames/SCENE_024.png`,
-          headlineLines: isMegaShip ? ['BANK', 'SUCTION'] : isKessler ? ['ONE SHIELD', '11.3 KM/S'] : isWallStreetLatency ? ['3', 'MILLISECONDS'] : isGrid ? ['ONE ROTOR', '3,600 RPM'] : isSky ? ['ONE VALVE', '500 METERS'] : isAi ? ['ONE VALVE', '1.2 GIGAWATTS'] : ['ONE VALVE', '52,000,000 GAL'],
-          badgeText: isMegaShip ? '14 SALVAGE TUGS // 2,500T BOLLARD PULL' : isKessler ? 'WHIPPLE BUMPER SHIELD' : isWallStreetLatency ? 'MICROWAVE TOWER LINE OF SIGHT' : isGrid ? 'SYNCHRONOUS TURBINE ROTOR' : isSky ? 'PRESSURE REDUCING VALVE' : isAi ? 'DIRECT-TO-CHIP COOLING' : 'HIDDEN PRESSURE GRID',
-          telemetryLabel: isMegaShip ? 'LOCK: STERN SUCTION // $9.6B DAILY' : isKessler ? 'LOCK: 1.27MM BUMPER // 120 GPA SHOCK' : isWallStreetLatency ? 'LOCK: 3.2NS EDGE // TENS OF MILLIONS' : isGrid ? 'LOCK: 59.50 HZ BLADE RESONANCE' : isSky ? 'LOCK: PRV CAVITATION // 50 BAR' : isAi ? 'LOCK: 0.2MM COLD PLATE // 105°C' : 'LOCK: 150 PSI // 1800 GPM',
+          headlineLines: isVaccineColdChain ? ['KEEP IT', 'COLD'] : isMegaShip ? ['BANK', 'SUCTION'] : isKessler ? ['ONE SHIELD', '11.3 KM/S'] : isWallStreetLatency ? ['3', 'MILLISECONDS'] : isGrid ? ['ONE ROTOR', '3,600 RPM'] : isSky ? ['ONE VALVE', '500 METERS'] : isAi ? ['ONE VALVE', '1.2 GIGAWATTS'] : ['ONE VALVE', '52,000,000 GAL'],
+          badgeText: isVaccineColdChain ? 'DATA LOGGER // COLD-CHAIN EVIDENCE' : isMegaShip ? '14 SALVAGE TUGS // 2,500T BOLLARD PULL' : isKessler ? 'WHIPPLE BUMPER SHIELD' : isWallStreetLatency ? 'MICROWAVE TOWER LINE OF SIGHT' : isGrid ? 'SYNCHRONOUS TURBINE ROTOR' : isSky ? 'PRESSURE REDUCING VALVE' : isAi ? 'DIRECT-TO-CHIP COOLING' : 'HIDDEN PRESSURE GRID',
+          telemetryLabel: isVaccineColdChain ? 'LOCK: −70°C // CALIBRATED RECORD' : isMegaShip ? 'LOCK: STERN SUCTION // $9.6B DAILY' : isKessler ? 'LOCK: 1.27MM BUMPER // 120 GPA SHOCK' : isWallStreetLatency ? 'LOCK: 3.2NS EDGE // TENS OF MILLIONS' : isGrid ? 'LOCK: 59.50 HZ BLADE RESONANCE' : isSky ? 'LOCK: PRV CAVITATION // 50 BAR' : isAi ? 'LOCK: 0.2MM COLD PLATE // 105°C' : 'LOCK: 150 PSI // 1800 GPM',
           episodeLabel: isMegaShip ? 'HSL // MEGASHIP HYDRODYNAMICS' : 'HIDDEN SYSTEMS LAB // DOCUMENTARY',
           metricValue: 'SINGLE POINT OF FAILURE'
         }

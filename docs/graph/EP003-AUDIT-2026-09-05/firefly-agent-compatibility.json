@@ -1,0 +1,61 @@
+{
+  "checkedAtUtc": "2026-09-06T00:04:21.5767690Z",
+  "agentDir": "C:\\Users\\Paulo R Advocacia\\Documents\\agente studio - brecha\\canal-brecha-main\\canal-brecha-main\\agente firefly",
+  "pythonExists": true,
+  "candidateProfile": "C:\\Users\\Paulo R Advocacia\\Documents\\agente studio - brecha\\canal-brecha-main\\canal-brecha-main\\agente firefly\\data\\chrome_profile",
+  "authenticationVerified": false,
+  "helpExitCode": 0,
+  "missingCapabilities": [
+    "--probe-session",
+    "--requeue-unstarted-infra-job"
+  ],
+  "configuredAgentInHsl": false,
+  "findings": [
+    "Config.MAX_ATTEMPTS = 3",
+    "capacity max uses max(Config.MAX_ATTEMPTS, env); env=1 still allows 3",
+    "generate click retries up to 3; watchdog may restart worker"
+  ],
+  "files": [
+    {
+      "sha256": "1356fbda6093d928babe261c14fef26e10b26f9bb642da5680ff29c6393d275d",
+      "path": "firefly_bot\\main.py"
+    },
+    {
+      "sha256": "a33fbef78700fcf0dff5962e9e4baf8fc37ad5562ea3c2e245749b0236b4d785",
+      "path": "firefly_bot\\config.py"
+    },
+    {
+      "sha256": "c5d79c010b3018c9ec3e9ad4fb997c396d476db6e8ded22a516348e4a475fe56",
+      "path": "firefly_bot\\worker.py"
+    },
+    {
+      "sha256": "59dfd4b6a6bf6ffc61610667bf7e9e33743ec94eea03df3225374206a8917cb8",
+      "path": "firefly_bot\\watchdog.py"
+    }
+  ],
+  "status": "BLOCKED_INCOMPATIBLE_EXTERNAL_AGENT",
+  "paidCalls": 0,
+  "help": [
+    "usage: firefly-bot [-h] [--root ROOT] [--concurrency N]",
+    "                   [--feed-guide GUIA_JSON | --feed-auto DIRETORIO_BASE | --feed-mateo-package MOTION_PACKAGE_JSON | --duration-control-gate SECONDS | --duration-slider-gate SECONDS | --recover-result-ready-job JOB_ID | --export-manifest OUTPUT_JSON | --run | --status]",
+    "                   {enqueue,status,healthcheck,run,worker-once} ...",
+    "",
+    "positional arguments:",
+    "  {enqueue,status,healthcheck,run,worker-once}",
+    "",
+    "options:",
+    "  -h, --help            show this help message and exit",
+    "  --root ROOT",
+    "  --concurrency N       quantidade de abas Firefly simult�neas (padr�o: 1;",
+    "                        m�ximo: 6)",
+    "  --feed-guide GUIA_JSON",
+    "  --feed-auto DIRETORIO_BASE",
+    "  --feed-mateo-package MOTION_PACKAGE_JSON",
+    "  --duration-control-gate SECONDS",
+    "  --duration-slider-gate SECONDS",
+    "  --recover-result-ready-job JOB_ID",
+    "  --export-manifest OUTPUT_JSON",
+    "  --run",
+    "  --status"
+  ]
+}

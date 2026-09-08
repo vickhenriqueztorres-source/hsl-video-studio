@@ -5,6 +5,7 @@ import { HslRunIdentity, HslRunIdComponents } from '../hsl/core/hslRunIdentity';
 import { inspectMediaWithFfprobe } from '../hsl/core/hslPathResolver';
 import { HslComplianceChecker, ComplianceReport } from '../spec/hsl-compliance-checker';
 import { RunManifestData } from '../hsl/core/hslRunManifest';
+import { HSL_DURATION_TOLERANCE_SECONDS } from '../spec/hsl-spec';
 
 export type HslArtifactType =
   | 'master_video'
@@ -115,7 +116,14 @@ export class HslArtifactRegistry {
 
     // 1. Scene Plan
     const scenePlanPath = path.resolve(effectiveRunDir, 'scene-plan.json');
+    let plannedDurationSeconds: number | undefined;
     if (fs.existsSync(scenePlanPath)) {
+      try {
+        const scenePlan = JSON.parse(fs.readFileSync(scenePlanPath, 'utf8')) as { totalDurationSeconds?: unknown };
+        if (typeof scenePlan.totalDurationSeconds === 'number' && Number.isFinite(scenePlan.totalDurationSeconds)) {
+          plannedDurationSeconds = scenePlan.totalDurationSeconds;
+        }
+      } catch {}
       this.registerArtifact({
         handle: HslRunIdentity.buildHandle(identity.project, identity.episode, identity.version, 'plan'),
         runId,
@@ -130,16 +138,25 @@ export class HslArtifactRegistry {
     }
 
     // 2. Narration Audio
-    const localNarration = path.resolve(effectiveRunDir, 'narration.mp3');
-    const globalNarration = path.resolve(root, 'public', 'audio', 'narration.mp3');
-    const narrationPath = fs.existsSync(localNarration) ? localNarration : globalNarration;
+    const narrationPath = [
+      path.resolve(effectiveRunDir, 'audio', 'narration-master.wav'),
+      path.resolve(effectiveRunDir, 'audio', 'narration.mp3'),
+      path.resolve(effectiveRunDir, 'narration.mp3')
+    ].find(candidate => fs.existsSync(candidate));
 
-    if (fs.existsSync(narrationPath)) {
+    if (narrationPath) {
       let mediaInfo;
       try {
         const info = inspectMediaWithFfprobe(narrationPath);
         mediaInfo = { durationSeconds: info.durationSeconds, codec: info.codecName };
       } catch {}
+
+      const durationCompatible = mediaInfo !== undefined
+        && plannedDurationSeconds !== undefined
+        && Math.abs(mediaInfo.durationSeconds - plannedDurationSeconds) <= HSL_DURATION_TOLERANCE_SECONDS;
+      const audioCompliance = options?.compliance
+        ? (options.compliance.passed && durationCompatible ? 'APPROVED' : 'REJECTED')
+        : (durationCompatible ? 'APPROVED' : 'UNVERIFIED');
 
       this.registerArtifact({
         handle: HslRunIdentity.buildHandle(identity.project, identity.episode, identity.version, 'audio'),
@@ -150,7 +167,7 @@ export class HslArtifactRegistry {
         artifactType: 'narration_audio',
         filePath: narrationPath,
         mediaInfo,
-        complianceStatus: options?.compliance?.passed ? 'APPROVED' : 'APPROVED',
+        complianceStatus: audioCompliance,
         lineage: options?.lineage
       });
     }
@@ -320,17 +337,23 @@ export class HslArtifactRegistry {
     const fresh = this.createEmptyRegistry();
     this.save(fresh);
 
-    // 1. Varre runs legadas e estruturadas
+    // 1. Varre runs legadas e estruturadas. Uma run canônica pode estar três
+    // níveis abaixo de runs/ (hsl/ep003/v2), então a descoberta é recursiva.
     const runsDir = path.resolve(root, 'runs');
     if (fs.existsSync(runsDir)) {
-      const entries = fs.readdirSync(runsDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          try {
-            this.registerRun(entry.name);
-          } catch {}
+      const visit = (directory: string): void => {
+        const hasRunMarker = fs.existsSync(path.resolve(directory, 'scene-plan.json'))
+          || fs.existsSync(path.resolve(directory, 'run-manifest.json'));
+        if (hasRunMarker) {
+          const relative = path.relative(runsDir, directory).replace(/\\/g, '/');
+          try { this.registerRun(relative); } catch {}
+          return;
         }
-      }
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+          if (entry.isDirectory()) visit(path.resolve(directory, entry.name));
+        }
+      };
+      visit(runsDir);
     }
   }
 }

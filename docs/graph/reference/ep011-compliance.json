@@ -1,0 +1,74 @@
+{
+  "episodeId": "HSL_EPISODE_011",
+  "timestamp": "2026-09-02T17:53:34.559Z",
+  "passed": true,
+  "totalRules": 8,
+  "passedRules": 8,
+  "failedRules": 0,
+  "results": [
+    {
+      "ruleId": "RULE_01_VIDEO_DURATION",
+      "name": "Duração do Vídeo Master",
+      "prdClause": "PRD Cláusula 1.4.1 (10 a 12 minutos)",
+      "expected": "600s a 720s (±5s)",
+      "measured": "600.00s",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_02_VIDEO_FORMAT",
+      "name": "Resolução e Codec de Vídeo",
+      "prdClause": "RULES Cláusula 6 (1080p Full HD @ H.264)",
+      "expected": "1920x1080 / h264",
+      "measured": "1920x1080 / h264",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_03_AUDIO_SYNC",
+      "name": "Sincronia Narração vs Vídeo",
+      "prdClause": "PRD Cláusula 1.4.4 (Alinhamento de Áudio Master)",
+      "expected": "Diferença máxima de ±5s",
+      "measured": "Delta: 0.01s (Áudio: 599.99s)",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_04_ACT_STRUCTURE",
+      "name": "Estrutura Canônica de 8 Atos",
+      "prdClause": "BRIEFING Cláusula 3 (8 Atos sem sobreposição/gaps)",
+      "expected": "8 Atos cobrindo 600s a 720s",
+      "measured": "8 Atos contínuos / 600s planejados (96 beats)",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_05_BEAT_ASSETS",
+      "name": "Integridade Beat-to-Asset (Zero Tela Preta)",
+      "prdClause": "PRD Cláusula 1.4.3 (100% de Mídia Real sem Fallback Vazio)",
+      "expected": "100% dos beats com arquivos válidos (>10KB vídeo, >5KB foto)",
+      "measured": "96/96 beats com mídia física íntegra",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_06_PACKAGING_DELIVERABLES",
+      "name": "Empacotamento de Entrega YouTube",
+      "prdClause": "PRD Cláusula 1.4.6 & BRIEFING Cláusula 4 (3 Thumbnails 4K + Pacote SEO)",
+      "expected": "3 Thumbnails válidas (thumbnail_variant_A_face.png, thumbnail_variant_B_split.png, thumbnail_variant_C_object.png) + YOUTUBE_PUBLICATION_PACKAGE.md, publication-package.json",
+      "measured": "3/3 Thumbnails 4K válidas + 2 artefatos de publicação",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_07_NARRATIVE_ANTI_REPETITION",
+      "name": "Anti-Repetição Narrativa Beat-a-Beat",
+      "prdClause": "PRD Cláusula 1.4.2 & SPEC Seção 10 (Zero Loops de Roteiro)",
+      "expected": "100% de scripts narrativos únicos e progressivos nos 96 beats",
+      "measured": "100.0% de textos únicos (96/96)",
+      "passed": true
+    },
+    {
+      "ruleId": "RULE_08_DYNAMIC_PACING_VARIATION",
+      "name": "Pacing Rítmico Dinâmico de Cenas",
+      "prdClause": "PRD Cláusula 1.4.3 & SPEC Seção 10 (Variação Respiratória de 3s a 11s)",
+      "expected": "Variação entre planos rápidos (2.5s-4s) e planos heróicos (8s-11s), spread >= 4.0s",
+      "measured": "Spread de duração: 6.5s",
+      "passed": true
+    }
+  ]
+}

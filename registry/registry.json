@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-08-27T05:08:39.306Z",
+  "updatedAt": "2026-09-06T01:10:20.690Z",
   "artifacts": {
     "hsl-ep001-v1-plan": {
       "handle": "hsl-ep001-v1-plan",
@@ -10,53 +10,12 @@
       "version": 1,
       "artifactType": "scene_plan",
       "relativePath": "runs/HSL_EPISODE_001/scene-plan.json",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\scene-plan.json",
-      "fileSizeBytes": 104635,
-      "sha256": "sha256_d8e750e6c72f18034d3d9eface87fdf14c3bdf768811fba0a90affe2627b9723",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_001\\scene-plan.json",
+      "fileSizeBytes": 103054,
+      "sha256": "sha256_e1f793f395303ae02416a6ad39a2107ae794d17083fcc73df6dd55b0f0915732",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:17:05.287Z",
-      "completedAt": "2026-08-27T05:08:38.900Z"
-    },
-    "hsl-ep001-v1-audio": {
-      "handle": "hsl-ep001-v1-audio",
-      "runId": "hsl/ep001/v1",
-      "project": "hsl",
-      "episode": "ep001",
-      "version": 1,
-      "artifactType": "narration_audio",
-      "relativePath": "runs/HSL_EPISODE_001/narration.mp3",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\narration.mp3",
-      "fileSizeBytes": 2389133,
-      "sha256": "sha256_b315ae8556a60cf43c36c3c122aaaaa7bb40a3dbb25fb67bb363ccb54d61e75d",
-      "mediaInfo": {
-        "durationSeconds": 600,
-        "codec": "mp3"
-      },
-      "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-27T05:07:38.242Z",
-      "completedAt": "2026-08-27T05:08:38.982Z"
-    },
-    "hsl-ep001-v1-master": {
-      "handle": "hsl-ep001-v1-master",
-      "runId": "hsl/ep001/v1",
-      "project": "hsl",
-      "episode": "ep001",
-      "version": 1,
-      "artifactType": "master_video",
-      "relativePath": "out/hsl_episode_001.mp4",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\out\\hsl_episode_001.mp4",
-      "fileSizeBytes": 17599071,
-      "sha256": "sha256_70895b56edc20536f22dbd4025d60b14bb745ca27daf2572ff6d2c575dcc67ef",
-      "mediaInfo": {
-        "durationSeconds": 600,
-        "width": 1920,
-        "height": 1080,
-        "codec": "h264",
-        "fps": 30
-      },
-      "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:25:23.999Z",
-      "completedAt": "2026-08-27T05:08:39.211Z"
+      "createdAt": "2026-09-05T20:05:23.950Z",
+      "completedAt": "2026-09-06T01:09:57.598Z"
     },
     "hsl-ep001-v1-thumb-a": {
       "handle": "hsl-ep001-v1-thumb-a",
@@ -66,12 +25,12 @@
       "version": 1,
       "artifactType": "thumbnail",
       "relativePath": "runs/HSL_EPISODE_001/thumbnails/thumbnail_variant_A_face.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_A_face.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_A_face.png",
+      "fileSizeBytes": 149617,
+      "sha256": "sha256_7fc5adf2f764501c9d1d9db189edd8e641d8daac80f6f7aa27f8e40969f56223",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:28:43.862Z",
-      "completedAt": "2026-08-27T05:08:39.212Z"
+      "createdAt": "2026-09-05T20:05:49.551Z",
+      "completedAt": "2026-09-06T01:09:57.607Z"
     },
     "hsl-ep001-v1-thumb-b": {
       "handle": "hsl-ep001-v1-thumb-b",
@@ -81,12 +40,12 @@
       "version": 1,
       "artifactType": "thumbnail",
       "relativePath": "runs/HSL_EPISODE_001/thumbnails/thumbnail_variant_B_split.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_B_split.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_B_split.png",
+      "fileSizeBytes": 145181,
+      "sha256": "sha256_c733d9f2df4c0dd3ebed43c30eabf70b522119aa7efa66ff8414843b3d79ad19",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:28:43.997Z",
-      "completedAt": "2026-08-27T05:08:39.213Z"
+      "createdAt": "2026-09-05T20:05:49.843Z",
+      "completedAt": "2026-09-06T01:09:57.617Z"
     },
     "hsl-ep001-v1-thumb-c": {
       "handle": "hsl-ep001-v1-thumb-c",
@@ -96,12 +55,12 @@
       "version": 1,
       "artifactType": "thumbnail",
       "relativePath": "runs/HSL_EPISODE_001/thumbnails/thumbnail_variant_C_object.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_C_object.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_001\\thumbnails\\thumbnail_variant_C_object.png",
+      "fileSizeBytes": 151496,
+      "sha256": "sha256_7d6f53f076d5a04a661e11410ac1dd4a7f72ec01d80f589c1ea5ba51212c3caf",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:28:44.132Z",
-      "completedAt": "2026-08-27T05:08:39.216Z"
+      "createdAt": "2026-09-05T20:05:50.202Z",
+      "completedAt": "2026-09-06T01:09:57.633Z"
     },
     "hsl-ep001-v1-pkg": {
       "handle": "hsl-ep001-v1-pkg",
@@ -111,91 +70,181 @@
       "version": 1,
       "artifactType": "publication_package",
       "relativePath": "runs/HSL_EPISODE_001/publication-package.json",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_EPISODE_001\\publication-package.json",
-      "fileSizeBytes": 9365,
-      "sha256": "sha256_1cd4ed29ea6ad70295b65511a38dc6aa0538255500ea4ec7e14cddd6cc1b66e6",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_001\\publication-package.json",
+      "fileSizeBytes": 9326,
+      "sha256": "sha256_e78c0e55c38e9a4142c14fbae204f8c7ac798deb6b1c949df1022ff2b31e7b43",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:28:01.183Z",
-      "completedAt": "2026-08-27T05:08:39.218Z"
+      "createdAt": "2026-09-05T20:05:43.538Z",
+      "completedAt": "2026-09-06T01:09:57.645Z"
     },
-    "subsea-ep001-v1-audio": {
-      "handle": "subsea-ep001-v1-audio",
-      "runId": "subsea/ep001/v1",
-      "project": "subsea",
-      "episode": "ep001",
+    "hsl-ep002-v1-plan": {
+      "handle": "hsl-ep002-v1-plan",
+      "runId": "hsl/ep002/v1",
+      "project": "hsl",
+      "episode": "ep002",
+      "version": 1,
+      "artifactType": "scene_plan",
+      "relativePath": "runs/HSL_EPISODE_002/scene-plan.json",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_002\\scene-plan.json",
+      "fileSizeBytes": 74697,
+      "sha256": "sha256_7b91a89fcc165e2852b0f82505dcfc8f6e599569173b8b8392f1c1951ba3b3c9",
+      "complianceStatus": "APPROVED",
+      "createdAt": "2026-09-05T20:48:44.385Z",
+      "completedAt": "2026-09-06T01:09:57.664Z"
+    },
+    "hsl-ep002-v1-audio": {
+      "handle": "hsl-ep002-v1-audio",
+      "runId": "hsl/ep002/v1",
+      "project": "hsl",
+      "episode": "ep002",
       "version": 1,
       "artifactType": "narration_audio",
-      "relativePath": "public/audio/narration.mp3",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\public\\audio\\narration.mp3",
-      "fileSizeBytes": 2389133,
-      "sha256": "sha256_b315ae8556a60cf43c36c3c122aaaaa7bb40a3dbb25fb67bb363ccb54d61e75d",
+      "relativePath": "runs/HSL_EPISODE_002/audio/narration.mp3",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_002\\audio\\narration.mp3",
+      "fileSizeBytes": 2723852,
+      "sha256": "sha256_6a352b2f48541cb5537a637d66f2db0ec712e694aff1756e68ccaf499a05e2ff",
+      "mediaInfo": {
+        "durationSeconds": 453.936,
+        "codec": "mp3"
+      },
+      "complianceStatus": "UNVERIFIED",
+      "createdAt": "2026-09-05T20:54:04.054Z",
+      "completedAt": "2026-09-06T01:09:58.208Z"
+    },
+    "hsl-ep003-v1-plan": {
+      "handle": "hsl-ep003-v1-plan",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
+      "version": 1,
+      "artifactType": "scene_plan",
+      "relativePath": "runs/HSL_EPISODE_003/scene-plan.json",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\scene-plan.json",
+      "fileSizeBytes": 66744,
+      "sha256": "sha256_5fe4d426377952d60202261127fb30bd0e315cdeedec8746fc61803089f8c258",
+      "complianceStatus": "APPROVED",
+      "createdAt": "2026-09-05T21:00:53.529Z",
+      "completedAt": "2026-09-06T01:09:58.215Z"
+    },
+    "hsl-ep003-v1-audio": {
+      "handle": "hsl-ep003-v1-audio",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
+      "version": 1,
+      "artifactType": "narration_audio",
+      "relativePath": "runs/HSL_EPISODE_003/audio/narration.mp3",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\audio\\narration.mp3",
+      "fileSizeBytes": 2400428,
+      "sha256": "sha256_f62b3e95f46ad08fbab3a77706d20f1338a9230fb18f187896fdead085a0e87a",
       "mediaInfo": {
         "durationSeconds": 600,
         "codec": "mp3"
       },
-      "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T23:18:50.006Z",
-      "completedAt": "2026-08-27T05:08:39.302Z"
+      "complianceStatus": "UNVERIFIED",
+      "createdAt": "2026-09-05T21:02:34.364Z",
+      "completedAt": "2026-09-06T01:09:58.296Z"
     },
-    "subsea-ep001-v1-thumb-a": {
-      "handle": "subsea-ep001-v1-thumb-a",
-      "runId": "subsea/ep001/v1",
-      "project": "subsea",
-      "episode": "ep001",
+    "hsl-ep003-v1-master": {
+      "handle": "hsl-ep003-v1-master",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
+      "version": 1,
+      "artifactType": "master_video",
+      "relativePath": "out/hsl_episode_003.mp4",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\out\\hsl_episode_003.mp4",
+      "fileSizeBytes": 150254274,
+      "sha256": "sha256_b05d4ca2680ff08bba53aec3da71b7d108480f5d709bdd1d5c9aed35e650785d",
+      "mediaInfo": {
+        "durationSeconds": 600,
+        "width": 1920,
+        "height": 1080,
+        "codec": "h264",
+        "fps": 30
+      },
+      "complianceStatus": "APPROVED",
+      "createdAt": "2026-09-05T21:42:31.567Z",
+      "completedAt": "2026-09-06T01:09:59.955Z"
+    },
+    "hsl-ep003-v1-thumb-a": {
+      "handle": "hsl-ep003-v1-thumb-a",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
       "version": 1,
       "artifactType": "thumbnail",
-      "relativePath": "runs/HSL_SUBSEA_001/thumbnails/thumbnail_variant_A_face.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_SUBSEA_001\\thumbnails\\thumbnail_variant_A_face.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "relativePath": "runs/HSL_EPISODE_003/thumbnails/thumbnail_variant_A_face.png",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\thumbnails\\thumbnail_variant_A_face.png",
+      "fileSizeBytes": 149617,
+      "sha256": "sha256_7fc5adf2f764501c9d1d9db189edd8e641d8daac80f6f7aa27f8e40969f56223",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T22:27:09.630Z",
-      "completedAt": "2026-08-27T05:08:39.303Z"
+      "createdAt": "2026-09-05T21:43:26.154Z",
+      "completedAt": "2026-09-06T01:10:00.006Z"
     },
-    "subsea-ep001-v1-thumb-b": {
-      "handle": "subsea-ep001-v1-thumb-b",
-      "runId": "subsea/ep001/v1",
-      "project": "subsea",
-      "episode": "ep001",
+    "hsl-ep003-v1-thumb-b": {
+      "handle": "hsl-ep003-v1-thumb-b",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
       "version": 1,
       "artifactType": "thumbnail",
-      "relativePath": "runs/HSL_SUBSEA_001/thumbnails/thumbnail_variant_B_split.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_SUBSEA_001\\thumbnails\\thumbnail_variant_B_split.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "relativePath": "runs/HSL_EPISODE_003/thumbnails/thumbnail_variant_B_split.png",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\thumbnails\\thumbnail_variant_B_split.png",
+      "fileSizeBytes": 145181,
+      "sha256": "sha256_c733d9f2df4c0dd3ebed43c30eabf70b522119aa7efa66ff8414843b3d79ad19",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T22:27:10.789Z",
-      "completedAt": "2026-08-27T05:08:39.304Z"
+      "createdAt": "2026-09-05T21:43:26.606Z",
+      "completedAt": "2026-09-06T01:10:00.015Z"
     },
-    "subsea-ep001-v1-thumb-c": {
-      "handle": "subsea-ep001-v1-thumb-c",
-      "runId": "subsea/ep001/v1",
-      "project": "subsea",
-      "episode": "ep001",
+    "hsl-ep003-v1-thumb-c": {
+      "handle": "hsl-ep003-v1-thumb-c",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
       "version": 1,
       "artifactType": "thumbnail",
-      "relativePath": "runs/HSL_SUBSEA_001/thumbnails/thumbnail_variant_C_object.png",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_SUBSEA_001\\thumbnails\\thumbnail_variant_C_object.png",
-      "fileSizeBytes": 29533,
-      "sha256": "sha256_af6748e798888c892f0b62a1a454b29b7f15e25343688766e512e36c639a3df6",
+      "relativePath": "runs/HSL_EPISODE_003/thumbnails/thumbnail_variant_C_object.png",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\thumbnails\\thumbnail_variant_C_object.png",
+      "fileSizeBytes": 151496,
+      "sha256": "sha256_7d6f53f076d5a04a661e11410ac1dd4a7f72ec01d80f589c1ea5ba51212c3caf",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T22:27:12.277Z",
-      "completedAt": "2026-08-27T05:08:39.305Z"
+      "createdAt": "2026-09-05T21:43:27.001Z",
+      "completedAt": "2026-09-06T01:10:00.038Z"
     },
-    "subsea-ep001-v1-pkg": {
-      "handle": "subsea-ep001-v1-pkg",
-      "runId": "subsea/ep001/v1",
-      "project": "subsea",
-      "episode": "ep001",
+    "hsl-ep003-v1-pkg": {
+      "handle": "hsl-ep003-v1-pkg",
+      "runId": "hsl/ep003/v1",
+      "project": "hsl",
+      "episode": "ep003",
       "version": 1,
       "artifactType": "publication_package",
-      "relativePath": "runs/HSL_SUBSEA_001/publication-package.json",
-      "absolutePath": "C:\\Users\\brend\\OneDrive\\Desktop\\PROJETO 30K ATE 27\\AGENTES - ANTIGRAVITY - HSL\\runs\\HSL_SUBSEA_001\\publication-package.json",
-      "fileSizeBytes": 9561,
-      "sha256": "sha256_7b82ab70b44a752807f4ef18b72d7748f7a27fec986b53bd97a64a7cdc63782b",
+      "relativePath": "runs/HSL_EPISODE_003/publication-package.json",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\HSL_EPISODE_003\\publication-package.json",
+      "fileSizeBytes": 9625,
+      "sha256": "sha256_fecc40eb90244dc977fb4f9fc48c77270dfe1ae8dda6c15258e2c2cfea6f4a4c",
       "complianceStatus": "APPROVED",
-      "createdAt": "2026-08-26T22:26:36.227Z",
-      "completedAt": "2026-08-27T05:08:39.306Z"
+      "createdAt": "2026-09-05T21:43:12.288Z",
+      "completedAt": "2026-09-06T01:10:00.052Z"
+    },
+    "hsl-ep003-v2-plan": {
+      "handle": "hsl-ep003-v2-plan",
+      "runId": "hsl/ep003/v2",
+      "project": "hsl",
+      "episode": "ep003",
+      "version": 2,
+      "artifactType": "scene_plan",
+      "relativePath": "runs/hsl/ep003/v2/scene-plan.json",
+      "absolutePath": "C:\\Users\\Paulo R Advocacia\\Documents\\HSL - STUDIO\\runs\\hsl\\ep003\\v2\\scene-plan.json",
+      "fileSizeBytes": 68423,
+      "sha256": "sha256_082c1b4a7456e355cccfe508c474c3242919b963dbbd25b22075f46066e6cb19",
+      "complianceStatus": "APPROVED",
+      "lineage": {
+        "derivedFromRunId": "hsl/ep003/v1",
+        "inheritedArtifacts": []
+      },
+      "createdAt": "2026-09-06T01:10:20.664Z",
+      "completedAt": "2026-09-06T01:10:20.690Z"
     }
   }
 }

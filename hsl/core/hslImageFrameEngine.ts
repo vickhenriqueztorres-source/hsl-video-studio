@@ -1208,16 +1208,32 @@ const megashipSceneSvg = (beat: HslSceneBeat, index: number): string => {
 };
 
 const universalThemeSceneSvg = (beat: HslSceneBeat, index: number, base64Image?: string): string => {
-  const seed = hashString(`${beat.beatId}:${beat.graphicHeadline}:${beat.telemetryLabel}`);
+  const seed = hashString(`${beat.beatId}:${beat.actNumber}:${beat.narrativeRole || ''}:${beat.voiceoverScript || ''}:${beat.cinematicPrompt || ''}`);
   const glowX = 240 + (seed % 1440);
   const glowY = 180 + ((seed >> 8) % 650);
   const isAlert = beat.actNumber >= 4 && beat.actNumber <= 5;
-  const accent = isAlert ? '#FF2E00' : '#FFE500';
+  const accent = isAlert ? '#FF2E00' : (beat.actNumber >= 6 ? '#00D8FF' : '#FFE500');
   const isDiagram = Boolean(beat.infographicArchetype);
 
-  const headlineParts = beat.graphicHeadline ? beat.graphicHeadline.split(' ') : [];
-  const primaryWord = esc(headlineParts.slice(0, Math.ceil(headlineParts.length / 2)).join(' ') || 'CRITICAL SYSTEM');
-  const secondaryWord = esc(headlineParts.slice(Math.ceil(headlineParts.length / 2)).join(' ') || 'BOTTLENECK FLOW');
+  let primaryWord = 'CRITICAL SYSTEM';
+  let secondaryWord = 'BOTTLENECK FLOW';
+
+  if (beat.graphicHeadline) {
+    const headlineParts = beat.graphicHeadline.split(' ');
+    primaryWord = esc(headlineParts.slice(0, Math.ceil(headlineParts.length / 2)).join(' ') || 'CRITICAL SYSTEM');
+    secondaryWord = esc(headlineParts.slice(Math.ceil(headlineParts.length / 2)).join(' ') || 'BOTTLENECK FLOW');
+  } else if (beat.promptSubject) {
+    primaryWord = esc(beat.promptSubject.toUpperCase());
+    secondaryWord = esc(beat.narrativeRole ? beat.narrativeRole.replace(/_/g, ' ') : `ACT 0${beat.actNumber} // METRIC`);
+  } else if (beat.narrativeRole) {
+    primaryWord = esc(beat.narrativeRole.replace(/_/g, ' '));
+    secondaryWord = esc(beat.stage || beat.actTitle || `SYSTEM ACT 0${beat.actNumber}`);
+  } else {
+    primaryWord = esc(beat.stage || beat.actTitle || 'CRITICAL SYSTEM');
+    secondaryWord = esc(`BEAT ${beat.beatId} // ACT 0${beat.actNumber}`);
+  }
+
+  const telemetryText = esc(beat.telemetryLabel || (beat.narrativeRole ? `${beat.narrativeRole.replace(/_/g, ' ')} // ${beat.shotSize || '35MM'}` : `ACT 0${beat.actNumber} // METRIC`));
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
@@ -1261,11 +1277,19 @@ const universalThemeSceneSvg = (beat: HslSceneBeat, index: number, base64Image?:
   <rect width="1920" height="1080" fill="url(#leftRightDark)"/>
   <rect width="1920" height="1080" fill="url(#topBottomDark)"/>
 
-  ${isDiagram ? `
   <rect width="1920" height="1080" fill="url(#grid)"/>
   <circle cx="${glowX}" cy="${glowY}" r="450" fill="url(#glow)"/>
 
-  <!-- Dynamic Typography & Telemetry only for Diagrams -->
+  <!-- Technical focal graphic geometry per beat -->
+  <g transform="translate(${glowX} ${glowY})">
+    <circle cx="0" cy="0" r="${100 + (seed % 120)}" fill="none" stroke="${accent}" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="${(seed % 8) + 4}, 6"/>
+    <line x1="-160" y1="0" x2="160" y2="0" stroke="${accent}" stroke-opacity="0.3" stroke-width="1"/>
+    <line x1="0" y1="-160" x2="0" y2="160" stroke="${accent}" stroke-opacity="0.3" stroke-width="1"/>
+    <rect x="-10" y="-10" width="20" height="20" fill="none" stroke="${accent}" stroke-width="2"/>
+    <text x="25" y="-25" class="mono" font-size="14" fill="${accent}" opacity="0.7">TARGET // ${(seed % 9999).toString().padStart(4, '0')}</text>
+  </g>
+
+  <!-- Dynamic Typography & Telemetry -->
   <g filter="url(#heavyShadow)">
     <text x="120" y="340" class="sans" font-size="96" fill="#F4F4F0">${primaryWord}</text>
     <text x="120" y="440" class="sans" font-size="96" fill="${accent}">${secondaryWord}</text>
@@ -1275,17 +1299,17 @@ const universalThemeSceneSvg = (beat: HslSceneBeat, index: number, base64Image?:
   <g transform="translate(120 540)" filter="url(#heavyShadow)">
     <rect width="680" height="90" rx="8" fill="#0A0E18" fill-opacity="0.88" stroke="${accent}" stroke-width="2"/>
     <circle cx="36" cy="45" r="10" fill="${accent}"/>
-    <text x="64" y="53" class="mono" font-size="24" fill="${accent}">${esc(beat.telemetryLabel || `${beat.stage} METRIC`)}</text>
+    <text x="64" y="53" class="mono" font-size="24" fill="${accent}">${telemetryText}</text>
   </g>
 
   <!-- Global HUD Borders -->
   <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="${accent}" stroke-opacity="0.16" stroke-width="2"/>
-  <text x="80" y="90" class="mono" font-size="20" fill="${accent}" letter-spacing="4">HSL // ACT 0${beat.actNumber} // ${esc(beat.stage.toUpperCase())}</text>
+  <text x="80" y="90" class="mono" font-size="20" fill="${accent}" letter-spacing="4">HSL // ACT 0${beat.actNumber} // ${esc((beat.stage || beat.actTitle || 'SYSTEM').toUpperCase())}</text>
   <text x="1840" y="90" class="mono" font-size="20" fill="#F4F4F0" text-anchor="end" opacity="0.6">BEAT ${esc(beat.beatId)}</text>
   <line x1="80" y1="110" x2="1840" y2="110" stroke="#F4F4F0" stroke-opacity="0.12" stroke-width="1"/>
   <rect x="80" y="1000" width="14" height="14" fill="${accent}"/>
-  <text x="110" y="1013" class="mono" font-size="18" fill="#F4F4F0">${esc(beat.telemetryLabel || `${beat.stage} METRIC`)}</text>
-  ` : ''}
+  <text x="110" y="1013" class="mono" font-size="18" fill="#F4F4F0">${telemetryText}</text>
+  <text x="1840" y="1013" class="mono" font-size="16" fill="#F4F4F0" text-anchor="end" opacity="0.4">HIDDEN SYSTEMS LAB // RUNTIME 35MM</text>
 </svg>`;
 };
 
@@ -1655,7 +1679,7 @@ export class HslImageFrameEngine {
     const pendingBeats: HslSceneBeat[] = [];
     for (const b of photorealBeats) {
       const existing = path.resolve(startFramesDir, `${b.beatId}.png`);
-      if (fs.existsSync(existing) && fs.statSync(existing).size > 5000) {
+      if (fs.existsSync(existing) && fs.statSync(existing).size > 5000 && isValidPngFile(existing)) {
         resultMap.set(b.beatId, existing);
       } else {
         pendingBeats.push(b);
@@ -1684,7 +1708,7 @@ export class HslImageFrameEngine {
 
       for (const b of pendingBeats) {
         const candidate = path.resolve(startFramesDir, `${b.beatId}.png`);
-        if (fs.existsSync(candidate) && fs.statSync(candidate).size > 5000) {
+        if (fs.existsSync(candidate) && fs.statSync(candidate).size > 5000 && isValidPngFile(candidate)) {
           resultMap.set(b.beatId, candidate);
         }
       }
@@ -1692,6 +1716,10 @@ export class HslImageFrameEngine {
       console.log(`✅ [ChatGPT Image Bot] Todas as ${photorealBeats.length} imagens fotorrealistas já estão prontas no disco.`);
     }
 
+    const missing = photorealBeats.filter(beat => !resultMap.has(beat.beatId));
+    if (missing.length) {
+      throw new Error(`PHOTOREAL_FRAMES_REQUIRED: ${missing.length}/${photorealBeats.length} fotografias ausentes (${missing.map(b => b.beatId).join(', ')}). Corrija o provedor de imagens; SVGs/cartões não substituem fotografias.`);
+    }
     return resultMap;
   }
 

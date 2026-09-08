@@ -1,0 +1,244 @@
+{
+  "scratch": "C:\\Users\\PAULOR~1\\AppData\\Local\\Temp\\hsl-ep003-audit-905IQZ",
+  "scope": "Dependencies stubbed for pre-mux/render cache probes; source run read only.",
+  "ranges": [
+    {
+      "minutes": 3,
+      "mode": "legacy",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ]
+      ],
+      "renderedSeconds": 600
+    },
+    {
+      "minutes": 3,
+      "mode": "real",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          5399
+        ]
+      ],
+      "renderedSeconds": 180
+    },
+    {
+      "minutes": 6,
+      "mode": "legacy",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ]
+      ],
+      "renderedSeconds": 600
+    },
+    {
+      "minutes": 6,
+      "mode": "real",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          10799
+        ]
+      ],
+      "renderedSeconds": 360
+    },
+    {
+      "minutes": 10,
+      "mode": "legacy",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ]
+      ],
+      "renderedSeconds": 600
+    },
+    {
+      "minutes": 10,
+      "mode": "real",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ]
+      ],
+      "renderedSeconds": 600
+    },
+    {
+      "minutes": 12,
+      "mode": "legacy",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ]
+      ],
+      "renderedSeconds": 600
+    },
+    {
+      "minutes": 12,
+      "mode": "real",
+      "ranges": [
+        [
+          0,
+          4499
+        ],
+        [
+          4500,
+          8999
+        ],
+        [
+          9000,
+          13499
+        ],
+        [
+          13500,
+          17999
+        ],
+        [
+          18000,
+          21599
+        ]
+      ],
+      "renderedSeconds": 720
+    }
+  ],
+  "failedSync": {
+    "reportedDifference": 444.648,
+    "threw": false,
+    "stageStatus": "DONE"
+  },
+  "legacySfx": {
+    "__status": "skipped"
+  },
+  "realModeSamePlan": {
+    "takes": 0,
+    "status": "skipped"
+  },
+  "existing600sFinalRoutesTo": "stitch",
+  "promptSanitizer": {
+    "returnedUnchanged": true,
+    "stillContainsTypography": true
+  },
+  "narrationChunks": {
+    "planned": [
+      {
+        "index": 0,
+        "characters": 2426,
+        "words": 344
+      },
+      {
+        "index": 1,
+        "characters": 2494,
+        "words": 366
+      },
+      {
+        "index": 2,
+        "characters": 2341,
+        "words": 328
+      }
+    ],
+    "files": [
+      {
+        "name": "chunk_000.mp3",
+        "size": 932112,
+        "mtime": "2026-09-05T21:02:10.290Z",
+        "probe": {
+          "format": {
+            "duration": "155.352000"
+          }
+        }
+      },
+      {
+        "name": "chunk_001.mp3",
+        "size": 0,
+        "mtime": "2026-09-05T21:02:11.038Z",
+        "probe": null
+      },
+      {
+        "name": "chunk_002.mp3",
+        "size": 0,
+        "mtime": "2026-09-05T21:02:33.185Z",
+        "probe": null
+      }
+    ],
+    "concatList": "file 'C:/Users/Paulo R Advocacia/Documents/HSL - STUDIO/runs/temp_audio_chunks/chunk_000.mp3'"
+  },
+  "recursionLimit": 128
+}

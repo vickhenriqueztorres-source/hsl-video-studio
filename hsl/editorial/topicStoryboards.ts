@@ -1,9 +1,11 @@
-import { HslNarrativeRole, HslVisualMode, EpisodeTopicInput } from '../core/types';
+import { HslNarrativeRole, HslVisualMode, EpisodeTopicInput, MotionIntent } from '../core/types';
 import { resolveCanonicalVisualMode } from '../../spec/hsl-spec';
 
 export interface BeatStoryboardData {
   narrativeRole: HslNarrativeRole;
   visualMode: HslVisualMode;
+  motionIntent?: MotionIntent;
+  motionReason?: string;
   infographicArchetype?: '3D_MAP' | 'CUTAWAY' | 'TARMAC_FLOW' | 'FLIPBOARD' | 'MACRO_HUD';
   graphicHeadline?: string;
   telemetryLabel?: string;
@@ -402,6 +404,38 @@ export function getJetFuelBeatData(actNumber: number, beatIndex: number, input: 
  * "HOW 45,000 LITERS OF LIQUID KEEP AI CLUSTERS FROM MELTING" (100% único, termodinâmica real)
  */
 export function getAiCoolingBeatData(actNumber: number, beatIndex: number, input: EpisodeTopicInput): BeatStoryboardData {
+  const data = getAiCoolingStoryboardData(actNumber, beatIndex, input);
+  // Editorial choices refer to canonical act/beat positions, before normalization.
+  // Each choice describes observable motion; maps and diagrams remain stills.
+  const motion: Record<string, [MotionIntent, string]> = {
+    '1:0': ['camera', 'Reveal the scale of the liquid-cooled rack in the opening hook.'],
+    '1:2': ['physical', 'Show dielectric fluid flowing through the transparent cold-plate manifold.'],
+    '1:5': ['camera', 'Track the coolant hose route to connect rack hardware to continuous circulation.'],
+    '1:6': ['physical', 'Show cooling-tower vapor carrying rejected heat into the night air.'],
+    '1:11': ['camera', 'Dolly through the cooled cluster aisle to establish the hidden system.'],
+    '2:10': ['physical', 'Show cooling-tower fans and water spray rejecting the thermal load.'],
+    '3:4': ['physical', 'Observe the flow-meter impeller rotating inside the transparent test section.'],
+    '3:13': ['physical', 'Reveal turbulent coolant circulation under manifold inspection light.'],
+    '5:10': ['physical', 'Show the breaker trip mechanism responding to the cooling failure.'],
+    '5:11': ['camera', 'Reveal the emergency beacon illuminating the silent server hall.'],
+    '6:2': ['physical', 'Observe bypass-valve stroke as coolant is redirected during failover.'],
+    '6:3': ['physical', 'Follow a technician hot-swapping the redundant CDU pump module.'],
+    '6:6': ['physical', 'Show the dry-break couplers disengaging without leaking coolant.'],
+    '6:8': ['physical', 'Observe the backup-powered solenoid manifold actuating.'],
+    '6:9': ['physical', 'Show metallic particles being extracted from circulating coolant.'],
+    '7:9': ['camera', 'Travel down the operating cluster corridor to resolve the scale of the system.'],
+    '8:2': ['physical', 'Show the coolant droplet evaporating to connect computation to heat removal.'],
+    '8:3': ['camera', 'Pull back along the overhead headers to reveal the full hydraulic route.'],
+    '8:6': ['physical', 'Observe the turbulent vortex through the transparent CDU manifold cover.'],
+  };
+  const selected = motion[`${actNumber}:${beatIndex}`];
+  return { ...data,
+    motionIntent: selected && !data.infographicArchetype ? selected[0] : 'none',
+    motionReason: selected && !data.infographicArchetype ? selected[1] : 'Preserve the precision of this cooling explanation as a still or local diagram.',
+  };
+}
+
+function getAiCoolingStoryboardData(actNumber: number, beatIndex: number, input: EpisodeTopicInput): BeatStoryboardData {
   if (actNumber === 1) {
     // ATO 01: THE HOOK & THE VISIBLE MIRACLE (12 beats // 75s)
     const roles: HslNarrativeRole[] = [
@@ -2447,6 +2481,53 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
   const constraint = input.constraint || 'physical boundary limit';
   const consequence = input.consequence || 'systemic cascade failure';
   const thesis = input.thesis || 'Modern life depends on invisible engineering stewardship.';
+  const compact = (value: string, words: number) => value.trim().split(/\s+/).slice(0, words).join(' ').replace(/[,:;.!?]+$/g, '');
+  const shortEntity = compact(entity, 5);
+  const shortMechanism = compact(mechanism, 5);
+  const shortConstraint = compact(constraint, 5);
+  const shortConsequence = compact(consequence, 6);
+  const shortThesis = compact(thesis, 12);
+  const focuses = [
+    'public interface', 'intake handoff', 'thermal buffer', 'transfer path',
+    'sensor layer', 'control loop', 'operator checkpoint', 'alarm path',
+    'reserve capacity', 'isolation point', 'redundant route', 'last-mile handoff',
+    'failure boundary', 'recovery path', 'audit record', 'systemwide dependency'
+  ];
+  const focus = focuses[beatIndex % focuses.length];
+  const actClaim = [
+    '',
+    `the opening reveals ${shortEntity} as a timed chain of hidden handoffs`,
+    `the anatomy exposes the physical architecture governed by ${shortMechanism}`,
+    `the flow analysis shows how ${shortMechanism} controls usable capacity`,
+    `the boundary test measures the margin imposed by ${shortConstraint}`,
+    `the failure sequence traces how disruption develops into ${shortConsequence}`,
+    `the recovery layer shows how safeguards preserve the remaining margin`,
+    `the consequence layer connects a local fault to ${shortConsequence}`,
+    `the conclusion returns to the thesis that ${shortThesis}`
+  ][actNumber] || `the system analysis follows ${shortEntity} through its hidden dependencies`;
+  const chapter = [
+    '', 'the opening', 'the anatomy', 'the flow analysis', 'the boundary test',
+    'the failure sequence', 'the recovery layer', 'the consequence layer', 'the conclusion'
+  ][actNumber] || 'this system layer';
+  const narrativeScripts = [
+    `From outside, ${actClaim}.`,
+    `At the ${focus}, ${chapter} tests whether hidden conditions still match the visible result.`,
+    `Beyond the ${focus}, ${chapter} makes timing a physical variable, not merely a schedule.`,
+    `In ${chapter}, a small delay consumes margin before visible failure appears.`,
+    `The ${focus} turns routine transfer in ${chapter} into a controlled engineering decision.`,
+    `During ${chapter}, records, sensors, and operators must describe the same reality.`,
+    `Downstream capacity in ${chapter} depends on what survives the ${focus}.`,
+    `Every assumption entering ${chapter} is tested again at this point.`,
+    `A stable reading in ${chapter} matters only with a complete history.`,
+    `Resilience in ${chapter} means distinguishing normal variation from a genuine breach.`,
+    `At the ${focus}, recovery in ${chapter} starts by locating the first lost margin.`,
+    `A protected route preserves service during ${chapter} while damage is isolated.`,
+    `Throughout ${chapter}, the physical asset and its audit trail must arrive together.`,
+    `Operators in ${chapter} cannot recover time; they can preserve only remaining margin.`,
+    `The next decision after ${chapter} requires verified state, not appearance.`,
+    `This ${focus} transfers the remaining risk from ${chapter} to the next layer.`
+  ];
+  const narrativeScript = narrativeScripts[beatIndex % narrativeScripts.length];
 
   const isVideo = (actNumber === 1 && (beatIndex === 0 || beatIndex === 1 || beatIndex === 6 || beatIndex === 11)) ||
                   (actNumber === 2 && (beatIndex === 0 || beatIndex === 7)) ||
@@ -2464,7 +2545,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: beatIndex === 0 ? 'CRITICAL SYSTEM' : 'MASSIVE SCALE',
       telemetryLabel: `SYSTEM // ${actNumber}.0${beatIndex + 1}`,
-      voiceoverScript: `Inside ${entity}, an invisible mechanical throughput moves modern civilization without pause.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Cinematic 35mm wide shot of ${entity}, glowing acid yellow telemetry lines, dark obsidian background, Arri Alexa LF 8k.`
     };
   } else if (actNumber === 2) {
@@ -2474,7 +2555,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'ANATOMY LAYER',
       telemetryLabel: `LAYER // 0${beatIndex + 1}`,
-      voiceoverScript: `The physical architecture of ${entity} operates through ${mechanism}.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Macro cutaway cross-section view of ${entity}, technical annotations in yellow and cyan, 35mm film still.`
     };
   } else if (actNumber === 3) {
@@ -2484,7 +2565,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'THROUGHPUT MATH',
       telemetryLabel: `FLOW // RATE ${beatIndex + 1}`,
-      voiceoverScript: `Governed by strict physical equations, the rate of transfer through ${mechanism} dictates overall capacity.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Analytical engineering telemetry visualization of ${mechanism}, glowing flow vectors, high-contrast dark room display.`
     };
   } else if (actNumber === 4) {
@@ -2494,7 +2575,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'CRITICAL LIMIT',
       telemetryLabel: `THRESHOLD // ${constraint.substring(0, 16).toUpperCase()}`,
-      voiceoverScript: `Every physical system hits a hard boundary condition: ${constraint}.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Dramatic stress analysis graph showing exponential threshold breach of ${constraint}, flashing orange warning reticles.`
     };
   } else if (actNumber === 5) {
@@ -2504,7 +2585,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'STRAIN BOTTLENECK',
       telemetryLabel: 'FAILURE CASCADE // 99%',
-      voiceoverScript: `When load exceeds structural capacity, localized failure rapidly triggers an uncontained cascade.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Cinematic high-contrast simulation of catastrophic bottleneck rupture in ${entity}, orange and yellow stress heatmaps.`
     };
   } else if (actNumber === 6) {
@@ -2514,7 +2595,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'HIDDEN MARGIN',
       telemetryLabel: 'ACTIVE DEFENSE // ENG',
-      voiceoverScript: `Engineers embed sacrificial buffers and autonomous countermeasures to absorb unexpected shockwaves.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Cross-section diagram of multi-layer safety mechanisms protecting ${entity}, high-tech precision lab environment.`
     };
   } else if (actNumber === 7) {
@@ -2524,7 +2605,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'SYSTEMIC RIPPLE',
       telemetryLabel: 'CONSEQUENCE // GLOBAL',
-      voiceoverScript: `If this layer collapses: ${consequence}.`,
+      voiceoverScript: narrativeScript,
       promptSubject: `Atmospheric mission control room displaying global cascading impact maps, red telemetry alert overlays.`
     };
   } else {
@@ -2534,7 +2615,7 @@ export function getUniversalTopicBeatData(actNumber: number, beatIndex: number, 
       visualMode,
       graphicHeadline: 'ORIGINAL THESIS',
       telemetryLabel: 'HSL // CONCLUSION',
-      voiceoverScript: thesis,
+      voiceoverScript: narrativeScript,
       promptSubject: `Monumental cinematic panoramic wide angle shot representing ${entity}, glowing golden horizon, iconic Hidden Systems Lab documentary style.`
     };
   }

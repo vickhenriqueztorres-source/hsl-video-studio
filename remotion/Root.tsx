@@ -1,5 +1,5 @@
 import React from 'react';
-import {Composition} from 'remotion';
+import {Composition, type CalculateMetadataFunction} from 'remotion';
 import {HslEpisode} from './HslEpisode';
 import {HslThumbnail, HslThumbnailProps} from './HslThumbnail';
 import {TestVideo1Min} from './TestVideo1Min';
@@ -11,9 +11,8 @@ import {
   HSL_FPS,
   HSL_VIDEO_WIDTH,
   HSL_VIDEO_HEIGHT,
-  HSL_EPISODE_TARGET_DURATION_SECONDS,
-  secondsToFrames
 } from '../spec/hsl-spec';
+import type {HslLongFormProjectPlan} from '../hsl/core/types';
 
 const defaults: HslEpisodeRenderProps = {
   title: 'Hidden Systems Lab', fps: HSL_FPS, width: HSL_VIDEO_WIDTH, height: HSL_VIDEO_HEIGHT, totalDurationInFrames: 30,
@@ -40,6 +39,15 @@ const defaultTopicInput = {
 };
 
 const defaultPlan = HslSceneDirectorAgent.planEpisodeFromScratch(defaultTopicInput);
+
+const calculateLongFormMetadata: CalculateMetadataFunction<Record<string, unknown>> = ({props}) => {
+  const plan = props as unknown as HslLongFormProjectPlan;
+  const beatFrames = plan.beats.reduce((total, beat) => total + beat.durationFrames, 0);
+  if (!Number.isSafeInteger(plan.totalFrames) || plan.totalFrames < 1 || beatFrames !== plan.totalFrames) {
+    throw new Error(`REMOTION_DURATION_CONTRACT_ERROR: totalFrames=${plan.totalFrames}; beatFrames=${beatFrames}`);
+  }
+  return {durationInFrames: plan.totalFrames};
+};
 
 export const RemotionRoot: React.FC = () => <>
   <Composition
@@ -69,11 +77,12 @@ export const RemotionRoot: React.FC = () => <>
   <Composition
     id="HslLongFormComposition"
     component={HslLongFormComposition}
-    durationInFrames={secondsToFrames(HSL_EPISODE_TARGET_DURATION_SECONDS)}
+    durationInFrames={defaultPlan.totalFrames}
     fps={HSL_FPS}
     width={HSL_VIDEO_WIDTH}
     height={HSL_VIDEO_HEIGHT}
     defaultProps={defaultPlan}
+    calculateMetadata={calculateLongFormMetadata}
   />
   <Composition
     id="HslEpisode"

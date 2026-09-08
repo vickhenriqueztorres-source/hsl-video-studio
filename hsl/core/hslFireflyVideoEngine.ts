@@ -11,10 +11,12 @@ export interface FireflyEngineResult {
   readonly completedTakes: readonly string[];
 }
 
-export class HslFireflyVideoEngine {
+/** @deprecated Compatibility name; this engine only produces local FFmpeg motion. */
+export {HslLocalMotionVideoEngine as HslFireflyVideoEngine};
+
+export class HslLocalMotionVideoEngine {
   /**
-   * Popula vídeos REAIS gerados pelo Firefly em public/runs/<episode_id>/videos/
-   * com auto-verificação determinística de contrato (zero tolerância).
+   * Renderiza movimento LOCAL FFmpeg. Não chama Adobe Firefly nem Kling.
    */
   public static async processVideoBeatsForEpisode(
     episodeId: string,
@@ -22,12 +24,13 @@ export class HslFireflyVideoEngine {
   ): Promise<FireflyEngineResult> {
     const root = process.cwd();
     const videoBeats = beats.filter(b => b.visualMode === 'firefly_video');
+    if(videoBeats.some(b=>b.mediaProvider==='firefly-kling'))throw new Error('LOCAL_ENGINE_CANNOT_GENERATE_FIREFLY');
     const videosDir = path.resolve(root, 'public', 'runs', episodeId, 'videos');
     const localVideosDir = path.resolve(root, 'runs', episodeId, 'videos');
     fs.mkdirSync(videosDir, {recursive: true});
     fs.mkdirSync(localVideosDir, {recursive: true});
 
-    console.log(`\n🤖 [HslFireflyVideoEngine] Gerando e verificando ${videoBeats.length} vídeos de movimento cinematográfico a partir dos frames temáticos em: ${videosDir}`);
+    console.log(`\n[local-ffmpeg] Gerando ${videoBeats.length} vídeos a partir dos frames em: ${videosDir}`);
 
     return this.generateMotionTakesFromFrames(root, episodeId, beats, videoBeats, videosDir, localVideosDir);
   }

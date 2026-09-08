@@ -1,0 +1,89 @@
+{
+  "episodeId": "HSL_EPISODE_011",
+  "createdAt": "2026-09-02T15:58:04.241Z",
+  "updatedAt": "2026-09-02T16:14:55.952Z",
+  "overallStatus": "RUNNING",
+  "stages": {
+    "STAGE_01_SCENE_PLAN": {
+      "name": "STAGE_01_SCENE_PLAN",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:11:57.251Z",
+      "completedAt": "2026-09-02T16:11:57.256Z",
+      "metrics": {
+        "totalBeats": 96
+      }
+    },
+    "STAGE_02_IMAGE_FRAMES": {
+      "name": "STAGE_02_IMAGE_FRAMES",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:11:57.257Z",
+      "completedAt": "2026-09-02T16:12:52.451Z",
+      "metrics": {
+        "totalGenerated": 96
+      }
+    },
+    "STAGE_03_FIREFLY_VIDEOS": {
+      "name": "STAGE_03_FIREFLY_VIDEOS",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:12:52.452Z",
+      "completedAt": "2026-09-02T16:14:45.782Z",
+      "metrics": {
+        "totalVideos": 36
+      }
+    },
+    "STAGE_04_NARRATION": {
+      "name": "STAGE_04_NARRATION",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:14:45.783Z",
+      "completedAt": "2026-09-02T16:14:46.097Z",
+      "metrics": {
+        "durationSeconds": 556.752
+      }
+    },
+    "STAGE_05_SOUND_DESIGN": {
+      "name": "STAGE_05_SOUND_DESIGN",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:14:46.098Z",
+      "completedAt": "2026-09-02T16:14:46.331Z"
+    },
+    "STAGE_06_PRE_RENDER_GATE": {
+      "name": "STAGE_06_PRE_RENDER_GATE",
+      "status": "DONE",
+      "startedAt": "2026-09-02T16:14:46.331Z",
+      "completedAt": "2026-09-02T16:14:55.952Z",
+      "metrics": {
+        "verifiedBeats": 96,
+        "autoRecovered": false
+      }
+    },
+    "STAGE_07_REMOTION_RENDER": {
+      "name": "STAGE_07_REMOTION_RENDER",
+      "status": "IN_PROGRESS",
+      "startedAt": "2026-09-02T16:14:55.952Z"
+    },
+    "STAGE_08_PRE_MUX_GATE": {
+      "name": "STAGE_08_PRE_MUX_GATE",
+      "status": "PENDING"
+    },
+    "STAGE_09_FFMPEG_MUX": {
+      "name": "STAGE_09_FFMPEG_MUX",
+      "status": "PENDING"
+    },
+    "STAGE_10_PACKAGING": {
+      "name": "STAGE_10_PACKAGING",
+      "status": "PENDING"
+    },
+    "STAGE_11_PRD_COMPLIANCE": {
+      "name": "STAGE_11_PRD_COMPLIANCE",
+      "status": "PENDING"
+    }
+  },
+  "artifacts": {
+    "thumbnails": [],
+    "scenePlanPath": "D:\\HSL STUDIO AGENTS\\hsl-video-studio\\runs\\HSL_EPISODE_011\\scene-plan.json",
+    "framesCount": 96,
+    "videosCount": 36,
+    "narrationAudioPath": "D:\\HSL STUDIO AGENTS\\hsl-video-studio\\runs\\HSL_EPISODE_011\\audio\\narration.mp3",
+    "narrationDurationSeconds": 556.752
+  }
+}

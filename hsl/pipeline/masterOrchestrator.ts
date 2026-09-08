@@ -468,22 +468,39 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   // ---------------------------------------------------------------------------
   manifest.startStage('STAGE_09_FFMPEG_MUX');
   console.log('\n🔊 [9/11] FFmpeg Muxer: Combinando trilha visual, narração e ambiência...');
-  const musicPath = path.resolve(root, 'assets', 'audio-library', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
+  const musicCandidate1 = path.resolve(root, 'assets', 'audio-library', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
+  const musicCandidate2 = path.resolve(root, 'public', 'audio', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
+  const musicPath = fs.existsSync(musicCandidate1) ? musicCandidate1 : (fs.existsSync(musicCandidate2) ? musicCandidate2 : undefined);
 
-  const muxResult = spawnSync('ffmpeg', [
-    '-y', '-hide_banner', '-loglevel', 'error',
-    '-i', tempVisualPath,
-    '-stream_loop', '-1', '-i', musicPath,
-    '-i', narrationDest,
-    '-filter_complex', '[1:a]volume=0.04[bg];[2:a]volume=1.0[voice];[bg][voice]amix=inputs=2:duration=first[aout]',
-    '-map', '0:v:0',
-    '-map', '[aout]',
-    '-c:v', 'copy',
-    '-c:a', 'aac',
-    '-b:a', HSL_AUDIO_BITRATE,
-    '-shortest',
-    outputVideoPath
-  ], { encoding: 'utf8' });
+  const ffmpegArgs = musicPath
+    ? [
+        '-y', '-hide_banner', '-loglevel', 'error',
+        '-i', tempVisualPath,
+        '-stream_loop', '-1', '-i', musicPath,
+        '-i', narrationDest,
+        '-filter_complex', '[1:a]volume=0.04[bg];[2:a]volume=1.0[voice];[bg][voice]amix=inputs=2:duration=first[aout]',
+        '-map', '0:v:0',
+        '-map', '[aout]',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-b:a', HSL_AUDIO_BITRATE,
+        '-shortest',
+        outputVideoPath
+      ]
+    : [
+        '-y', '-hide_banner', '-loglevel', 'error',
+        '-i', tempVisualPath,
+        '-i', narrationDest,
+        '-map', '0:v:0',
+        '-map', '1:a:0',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-b:a', HSL_AUDIO_BITRATE,
+        '-shortest',
+        outputVideoPath
+      ];
+
+  const muxResult = spawnSync('ffmpeg', ffmpegArgs, { encoding: 'utf8' });
 
   if (muxResult.status !== 0 || !fs.existsSync(outputVideoPath)) {
     manifest.failStage('STAGE_09_FFMPEG_MUX', `Falha no FFmpeg mux: ${muxResult.stderr}`);

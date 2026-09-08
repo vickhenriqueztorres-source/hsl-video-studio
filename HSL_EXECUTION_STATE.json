@@ -1,11 +1,11 @@
 {
-  "episodeId": "HSL_EPISODE_012_TAIPEI_TMD",
-  "timestamp": "2026-09-02T16:18:34.631Z",
+  "episodeId": "HSL_EPISODE_005",
+  "timestamp": "2026-09-07T00:22:41.939Z",
   "gatekeeperStatus": "PASSED",
   "autoRecovered": false,
-  "totalBeats": 96,
-  "validBeats": 96,
+  "totalBeats": 48,
+  "validBeats": 48,
   "failedBeats": 0,
-  "narrationDurationSeconds": 614.208,
+  "narrationDurationSeconds": 600,
   "errors": []
 }

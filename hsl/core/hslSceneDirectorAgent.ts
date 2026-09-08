@@ -28,6 +28,31 @@ import {
   getUniversalTopicBeatData
 } from '../editorial/topicStoryboards';
 
+function ensureUniqueVoiceoverScripts(beats: HslSceneBeat[]): HslSceneBeat[] {
+  const canonical = (script: string) => script.toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const counts = new Map<string, number>();
+  for (const beat of beats) {
+    const script = beat.voiceoverScript.replace(/\s+/g, ' ').trim();
+    if (!script) throw new Error(`HSL_VOICEOVER_EMPTY:${beat.beatId}`);
+    if (/\bSCENE[_\s-]*\d+\b/i.test(script)) throw new Error(`HSL_VOICEOVER_INTERNAL_ID:${beat.beatId}`);
+    const key = canonical(script);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const occurrence = new Map<string, number>();
+  const ordinals = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'];
+  const unique = beats.map(beat => {
+    const script = beat.voiceoverScript.replace(/\s+/g, ' ').trim();
+    const key = canonical(script);
+    if ((counts.get(key) ?? 0) === 1) return beat;
+    const index = occurrence.get(key) ?? 0;
+    occurrence.set(key, index + 1);
+    const focus = beat.graphicHeadline?.toLocaleLowerCase('en-US') || beat.narrativeRole?.toLocaleLowerCase('en-US').replace(/_/g, ' ') || 'system evidence';
+    return { ...beat, voiceoverScript: `${script} In ${beat.actTitle.toLocaleLowerCase('en-US')}, the ${ordinals[index] || 'next'} instance concerns ${focus}.` };
+  });
+  if (new Set(unique.map(beat => canonical(beat.voiceoverScript))).size !== unique.length) throw new Error('HSL_VOICEOVER_DEDUPLICATION_FAILED');
+  return unique;
+}
+
 export * from './types';
 
 export class HslSceneDirectorAgent {
@@ -78,6 +103,8 @@ export class HslSceneDirectorAgent {
         let infographicArchetype: '3D_MAP' | 'CUTAWAY' | 'TARMAC_FLOW' | 'FLIPBOARD' | 'MACRO_HUD' | undefined;
         let graphicHeadline: string | undefined;
         let telemetryLabel: string | undefined;
+        let motionIntent: HslSceneBeat['motionIntent'];
+        let motionReason: string | undefined;
         let promptSubject = '';
         let voiceoverScript = '';
 
@@ -243,6 +270,8 @@ export class HslSceneDirectorAgent {
           telemetryLabel = aiData.telemetryLabel;
           voiceoverScript = aiData.voiceoverScript;
           promptSubject = aiData.promptSubject;
+          motionIntent = aiData.motionIntent;
+          motionReason = aiData.motionReason;
         } else if (isFuelTopic) {
           const fuelData = getJetFuelBeatData(act.actNumber, i, input);
           narrativeRole = fuelData.narrativeRole;
@@ -282,6 +311,9 @@ export class HslSceneDirectorAgent {
           cameraMovement,
           pacingType,
           narrativeRole,
+          motionIntent,
+          motionReason,
+          promptSubject,
           cinematicPrompt,
           voiceoverScript,
           infographicArchetype,
@@ -293,13 +325,14 @@ export class HslSceneDirectorAgent {
       }
     }
 
+    const narrativeBeats = ensureUniqueVoiceoverScripts(allBeats);
     return {
       episodeId: input.episodeId,
       episodeTitle: input.topic,
       subtitle: `${input.entity.toUpperCase()} // THROUGHPUT & BOTTLENECK ANALYSIS`,
       totalDurationSeconds,
       totalFrames,
-      totalBeatsCount: allBeats.length,
+      totalBeatsCount: narrativeBeats.length,
       targetMinutes,
       thesis: input.thesis,
       acts: actConfigs.map(a => ({
@@ -308,7 +341,7 @@ export class HslSceneDirectorAgent {
         durationSeconds: a.targetDurationSeconds,
         beatsCount: a.targetBeatsCount
       })),
-      beats: allBeats
+      beats: narrativeBeats
     };
   }
 }

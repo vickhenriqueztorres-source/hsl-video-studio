@@ -12,7 +12,8 @@ export type StageName =
   | 'STAGE_08_PRE_MUX_GATE'
   | 'STAGE_09_FFMPEG_MUX'
   | 'STAGE_10_PACKAGING'
-  | 'STAGE_11_PRD_COMPLIANCE';
+  | 'STAGE_11_PRD_COMPLIANCE'
+  | 'STAGE_12_CLOUD_ARCHIVE';
 
 export type StageStatus = 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'FAILED';
 
@@ -30,6 +31,15 @@ export interface RunManifestData {
   readonly createdAt: string;
   updatedAt: string;
   overallStatus: 'RUNNING' | 'COMPLETED' | 'FAILED';
+  lineage?: {
+    readonly derivedFromRunId: string;
+    readonly sourceScenePlanSha256: string;
+    readonly inheritedArtifacts: readonly {
+      readonly artifactType: string;
+      readonly sourceHandle: string;
+      readonly sourceSha256: string;
+    }[];
+  };
   stages: Record<StageName, StageRecord>;
   artifacts: {
     scenePlanPath?: string;
@@ -117,6 +127,7 @@ export class HslRunManifest {
     }
     this.data.stages[stage].status = 'DONE';
     this.data.stages[stage].completedAt = new Date().toISOString();
+    delete this.data.stages[stage].error;
     if (metrics) {
       this.data.stages[stage].metrics = metrics;
     }
@@ -141,6 +152,12 @@ export class HslRunManifest {
       ...this.data.artifacts,
       ...partial
     };
+    this.data.updatedAt = new Date().toISOString();
+    this.save();
+  }
+
+  public setLineage(lineage: NonNullable<RunManifestData['lineage']>): void {
+    this.data.lineage = lineage;
     this.data.updatedAt = new Date().toISOString();
     this.save();
   }

@@ -1,0 +1,601 @@
+{
+  "schema": "hsl-media-plan/v1",
+  "scenePlanHash": "e8c7083d0006fdbde75f3a7a50a4398f236e423acd50047f8968025449f09e2d",
+  "episodeId": "HSL_EPISODE_003",
+  "policy": "firefly-hybrid",
+  "fps": 30,
+  "takeSeconds": 5,
+  "coveragePolicy": "full-coverage-trim",
+  "beats": [
+    {
+      "beatId": "SCENE_001",
+      "sourceBeatId": "SCENE_001",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with ISOMETRIC_GLIDE during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_002",
+      "sourceBeatId": "SCENE_002",
+      "provider": "firefly-kling",
+      "motionIntent": "physical",
+      "reason": "KINETIC_FLOW physical scene: show the continuous process described by the narrative.",
+      "durationFrames": 163,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_003",
+      "sourceBeatId": "SCENE_003",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_004",
+      "sourceBeatId": "SCENE_004",
+      "provider": "firefly-kling",
+      "motionIntent": "physical",
+      "reason": "KINETIC_FLOW physical scene: show the continuous process described by the narrative.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_005",
+      "sourceBeatId": "SCENE_005",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_006",
+      "sourceBeatId": "SCENE_006",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 251,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_007",
+      "sourceBeatId": "SCENE_007",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with PULSING_ORBIT during the hook or hero exploration.",
+      "durationFrames": 266,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_008",
+      "sourceBeatId": "SCENE_008",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_009",
+      "sourceBeatId": "SCENE_009",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_010",
+      "sourceBeatId": "SCENE_010",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with PULSING_ORBIT during the hook or hero exploration.",
+      "durationFrames": 266,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_011",
+      "sourceBeatId": "SCENE_011",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 251,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_012",
+      "sourceBeatId": "SCENE_012",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with FAST_WHIP_PAN during the hook or hero exploration.",
+      "durationFrames": 266,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_013",
+      "sourceBeatId": "SCENE_013",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_014",
+      "sourceBeatId": "SCENE_014",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 133,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_015",
+      "sourceBeatId": "SCENE_015",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with ISOMETRIC_GLIDE during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_016",
+      "sourceBeatId": "SCENE_016",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 295,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_017",
+      "sourceBeatId": "SCENE_017",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_018",
+      "sourceBeatId": "SCENE_018",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 133,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_019",
+      "sourceBeatId": "SCENE_019",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 295,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_020",
+      "sourceBeatId": "SCENE_020",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with FAST_WHIP_PAN during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_021",
+      "sourceBeatId": "SCENE_021",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 281,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_022",
+      "sourceBeatId": "SCENE_022",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_023",
+      "sourceBeatId": "SCENE_023",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 133,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_024",
+      "sourceBeatId": "SCENE_024",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_025",
+      "sourceBeatId": "SCENE_025",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with PULSING_ORBIT during the hook or hero exploration.",
+      "durationFrames": 295,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_026",
+      "sourceBeatId": "SCENE_026",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 207,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_027",
+      "sourceBeatId": "SCENE_027",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_028",
+      "sourceBeatId": "SCENE_028",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_029",
+      "sourceBeatId": "SCENE_029",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_030",
+      "sourceBeatId": "SCENE_030",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_031",
+      "sourceBeatId": "SCENE_031",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with ISOMETRIC_GLIDE during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_032",
+      "sourceBeatId": "SCENE_032",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with SLOW_DOLLY_IN during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_033",
+      "sourceBeatId": "SCENE_033",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 280,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_034",
+      "sourceBeatId": "SCENE_034",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_035",
+      "sourceBeatId": "SCENE_035",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_036",
+      "sourceBeatId": "SCENE_036",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_037",
+      "sourceBeatId": "SCENE_037",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_038",
+      "sourceBeatId": "SCENE_038",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 280,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_039",
+      "sourceBeatId": "SCENE_039",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with SLOW_DOLLY_IN during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_040",
+      "sourceBeatId": "SCENE_040",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 251,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_041",
+      "sourceBeatId": "SCENE_041",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 266,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_042",
+      "sourceBeatId": "SCENE_042",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_043",
+      "sourceBeatId": "SCENE_043",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_044",
+      "sourceBeatId": "SCENE_044",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_045",
+      "sourceBeatId": "SCENE_045",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 251,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_046",
+      "sourceBeatId": "SCENE_046",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 222,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_047",
+      "sourceBeatId": "SCENE_047",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 251,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_048",
+      "sourceBeatId": "SCENE_048",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_049",
+      "sourceBeatId": "SCENE_049",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_050",
+      "sourceBeatId": "SCENE_050",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_051",
+      "sourceBeatId": "SCENE_051",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 236,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_052",
+      "sourceBeatId": "SCENE_052",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with PULSING_ORBIT during the hook or hero exploration.",
+      "durationFrames": 251,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_053",
+      "sourceBeatId": "SCENE_053",
+      "provider": "firefly-kling",
+      "motionIntent": "camera",
+      "reason": "Reveal the physical setting with SLOW_DOLLY_IN during the hook or hero exploration.",
+      "durationFrames": 236,
+      "takeCount": 2
+    },
+    {
+      "beatId": "SCENE_054",
+      "sourceBeatId": "SCENE_054",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_055",
+      "sourceBeatId": "SCENE_055",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 119,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_056",
+      "sourceBeatId": "SCENE_056",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 104,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_057",
+      "sourceBeatId": "SCENE_057",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "No explicit narrative requirement for physical action or a hook/hero camera reveal.",
+      "durationFrames": 207,
+      "takeCount": 0
+    },
+    {
+      "beatId": "SCENE_058",
+      "sourceBeatId": "SCENE_058",
+      "provider": "none",
+      "motionIntent": "none",
+      "reason": "Preserve infographic, diagram, or telemetry precision; no generated video.",
+      "durationFrames": 222,
+      "takeCount": 0
+    }
+  ],
+  "totalFrames": 10800,
+  "totalBeats": 58,
+  "totalTakes": 28,
+  "fireflyBeatIds": [
+    "SCENE_001",
+    "SCENE_002",
+    "SCENE_004",
+    "SCENE_007",
+    "SCENE_010",
+    "SCENE_012",
+    "SCENE_015",
+    "SCENE_020",
+    "SCENE_025",
+    "SCENE_031",
+    "SCENE_032",
+    "SCENE_039",
+    "SCENE_052",
+    "SCENE_053"
+  ],
+  "localMotionBeatIds": [],
+  "stillBeatIds": [
+    "SCENE_003",
+    "SCENE_005",
+    "SCENE_006",
+    "SCENE_008",
+    "SCENE_009",
+    "SCENE_011",
+    "SCENE_013",
+    "SCENE_014",
+    "SCENE_016",
+    "SCENE_017",
+    "SCENE_018",
+    "SCENE_019",
+    "SCENE_021",
+    "SCENE_022",
+    "SCENE_023",
+    "SCENE_024",
+    "SCENE_026",
+    "SCENE_027",
+    "SCENE_028",
+    "SCENE_029",
+    "SCENE_030",
+    "SCENE_033",
+    "SCENE_034",
+    "SCENE_035",
+    "SCENE_036",
+    "SCENE_037",
+    "SCENE_038",
+    "SCENE_040",
+    "SCENE_041",
+    "SCENE_042",
+    "SCENE_043",
+    "SCENE_044",
+    "SCENE_045",
+    "SCENE_046",
+    "SCENE_047",
+    "SCENE_048",
+    "SCENE_049",
+    "SCENE_050",
+    "SCENE_051",
+    "SCENE_054",
+    "SCENE_055",
+    "SCENE_056",
+    "SCENE_057",
+    "SCENE_058"
+  ],
+  "fireflyFrames": 3500,
+  "hash": "234c5bc6a5b8397f1b62705ef64c78af8e59bc69af39082e8b62de8331752349"
+}

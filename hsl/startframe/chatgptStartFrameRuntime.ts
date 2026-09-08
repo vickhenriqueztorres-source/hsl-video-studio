@@ -1,7 +1,17 @@
 import fs from 'fs';
 import path from 'path';
+import {createHash} from 'crypto';
 import {ChatGptImageAdapter, ChatGptImageRequest} from '../../adapters/chatgptImageAdapter';
-import {HslStartFrameApprovalItem, HslStartFrameApprovalManifest} from './startFrameRuntime';
+import {formatCinematic35mmPrompt} from './photographicPrompt';
+export {formatCinematic35mmPrompt} from './photographicPrompt';
+
+export interface ChatGptGeneratedFrame {
+  readonly shot_id: string;
+  readonly scene_id: string;
+  readonly status: 'GENERATED';
+  readonly sha256: string;
+  readonly prompt_sha256: string;
+}
 
 export interface ChatGptShotPlanItem {
   readonly shot_id: string;
@@ -24,15 +34,7 @@ export interface ChatGptStartFrameRunResult {
   readonly manifestPath: string;
   readonly totalShots: number;
   readonly generatedShots: number;
-  readonly items: readonly HslStartFrameApprovalItem[];
-}
-
-export function formatCinematic35mmPrompt(userPrompt: string): string {
-  const clean = userPrompt.trim();
-  if (clean.toLowerCase().includes('cinematic 35mm')) {
-    return clean;
-  }
-  return `Cinematic 35mm photograph of ${clean}, monumental industrial scale, dramatic chiaroscuro low-key lighting, deep carbon blacks (#060709), dense volumetric atmospheric fog, shallow depth of field, creamy anamorphic bokeh, filmic texture, raw realistic industrial photography, 8k, NO TEXT, NO NUMBERS, NO HUD, NO GRAPHICS, NO LOGOS, NO LASER LINES, NO LABELS, NO HUMAN FACES --ar 16:9`;
+  readonly items: readonly ChatGptGeneratedFrame[];
 }
 
 export class ChatGptStartFrameRuntime {
@@ -65,42 +67,45 @@ export class ChatGptStartFrameRuntime {
 
     const batchResult = this.adapter.processRequests(requests, config.autoRunBot !== false);
 
-    const approvalItems: HslStartFrameApprovalItem[] = [];
+    const generatedItems: ChatGptGeneratedFrame[] = [];
     let generatedCount = 0;
 
     for (const resItem of batchResult.items) {
       const shotItem = shotMap.get(resItem.id);
       if (resItem.status === 'SUCCESS' && resItem.sha256) {
         generatedCount += 1;
-        approvalItems.push({
+        generatedItems.push({
           shot_id: resItem.id,
           scene_id: shotItem?.parent_scene_id || resItem.id,
-          status: 'APPROVED',
-          approved_start_frame_sha256: resItem.sha256,
-          reviewer: 'ChatGPT DALL-E 3 Automation Bot',
-          reviewed_at: new Date().toISOString()
+          status: 'GENERATED',
+          sha256: resItem.sha256,
+          prompt_sha256: createHash('sha256').update(resItem.prompt).digest('hex')
         });
       }
     }
 
-    const manifest: HslStartFrameApprovalManifest = {
+    const complete = requests.length > 0 && generatedCount === requests.length;
+    const manifest = {
       episode_id: config.episodeId,
-      status: 'APPROVED',
+      status: complete ? 'PENDING_REVIEW' : generatedCount ? 'PARTIAL' : 'GENERATION_FAILED',
+      total_requested: requests.length,
+      total_generated: generatedCount,
       visual_identity_contract_version: 'hsl.visual-identity.v1',
-      start_frame_provenance_sha256: `sha256_chatgpt_batch_${Date.now()}`,
-      items: approvalItems
+      start_frame_provenance_sha256: createHash('sha256').update(JSON.stringify(generatedItems)).digest('hex'),
+      items: generatedItems
     };
 
-    const manifestPath = path.join(outputRoot, 'start-frame-manifest.json');
+    // Generation is not approval. Preserve any separately recorded human review.
+    const manifestPath = path.join(outputRoot, 'start-frame-generation.json');
     fs.mkdirSync(path.dirname(manifestPath), {recursive: true});
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
 
     return {
-      status: generatedCount === config.shotPlanItems.length ? 'CHATGPT_START_FRAMES_READY' : 'CHATGPT_START_FRAMES_PARTIAL',
+      status: complete ? 'CHATGPT_START_FRAMES_READY' : 'CHATGPT_START_FRAMES_PARTIAL',
       manifestPath,
       totalShots: config.shotPlanItems.length,
       generatedShots: generatedCount,
-      items: approvalItems
+      items: generatedItems
     };
   }
 }

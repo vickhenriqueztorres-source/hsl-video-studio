@@ -1,0 +1,335 @@
+{
+  "software": [
+    {
+      "path": "sfx-agent/audioProcessor.ts",
+      "sourceSha256": "d83ae72592817cb9882ad91f41c9d06fa7c82cc38ecf7a5dfb0c7d49c6cc792f",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/cli.ts",
+      "sourceSha256": "ac81d081e6fdcdebc02e6a430e66ba3fc2b9e91526412abc0f11fbb017339a9f",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/sfxAgent.ts",
+      "sourceSha256": "3f189b08a7f43c0ea70ad2628dac8d7a6d0bb473901c04185fa6b75653114c9c",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/sfxCatalog.ts",
+      "sourceSha256": "e46a8373fe05efbee97bd379c186595badfc75d1925d61c01e701339aea56e01",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/sfxDownloader.ts",
+      "sourceSha256": "eec8b9ebad4aa2b59f8807fbfb619571901006351778f673fa42c10a82776663",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/sfxOrganizer.ts",
+      "sourceSha256": "2b49072624fd88e4b1b9ded38c3cb842abad4ba2d3e5c5e59e40d68d8b1e852b",
+      "status": "local-identical"
+    },
+    {
+      "path": "sfx-agent/sfxSynthesizer.ts",
+      "sourceSha256": "97d5fc3adc5d4d070002f8d0b1fee10200244c693f7df86d9ea854834ff10674",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/analyzer/scene-analyzer.ts",
+      "sourceSha256": "d4b1869b48bd4db1b45b25c92b849c342c152d23894c66afd2f5debe16167e5a",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/analyzer/voice-processor.ts",
+      "sourceSha256": "cdc225d072c695e25f0a2a8ff68f06573c9d6ab5859ad263c82920fc230e0080",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/index.ts",
+      "sourceSha256": "a05307db80bd8ab8b319a13df0054bcaeef0020e5585da329160fa98e413b190",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/planner/layer-optimizer.ts",
+      "sourceSha256": "e72b8a4c2c2d01765a8549fbd4757c6935473ffd295d5e7c25c19fd305df3ec2",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/planner/sound-design-planner.ts",
+      "sourceSha256": "1d10cc39a4827e304b837ca216df1e3a3bacf9e32c5fb316258d6a63d39efee8",
+      "status": "local-version-preserved-source-snapshotted"
+    },
+    {
+      "path": "sound-agent/rag/query-builder.ts",
+      "sourceSha256": "2774f36deac731d654c7e26b7332e2d79df0fc50d90690aeb24373b59881a003",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/rag/rag-client.ts",
+      "sourceSha256": "17cfc70ab73b0891c53fbdff7845864ca5b8674403acef0e99f596b9d12eeedc",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/README.md",
+      "sourceSha256": "e6236fcdd15b4854eb3c0984ee6e6ad975553c840d93d58969b7716f234db0eb",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/renderer/audio-processor.ts",
+      "sourceSha256": "4ba1b73e90c064096763a3fd03cbb0d075b8b4bfa53bcaa04976820b480bf7f9",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/renderer/remotion-audio-renderer.ts",
+      "sourceSha256": "2a68610fc42bae2be77b20ad0272a8d74fcf5609667baa2e8c74826249ed07ee",
+      "status": "local-version-preserved-source-snapshotted"
+    },
+    {
+      "path": "sound-agent/selector/music-selector.ts",
+      "sourceSha256": "63715f1984ac1d2eeb6d3cddd24d0b36d6571788aaaffe967296fe63c742f1a6",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/selector/sfx-selector.ts",
+      "sourceSha256": "e887f988163a4f6ce53066643c2ffc919e0fd7619995d0954fa313b6afa0d122",
+      "status": "local-version-preserved-source-snapshotted"
+    },
+    {
+      "path": "sound-agent/types/audio-plan.types.ts",
+      "sourceSha256": "7f386e9f5d680e096553f8c5966db97c6e5ff1fcb59ccaf04557ab0951fcbeb3",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/types/scene-analysis.types.ts",
+      "sourceSha256": "9d28e80b4de5f3a25365829e3de540eb63abada7678ae43165d33868d45b36ed",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/utils/frequency-utils.ts",
+      "sourceSha256": "6ba334a552ffdf5950ed354cff261d1e6eec7a424d22b93d78003696e0925fa8",
+      "status": "local-identical"
+    },
+    {
+      "path": "sound-agent/utils/waveform-utils.ts",
+      "sourceSha256": "7d2c1a52c08f72b0557353cc5d26b5e785a6723c0935037bf9fef22480d6bfb6",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/cli.ts",
+      "sourceSha256": "5ce3e7314a787a00f0f31750711e2f0b7685e013e65e2274b5e5071cc8638d45",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicAgent.ts",
+      "sourceSha256": "24b397db279774abae0743fab1825fb01241c098ec425e18013012ab801fdb1c",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicCatalog.ts",
+      "sourceSha256": "19c128d1cb871942a4cadb944428f2ae18b3940ccad3d12ac6e1b659fec01b4c",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicDownloader.ts",
+      "sourceSha256": "f1922b0cc809c848a0ee48f66c793b4d92161d490851f2748d089353858e48ba",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicOrganizer.ts",
+      "sourceSha256": "aba8596eff9228e413602f01e6e05b5ec1db24ce4ef2995892394e21509feb04",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicProcessor.ts",
+      "sourceSha256": "151aaddf00048fa2d9424028ba92227e4029391273e6428efbe936f2ae5f45c8",
+      "status": "local-identical"
+    },
+    {
+      "path": "music-agent/musicSynthesizer.ts",
+      "sourceSha256": "0485c4d9d7eb3f4df0dfb2833108d5ce8edff920f4820a3e31fdb6a4c1da22d9",
+      "status": "local-identical"
+    },
+    {
+      "path": "hsl/postproduction/soundFxRuntime.ts",
+      "sourceSha256": "faea8d0a7d30b979b8095e7d0210dbfd6e6e8c4f5c2c7f0e8b675766d9b93daf",
+      "status": "local-identical"
+    },
+    {
+      "path": "config/kenneySoundFxCatalog.ts",
+      "sourceSha256": "fc109f5ddc40935fe405e1f54169ecb9f9272d0fa30782dceeac8232caddca52",
+      "status": "local-identical"
+    },
+    {
+      "path": "scripts/fetchKenneySfx.ts",
+      "sourceSha256": "5ac69a19948a83bf948efc4fa9fa7a1a4113c7502f4b777c4063976677caec60",
+      "status": "local-identical"
+    },
+    {
+      "path": "scripts/buildMilkAudioBeds.ts",
+      "sourceSha256": "0e3b7a4746df62ca09aeee29e64847283f81fedf7aaf7085cce234343fa8ad3a",
+      "status": "recipe-preserved"
+    },
+    {
+      "path": "scripts/hslVideoExampleSoundFxRemix.ts",
+      "sourceSha256": "31941efcf2ebe5e7fbb50d753b71da1e5d4293022bbfb79400e1bf6aa6cf3d27",
+      "status": "local-identical"
+    },
+    {
+      "path": "tests/sfx_agent.test.ts",
+      "sourceSha256": "50a4e357ee06d47fc14b995e456718d4204f39d3247a872caf45e96db7388e5c",
+      "status": "local-identical"
+    },
+    {
+      "path": "tests/sound_agent.test.ts",
+      "sourceSha256": "9da8b6425e4570d8927858b202192617782ac0c183493eb6e58af12615c16f39",
+      "status": "local-identical"
+    },
+    {
+      "path": "tests/music_agent.test.ts",
+      "sourceSha256": "a839d8b81c4ee4019d2bdf9aa229942bb17dfcc805231e13615688e1630f3669",
+      "status": "local-identical"
+    },
+    {
+      "path": ".codex/agents/code-mapper.toml",
+      "sha256": "82e06164bd589ea38aee8e6edf9f2db423b6f214e659ff75ad8b76a95238c9f8",
+      "sizeBytes": 697,
+      "status": "configuration-preserved-not-activated"
+    },
+    {
+      "path": ".codex/agents/implementation-worker.toml",
+      "sha256": "234f730777d2764dc6449d2ef45fbd064accca40674f356f12d0a65d5282bc86",
+      "sizeBytes": 722,
+      "status": "configuration-preserved-not-activated"
+    },
+    {
+      "path": ".codex/agents/pipeline-architect.toml",
+      "sha256": "3f5888bc44148026c73cbc25d7407e87b8b54669dcc4ddb3b71e56ec0d0b1937",
+      "sizeBytes": 739,
+      "status": "configuration-preserved-not-activated"
+    },
+    {
+      "path": ".codex/agents/production-operator.toml",
+      "sha256": "b4f064154966c0a65ac67bf21581d1c5b88162e229f86e6370b808445752fa3d",
+      "sizeBytes": 823,
+      "status": "configuration-preserved-not-activated"
+    },
+    {
+      "path": ".codex/agents/qa-gatekeeper.toml",
+      "sha256": "9a04544e916bc18222381e1fc2257390ba4d1c2d975a6ad1ec6cb26f752ebf1f",
+      "sizeBytes": 711,
+      "status": "configuration-preserved-not-activated"
+    }
+  ],
+  "schema": "hsl.audio-library.v1",
+  "items": [
+    {
+      "path": "assets/audio-library/sources/kenney/impact-sounds/Audio/impactBell_heavy_001.ogg",
+      "sha256": "9df61e3ae9a83dc65e5a1fd3ed19d480876f3b22b963a1b9ef6fa293592dcec4",
+      "sizeBytes": 15577,
+      "role": "source",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio-library/sources/kenney/impact-sounds/Audio/impactMetal_light_002.ogg",
+      "sha256": "25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29",
+      "sizeBytes": 6804,
+      "role": "source",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio-library/sources/kenney/interface-sounds/Audio/pluck_001.ogg",
+      "sha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+      "sizeBytes": 6317,
+      "role": "source",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio-library/sources/kenney/source-manifest.json",
+      "sha256": "4eb443981233002f651e27cc37ae4c6fcd2721f9ec7ee08da7aa87035f9b4b60",
+      "sizeBytes": 1958,
+      "role": "source",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio-library/sfx/kenney/sfx_heavy_sub_drop.wav",
+      "sha256": "eb73d3ebecc7eef68dcc674235721d7e1c0f2926f8bad2ef67ee9d7423651b7a",
+      "sizeBytes": 345678,
+      "role": "sfx",
+      "cueType": "CHAPTER_DROP",
+      "license": "CC0-1.0",
+      "sourceSha256": "9df61e3ae9a83dc65e5a1fd3ed19d480876f3b22b963a1b9ef6fa293592dcec4",
+      "sourcePageUrl": "https://kenney.nl/assets/impact-sounds"
+    },
+    {
+      "path": "assets/audio-library/sfx/kenney/sfx_snap_pop.wav",
+      "sha256": "e4fb9bc8009414d2d4dbb1c24f57c3a70f51ee01ac9bf13efebb54b3956d108c",
+      "sizeBytes": 19190,
+      "role": "sfx",
+      "cueType": "SNAP_POP",
+      "license": "CC0-1.0",
+      "sourceSha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+      "sourcePageUrl": "https://kenney.nl/assets/interface-sounds"
+    },
+    {
+      "path": "assets/audio-library/sfx/kenney/sfx_subtle_strike.wav",
+      "sha256": "9a3e6b7e912d309273bdc387596d1b1aee363170e4f620ff1cdb8c8f46cae3e1",
+      "sizeBytes": 44794,
+      "role": "sfx",
+      "cueType": "SUBTLE_STRIKE",
+      "license": "CC0-1.0",
+      "sourceSha256": "25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29",
+      "sourcePageUrl": "https://kenney.nl/assets/impact-sounds"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/postproduction/soundfx/soundfx-plan.json",
+      "sha256": "32e48089f834aecab89bbdda4a33df96e8e9d85f025514dfaf2eb8c533db83b5",
+      "sizeBytes": 16528,
+      "role": "episode-example",
+      "license": "KENNEY_CC0_DERIVATIVE"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/postproduction/soundfx/soundfx-qa.json",
+      "sha256": "dad819c18a032b4a0ee8bb5cd78d1dcdc9c2d08fd64f9b57074556c48ab60405",
+      "sizeBytes": 117,
+      "role": "episode-example",
+      "license": "KENNEY_CC0_DERIVATIVE"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/postproduction/soundfx/soundfx-bed.wav",
+      "sha256": "9f481278539f90a55da0002c9045b8963e7925c42d2d0ca67c6d1ecb42ef1d09",
+      "sizeBytes": 69120078,
+      "role": "episode-example",
+      "license": "KENNEY_CC0_DERIVATIVE"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/audio/sfx/bed.mp3",
+      "sha256": "8315a0e885084cba15a486b4583af106b7fb0a2dc24da718daa619afde39e379",
+      "sizeBytes": 11521581,
+      "role": "episode-example",
+      "license": "KENNEY_CC0_DERIVATIVE"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/audio/music/bed.mp3",
+      "sha256": "08bc72296989b8539ffdae91e46edc983f929ec478444aba5f3ef74aafcb437a",
+      "sizeBytes": 11536941,
+      "role": "episode-example",
+      "license": "project-generated-see-recipe"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/audio/room-tone/bed.mp3",
+      "sha256": "1fe03969308a8c1c36486aa68581a07ea4115e7af04496cb89e48c8dddffc4fc",
+      "sizeBytes": 8641197,
+      "role": "episode-example",
+      "license": "project-generated-see-recipe"
+    },
+    {
+      "path": "assets/audio-library/examples/leite/soundfx-plan.local.json",
+      "sha256": "d9a4067a4bae913cc621a0406adc3bcf90cfcf28a0430f89409c4ccf28b16a24",
+      "sizeBytes": 13792,
+      "role": "portable-example-plan",
+      "license": "KENNEY_CC0_DERIVATIVE"
+    }
+  ],
+  "totalBytes": 101290552
+}

@@ -1,0 +1,20 @@
+{
+  "root": "D:\\HSL STUDIO AGENTS\\hsl-video-studio\\runs\\.audio-tests\\1788407246276",
+  "qa": {
+    "status": "SFX_QA_PASS",
+    "duration_seconds": 10,
+    "sample_rate": 48000,
+    "channels": 2,
+    "cue_count": 3
+  },
+  "milk": {
+    "status": "SFX_QA_PASS",
+    "duration_seconds": 360,
+    "sample_rate": 48000,
+    "channels": 2,
+    "cue_count": 18
+  },
+  "milkPcmSha256": "dc0b6466c70e7b880d205f5c6d5840bd06675a2ad2d013f53a4d0c941aaca1e3",
+  "tests": 7,
+  "status": "PASS"
+}
