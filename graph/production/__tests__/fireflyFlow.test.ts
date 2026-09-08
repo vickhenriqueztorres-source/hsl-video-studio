@@ -18,7 +18,7 @@ import type { FireflyAuthorization } from '../lib/firefly/process';
 import {
   fireflyGuide, klingBudgetWait, fireflySessionPrepare, fireflySessionWait,
   fireflyDispatch, fireflyIntakeWait, fireflyRecoveryWait, fireflyFinalize,
-  routeDispatch, routeTakes, routeKlingBudget,
+  routeDispatch, routeTakes, routeKlingBudget, routeRecovery,
 } from '../nodes/firefly_real';
 
 // No realDependencies fallback: any unmocked dependency is an immediate error.
@@ -179,7 +179,7 @@ function miniGraph(f: Fixture, opts: {
     .addConditionalEdges('firefly_session_wait', s => s.environment?.sessionValid ? 'firefly_dispatch' : 'firefly_session_prepare', ['firefly_dispatch', 'firefly_session_prepare'])
     .addConditionalEdges('firefly_dispatch', routeDispatch, ['firefly_intake_wait', 'firefly_recovery_wait'])
     .addConditionalEdges('firefly_intake_wait', routeTakes, ['firefly_dispatch', 'firefly_finalize', 'firefly_recovery_wait'])
-    .addEdge('firefly_recovery_wait', 'firefly_dispatch').addEdge('firefly_finalize', 'coverage').addEdge('coverage', END)
+    .addConditionalEdges('firefly_recovery_wait', routeRecovery, ['firefly_recovery_wait', 'firefly_dispatch']).addEdge('firefly_finalize', 'coverage').addEdge('coverage', END)
     .compile({ checkpointer: opts.saver ?? new MemorySaver() });
 }
 const config = (f: Fixture) => ({ configurable: { thread_id: f.state.episodeId }, recursionLimit: executionStepBudget(f.state) });
@@ -187,8 +187,16 @@ function recovery(s: State, reason?: RegExp) {
   assert.equal(s.fireflyIssue?.kind, 'FIREFLY_RECOVERY', JSON.stringify(s.fireflyIssue));
   assert.equal(routeDispatch(s), 'firefly_recovery_wait');
   assert.equal(routeTakes(s), 'firefly_recovery_wait');
+  assert.equal(routeRecovery(s), 'firefly_recovery_wait');
   if (reason) assert.match(s.fireflyIssue!.reason, reason);
 }
+
+test('recovery routing never returns an uncertain receipt to dispatch', t => {
+  const f = fixture(t);
+  const blocked = { ...f.state, fireflyIssue: { kind: 'FIREFLY_RECOVERY' as const, reason: 'receipt pending proof' } };
+  assert.equal(routeRecovery(blocked), 'firefly_recovery_wait');
+  assert.equal(routeRecovery({ ...blocked, fireflyIssue: null }), 'firefly_dispatch');
+});
 
 test('101 takes cross the old recursion ceiling, chain frames, validate coverage, and reuse without transport', async t => {
   const f = fixture(t, [...Array<number>(50).fill(300), 150]);

@@ -1,5 +1,17 @@
 # Registro de erros de produção
 
+## 2026-09-08 — `firefly_dispatch` classificou render em andamento como resultado pronto
+
+**Erro:** o primeiro take do EP006 foi enviado ao Kling 2.5 Turbo, mas o agente tentou exportá-lo enquanto a tela ainda exibia “Gerando vídeo…”. O botão `Baixar` estava desabilitado e a execução terminava em `RESULT_READY_DOWNLOAD_BUTTON_DISABLED`.
+
+**Classificação:** (c) detecção de estado externo e roteamento de recuperação.
+
+**Causa:** o seletor de `RESULT_READY` excluía apenas `aria-disabled="true"`; a interface atual também usa o atributo nativo `disabled`. Isso permitia classificar como pronto um botão visível, porém inativo. Além disso, uma aresta estática enviava um recibo ainda incerto de `firefly_recovery_wait` de volta a `firefly_dispatch`.
+
+**Solução:** o agente Firefly configurado nesta máquina agora exige simultaneamente ausência de `aria-disabled` e de `disabled` antes de permitir exportação. No grafo, `routeRecovery` mantém o checkpoint em `firefly_recovery_wait` enquanto `fireflyIssue` existir; só retorna ao despacho depois da reconciliação comprovada. A recuperação não reenfileira nem cria uma nova geração.
+
+**Validação:** captura real confirma que o vídeo ainda estava em geração; teste de seletores do agente: 7 aprovados. `npm run build` e o fluxo focado `graph/production/__tests__/fireflyFlow.test.ts` foram executados com sucesso.
+
 ## 2026-09-08 — Cofre ElevenLabs
 
 **Erro:** a nova credencial recebida para narração respondeu `HTTP 401` na consulta somente leitura da assinatura.

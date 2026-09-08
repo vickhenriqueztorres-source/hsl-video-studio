@@ -30,7 +30,7 @@ import { envCheck } from './nodes/env_check';
 import { visualPromptsPrepare, visualPromptsWait, visualPromptsReviewPrepare, visualPromptsReviewWait, routePromptReview } from './nodes/visual_prompts';
 import { imageGeneratePrepare, imageGenerateRun, imageGenerateWait } from './nodes/image_generate';
 import { imageReviewPrepare, imageReviewWait, routeImageReview } from './nodes/image_review';
-import { fireflySessionPrepare, fireflySessionWait, fireflyGuide, klingBudgetWait, routeKlingBudget, fireflyDispatch, fireflyIntakeWait, routeTakes, fireflyFinalize, fireflyRecoveryWait, routeDispatch } from './nodes/firefly_real';
+import { fireflySessionPrepare, fireflySessionWait, fireflyGuide, klingBudgetWait, routeKlingBudget, fireflyDispatch, fireflyIntakeWait, routeTakes, fireflyFinalize, fireflyRecoveryWait, routeDispatch, routeRecovery } from './nodes/firefly_real';
 import { codexAuthPrepare, codexAuthWait } from './nodes/codex_auth';
 import { sfxRender } from './nodes/sfx_render';
 import { archiveStage,driveAuthWait,pruneVerified } from './storage/nodes';
@@ -118,7 +118,7 @@ export function createProductionGraph(checkpointer?: BaseCheckpointSaver, overri
     .addEdge('firefly_session_prepare','firefly_session_wait').addConditionalEdges('firefly_session_wait',s=>s.environment?.sessionValid?'firefly_dispatch':'firefly_session_prepare',['firefly_dispatch','firefly_session_prepare'])
     .addConditionalEdges('firefly_dispatch',routeDispatch,['firefly_intake_wait','firefly_recovery_wait'])
     .addConditionalEdges('firefly_intake_wait',routeTakes,['firefly_dispatch','firefly_finalize','firefly_recovery_wait'])
-    .addEdge('firefly_recovery_wait','firefly_dispatch').addEdge('firefly_finalize','archive_firefly').addConditionalEdges('archive_firefly',s=>s.mediaPlan?.localMotionBeatIds.length?'fan_out_videos':'join_videos',['fan_out_videos','join_videos'])
+    .addConditionalEdges('firefly_recovery_wait',routeRecovery,['firefly_recovery_wait','firefly_dispatch']).addEdge('firefly_finalize','archive_firefly').addConditionalEdges('archive_firefly',s=>s.mediaPlan?.localMotionBeatIds.length?'fan_out_videos':'join_videos',['fan_out_videos','join_videos'])
     .addEdge('fan_out_videos', 'firefly_videos').addEdge('firefly_videos', 'join_videos')
     .addEdge('join_videos','narration_stage').addEdge('narration_stage','sound_design').addEdge('sound_design','sfx_render').addEdge('sfx_render','archive_audio').addEdge('archive_audio','gatekeeper_stage')
     .addConditionalEdges('gatekeeper_stage', s => s.gatekeeper?.passed ? 'gate_render_wait' : 'finalize', ['gate_render_wait', 'finalize'])

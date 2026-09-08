@@ -183,6 +183,9 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
   }
 };
 export const routeDispatch=(s:State)=>s.fireflyIssue?'firefly_recovery_wait':'firefly_intake_wait';
+/** Keep a recovery checkpoint suspended until a reconciliation has proved it safe to advance.
+ * A static edge here would re-enter dispatch with the same uncertain receipt. */
+export const routeRecovery=(s:State)=>s.fireflyIssue?'firefly_recovery_wait':'firefly_dispatch';
 export const fireflyIntakeWait=(c:Context):NodeFn=>async s=>{
   assertMediaPlan(s);const takes=s.videoTakes.map(t=>({...t})),t=takes.find(x=>x.status==='dispatched');if(!t)return{};
   try{
