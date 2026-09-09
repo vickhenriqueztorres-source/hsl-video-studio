@@ -27,10 +27,15 @@ const directory=(c:Context,s:State)=>path.join(paths(c,s).run,'firefly');
 const runtimeFor=(c:Context,s:State,t:VideoTake)=>path.join(directory(c,s),'runtime',t.operationId!);
 function terminalProviderNoOutput(runtime:string,take:VideoTake):string|undefined {
   const artifacts=path.join(runtime,'screenshots','provider','terminal_state_artifacts');
-  if(fs.existsSync(path.join(runtime,'saida',key(take)+'.mp4'))||!fs.existsSync(artifacts))return;
-  for(const file of fs.readdirSync(artifacts).filter(name=>name.endsWith('_provider_reason.json'))){
-    const text=JSON.stringify(readJson<unknown>(path.join(artifacts,file))??{}).toLowerCase();
-    if(text.includes('não podemos exibir o vídeo gerado')||text.includes('tente novamente mais tarde'))return `FIREFLY_PROVIDER_TERMINAL_NO_OUTPUT:${file}`;
+  if(fs.existsSync(path.join(runtime,'saida',key(take)+'.mp4')))return;
+  if(fs.existsSync(artifacts))for(const file of fs.readdirSync(artifacts).filter(name=>name.endsWith('_provider_reason.json'))){
+      const text=JSON.stringify(readJson<unknown>(path.join(artifacts,file))??{}).toLowerCase();
+      if(text.includes('não podemos exibir o vídeo gerado')||text.includes('tente novamente mais tarde'))return `FIREFLY_PROVIDER_TERMINAL_NO_OUTPUT:${file}`;
+    }
+  const network=path.join(runtime,'screenshots','provider','network');
+  if(fs.existsSync(network))for(const file of fs.readdirSync(network).filter(name=>name.endsWith('.jsonl'))){
+    const text=fs.readFileSync(path.join(network,file),'utf8');
+    if(/"status"\s*:\s*(408|429|500|502|503|504)\b/.test(text))return `FIREFLY_PROVIDER_CAPACITY_NO_OUTPUT:${file}`;
   }
 }
 function useLedger<T>(c:Context,s:State,fn:(ledger:KlingLedger)=>T):T {

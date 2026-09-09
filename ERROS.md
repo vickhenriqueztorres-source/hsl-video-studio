@@ -1,5 +1,17 @@
 # Registro de erros de produção
 
+## 2026-09-09 — `SCENE_045-take-2` recebeu capacidade indisponível do Kling
+
+**Erro:** o endpoint de geração respondeu HTTP 408 com `system under load` após a intenção de geração ter sido registrada.
+
+**Classificação:** (b) capacidade temporária do provedor externo.
+
+**Causa:** o adaptador externo detectou corretamente `error_toast`, mas a reserva estrita impediu reenfileirar a mesma operação, pois não há prova de que a tentativa não consumiu geração.
+
+**Solução:** o nó de recuperação agora reconhece evidência de rede 408/429/5xx sem MP4 como falha terminal daquela operação, marca somente o take como indisponível e libera cenas independentes. Não há reenvio automático nem nova cobrança para o mesmo `operationId`.
+
+**Validação:** build TypeScript e testes focados de falha terminal e resposta de capacidade aprovados.
+
 ## 2026-09-09 — `SCENE_041-take-1` terminou sem mídia após o provedor sinalizar erro
 
 **Erro:** depois de confirmar o clique de geração, Firefly exibiu “Não podemos exibir o vídeo gerado” e o modal de desaceleração “Tente novamente mais tarde”. O agente classificava a página como `unknown` e encerrava como infraestrutura ambígua.
