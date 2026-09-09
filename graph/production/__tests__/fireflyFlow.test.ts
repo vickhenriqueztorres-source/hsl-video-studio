@@ -179,7 +179,7 @@ function miniGraph(f: Fixture, opts: {
     .addConditionalEdges('firefly_session_wait', s => s.environment?.sessionValid ? 'firefly_dispatch' : 'firefly_session_prepare', ['firefly_dispatch', 'firefly_session_prepare'])
     .addConditionalEdges('firefly_dispatch', routeDispatch, ['firefly_intake_wait', 'firefly_recovery_wait'])
     .addConditionalEdges('firefly_intake_wait', routeTakes, ['firefly_dispatch', 'firefly_finalize', 'firefly_recovery_wait'])
-    .addConditionalEdges('firefly_recovery_wait', routeRecovery, ['firefly_recovery_wait', 'firefly_dispatch']).addEdge('firefly_finalize', 'coverage').addEdge('coverage', END)
+    .addConditionalEdges('firefly_recovery_wait', routeRecovery, ['firefly_recovery_wait', 'firefly_session_prepare', 'firefly_dispatch']).addEdge('firefly_finalize', 'coverage').addEdge('coverage', END)
     .compile({ checkpointer: opts.saver ?? new MemorySaver() });
 }
 const config = (f: Fixture) => ({ configurable: { thread_id: f.state.episodeId }, recursionLimit: executionStepBudget(f.state) });
@@ -196,6 +196,12 @@ test('recovery routing never returns an uncertain receipt to dispatch', t => {
   const blocked = { ...f.state, fireflyIssue: { kind: 'FIREFLY_RECOVERY' as const, reason: 'receipt pending proof' } };
   assert.equal(routeRecovery(blocked), 'firefly_recovery_wait');
   assert.equal(routeRecovery({ ...blocked, fireflyIssue: null }), 'firefly_dispatch');
+});
+
+test('recovery routes an expired Adobe session to the existing login gate', t => {
+  const f = fixture(t);
+  const blocked = { ...f.state, fireflyIssue: { kind: 'FIREFLY_LOGIN', reason: 'recovery requires login' } };
+  assert.equal(routeRecovery(blocked), 'firefly_session_prepare');
 });
 
 test('101 takes cross the old recursion ceiling, chain frames, validate coverage, and reuse without transport', async t => {

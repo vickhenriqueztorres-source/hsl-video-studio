@@ -45,6 +45,15 @@ O estado `result_ready` só é válido quando o botão **Baixar** estiver visív
 
 ## Recuperação do EP006
 
-O take `SCENE_005-take-1` foi enviado uma vez e permanece `uncertain`: a Adobe não forneceu identidade de resultado forte nem MP4 recuperável. O grafo preserva o recibo e bloqueia qualquer reenvio automático.
+O take `SCENE_005-take-1` foi enviado uma vez, com `attempts=1` e `generation_started_at` persistido. Ele permanece `uncertain`, sem MP4 local. A tentativa de recuperação de 8 de setembro confirmou que a sessão Adobe expirou; não criou job nem incrementou tentativas.
 
-Depois de instalar o contrato atualizado, a primeira ação será tentar `recover-running-job` para o mesmo `providerJobId`. Se a Adobe confirmar que o resultado não existe, uma substituição será uma nova geração e exigirá um orçamento adicional explícito.
+O grafo agora encaminha essa situação para `FIREFLY_LOGIN`, preservando o recibo. Após autenticar o mesmo perfil, `recover-running-job 1` pode apenas procurar e exportar o job já enviado. A raiz só promove o take a `transport_complete` quando o manifesto retornar o mesmo id, nome, caminho, SHA-256 e `media_validation_status=PASS`.
+
+Se a Adobe não apresentar um resultado verificável, o episódio continua no gate. Uma substituição é uma nova geração e exige orçamento explícito adicional; ela nunca é disparada pelo mecanismo de recuperação.
+
+## Verificação executada
+
+- build TypeScript da raiz;
+- teste do adaptador para recuperação de job em execução, verificando que não chama `--run`;
+- teste isolado do agente que prova que a recuperação não inicia geração;
+- execução real não paga de recuperação do job 1: `generate_clicked=false`, `attempts=1`, bloqueada somente por login Adobe.

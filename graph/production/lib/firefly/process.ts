@@ -20,7 +20,7 @@ export async function assertAgentProtocol(e:FireflyEnvironment,logPath:string):P
   // --help exits before opening a browser or creating an external job.
   const result=await spawnTool(e.python,[path.join(e.agentDir,'main.py'),'--help'],{cwd:e.agentDir,env:agentEnv(e),timeoutMs:30_000,logPath});
   if(result.exitCode!==0||result.timedOut||result.errorCode)throw new Error('FIREFLY_ENV_AGENT_PROTOCOL_UNAVAILABLE: unable to inspect agent CLI');
-  const missing=['--feed-guide','--run','--probe-session','--requeue-unstarted-infra-job','--recover-result-ready-job'].filter(flag=>!result.stdout.includes(flag));
+  const missing=['--feed-guide','--run','--probe-session','--requeue-unstarted-infra-job','--recover-result-ready-job','--recover-running-job'].filter(flag=>!result.stdout.includes(flag));
   if(missing.length)throw new Error(`FIREFLY_ENV_AGENT_PROTOCOL_UNSUPPORTED: missing ${missing.join(', ')}; upgrade/audit the external agent before dispatch`);
 }
 
@@ -314,6 +314,7 @@ export async function reconcileUnstartedAgentTake(e: FireflyEnvironment, runtime
 
 export async function recoverResultReadyAgentTake(e: FireflyEnvironment, runtime: string, guidePath: string, logPath: string, jobId = 1): Promise<ToolResult> {
   if (!Number.isSafeInteger(jobId) || jobId < 1) throw new Error('KLING_RESULT_RECOVERY_JOB_ID_INVALID');
+  await assertAgentProtocol(e, logPath);
   return withProfileLock(e, async assertOwnership => {
     const receiptPath = path.join(runtime, 'dispatch-receipt.json'), previous = readReceipt(receiptPath);
     if (!previous || previous.schema !== 'hsl.kling-dispatch.v2' || previous.phase !== 'uncertain') throw new Error(`KLING_RESULT_RECOVERY_REQUIRES_UNCERTAIN_V2_RECEIPT:${receiptPath}`);
@@ -321,27 +322,24 @@ export async function recoverResultReadyAgentTake(e: FireflyEnvironment, runtime
     const outputPath = path.resolve(runtime, 'saida', `${staged.name}.mp4`);
     assertIdentity(previous, staged, outputPath);
     if (fs.existsSync(outputPath)) throw new Error(`KLING_RESULT_RECOVERY_OUTPUT_EXISTS:${outputPath}`);
-    const identityPath = path.join(runtime, 'screenshots', 'provider_result_identity.json');
-    const evidence = readJson(identityPath), identity = evidence?.provider_result_identity;
-    const networkPath = path.join(runtime, 'screenshots', 'provider', 'network', `job_${jobId}_network.jsonl`);
-    let networkResultIdentity = false;
-    if (fs.existsSync(networkPath)) {
-      const network = fs.readFileSync(networkPath, 'utf8');
-      const urns = [...network.matchAll(/(?:firefly-generations|rendition\/id)\/((?:urn:aaid:sc:[A-Za-z]{2}:)[0-9a-f-]{36})/gi)]
-        .map(match => match[1].toLowerCase());
-      networkResultIdentity = new Set(urns).size === 1;
-    }
-    if (!identity || evidence.mission_control_job_id !== jobId || evidence.source_shot_id !== staged.name
-      || evidence.start_frame_sha256 !== `sha256_${staged.inputFrameHash}`
-      || (identity.current_canvas_state !== 'result_ready' && !identity.provider_result_urn)
-      || (identity.provider_result_recovery_capability !== 'DURABLE_IDENTITY_AVAILABLE' && !networkResultIdentity)) {
-      throw new Error(`KLING_RESULT_RECOVERY_IDENTITY_INVALID:${identityPath}`);
-    }
-    const result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--recover-result-ready-job', String(jobId)], { cwd:e.agentDir, env:agentEnv(e), timeoutMs:600_000, logPath });
-    requireSuccess(result, 'FIREFLY_RECOVER_RESULT_READY');
+    // The agent receives the exact local job id and is contractually forbidden
+    // from generating. It may only authenticate, locate this job, and export a
+    // result whose manifest proves the same job/output/hash.
+    const result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--recover-running-job', String(jobId)], { cwd:e.agentDir, env:agentEnv(e), timeoutMs:600_000, logPath });
+    requireSuccess(result, 'FIREFLY_RECOVER_RUNNING_RESULT');
     assertOwnership();
     const recoveredHash = outputHash(outputPath);
     if (!recoveredHash) throw new Error(`KLING_RESULT_RECOVERY_OUTPUT_MISSING:${outputPath}`);
+    const manifestPath = path.join(runtime, 'agent-manifest.json');
+    const exportResult = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--export-manifest', manifestPath], { cwd:e.agentDir, env:agentEnv(e), timeoutMs:30_000, logPath });
+    requireSuccess(exportResult, 'FIREFLY_EXPORT_MANIFEST');
+    assertOwnership();
+    const manifest = readJson(manifestPath), job = manifest?.jobs?.find((item:any) => item?.id === jobId);
+    if (manifest?.artifactType !== 'FIREFLY_JOB_MANIFEST' || !job || job.status !== 'done'
+      || job.name !== staged.name || path.resolve(String(job.output_path ?? '')) !== outputPath
+      || job.sha256 !== recoveredHash || String(job.media_validation_status).toUpperCase() !== 'PASS') {
+      throw new Error(`KLING_RESULT_RECOVERY_EVIDENCE_INVALID:${manifestPath}`);
+    }
     updateReceipt(receiptPath, { ...previous, guideHash: staged.hash, inputFrameHash: staged.inputFrameHash, paidDispatchPossible: true, outputPath }, 'transport_complete', { outputHash: recoveredHash, error: undefined });
     return result;
   });

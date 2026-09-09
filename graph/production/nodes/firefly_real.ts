@@ -162,7 +162,13 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
   const resultIdentity=path.join(runtime,'screenshots','provider_result_identity.json');
   if(fs.existsSync(resultIdentity)){
     try{
-      await c.deps.recoverFireflyResult(c.deps.fireflyEnvironment(),runtime,path.join(runtime,'guide.json'),path.join(paths(c,s).audit,`${take.operationId}-result-recovery.log`));
+      // Recovery opens a fresh provider page. Re-probe the stored profile so a
+      // stale session becomes the normal login gate instead of a misleading
+      // recovery failure.
+      const environment=c.deps.fireflyEnvironment();
+      const sessionValid=await c.deps.probeFireflySession(environment,path.join(directory(c,s),'session'),path.join(paths(c,s).audit,`${take.operationId}-recovery-session.log`));
+      if(!sessionValid)return{environment:{agentDir:environment.agentDir,profileDir:environment.profileDir,sessionValid:false},fireflyIssue:{kind:'FIREFLY_LOGIN',take:key(take),receiptPath:issue.receiptPath,retryPolicy:'recover-existing-job-only',reason:'FIREFLY_RECOVERY_LOGIN_REQUIRED: autentique o perfil Adobe para recuperar o job já enviado; nenhuma nova geração será criada.'}};
+      await c.deps.recoverFireflyResult(environment,runtime,path.join(runtime,'guide.json'),path.join(paths(c,s).audit,`${take.operationId}-result-recovery.log`));
       useLedger(c,s,ledger=>ledger.update(take.operationId!,{phase:'submitted',error:undefined}));
       return{fireflyIssue:null};
     }catch(error){
@@ -185,7 +191,7 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
 export const routeDispatch=(s:State)=>s.fireflyIssue?'firefly_recovery_wait':'firefly_intake_wait';
 /** Keep a recovery checkpoint suspended until a reconciliation has proved it safe to advance.
  * A static edge here would re-enter dispatch with the same uncertain receipt. */
-export const routeRecovery=(s:State)=>s.fireflyIssue?'firefly_recovery_wait':'firefly_dispatch';
+export const routeRecovery=(s:State)=>s.fireflyIssue?.kind==='FIREFLY_LOGIN'?'firefly_session_prepare':s.fireflyIssue?'firefly_recovery_wait':'firefly_dispatch';
 export const fireflyIntakeWait=(c:Context):NodeFn=>async s=>{
   assertMediaPlan(s);const takes=s.videoTakes.map(t=>({...t})),t=takes.find(x=>x.status==='dispatched');if(!t)return{};
   try{

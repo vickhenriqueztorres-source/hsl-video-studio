@@ -5,7 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import * as proc from '../../lib/proc';
-import { openLoginChrome, probeSession, reconcileCompletedAgentTake, reconcileUnstartedAgentTake, runAgentTake, type FireflyAuthorization, type FireflyEnvironment } from '../lib/firefly/process';
+import { openLoginChrome, probeSession, reconcileCompletedAgentTake, reconcileUnstartedAgentTake, recoverResultReadyAgentTake, runAgentTake, type FireflyAuthorization, type FireflyEnvironment } from '../lib/firefly/process';
 
 // No real agent or browser: agent commands execute Node fixtures and process
 // discovery is simulated. Keep real spawnTool for actual subprocess/lock tests.
@@ -57,7 +57,7 @@ function setup(name: string) {
   const runtime = path.join(root, name), image = path.join(runtime, 'frame.png'), guidePath = path.join(runtime, 'guide.json');
   fs.mkdirSync(runtime, { recursive: true }); fs.writeFileSync(image, 'frame bytes');
   fs.writeFileSync(guidePath, JSON.stringify({ items: [{ name: 'TAKE', image, prompt: 'slow cinematic motion', model: 'Kling 2.5 Turbo', resolution: '1080p', aspect_ratio: '16:9', duration_seconds: 5, generate_audio: false }] }));
-  return { runtime, image, guidePath, run: (authorization?: FireflyAuthorization) => runAgentTake(env, runtime, guidePath, path.join(runtime, 'run.log'), authorization), reconcile: () => reconcileUnstartedAgentTake(env, runtime, guidePath, path.join(runtime, 'reconcile.log')), reconcileCompleted: () => reconcileCompletedAgentTake(env, runtime, guidePath, path.join(runtime, 'completed.log')) };
+  return { runtime, image, guidePath, run: (authorization?: FireflyAuthorization) => runAgentTake(env, runtime, guidePath, path.join(runtime, 'run.log'), authorization), reconcile: () => reconcileUnstartedAgentTake(env, runtime, guidePath, path.join(runtime, 'reconcile.log')), reconcileCompleted: () => reconcileCompletedAgentTake(env, runtime, guidePath, path.join(runtime, 'completed.log')), recoverRunning: () => recoverResultReadyAgentTake(env, runtime, guidePath, path.join(runtime, 'recovery.log')) };
 }
 async function waitFor(file: string) {
   const deadline = Date.now() + 20_000;
@@ -70,10 +70,10 @@ async function main() {
   fs.mkdirSync(agent, { recursive: true }); fs.mkdirSync(profile, { recursive: true });
   fs.writeFileSync(path.join(agent, 'main.py'), String.raw`
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),args=process.argv.slice(2),root=args[args.indexOf('--root')+1];
-if(args.includes('--help')){console.log(fs.existsSync(path.join(__dirname,'old-protocol'))?'--feed-guide --run':'--feed-guide --run --probe-session --requeue-unstarted-infra-job --recover-result-ready-job');process.exit(0);}
+if(args.includes('--help')){console.log(fs.existsSync(path.join(__dirname,'old-protocol'))?'--feed-guide --run':'--feed-guide --run --probe-session --requeue-unstarted-infra-job --recover-result-ready-job --recover-running-job');process.exit(0);}
 const has=name=>fs.existsSync(path.join(root,name));
 fs.mkdirSync(root,{recursive:true});
-const action=args.includes('--feed-guide')?'feed':args.includes('--requeue-unstarted-infra-job')?'reconcile':args.includes('--probe-session')?'probe':args.includes('--export-manifest')?'export':'run';
+const action=args.includes('--feed-guide')?'feed':args.includes('--requeue-unstarted-infra-job')?'reconcile':args.includes('--recover-running-job')?'recover-running':args.includes('--probe-session')?'probe':args.includes('--export-manifest')?'export':'run';
 fs.appendFileSync(path.join(root,'calls.log'),action+'\n');
 if(action==='feed'){
   const g=JSON.parse(fs.readFileSync(args[args.indexOf('--feed-guide')+1],'utf8'));
@@ -81,6 +81,7 @@ if(action==='feed'){
   fs.writeFileSync(path.join(root,'name.txt'),g.items[0].name);process.exit(has('fail-feed')?7:0);
 }
 if(action==='reconcile')process.exit(has('fail-reconcile')?8:0);
+if(action==='recover-running'){const name=fs.readFileSync(path.join(root,'name.txt'),'utf8');fs.mkdirSync(path.join(root,'saida'),{recursive:true});fs.writeFileSync(path.join(root,'saida',name+'.mp4'),'recovered mock video');process.exit(has('fail-recovery')?8:0);}
 if(action==='probe')process.exit(has('probe-failed')?1:has('logged-out')?3:0);
 if(action==='export'){
   const name=fs.readFileSync(path.join(root,'name.txt'),'utf8'),output=path.join(root,'saida',name+'.mp4'),hash=crypto.createHash('sha256').update(fs.readFileSync(output)).digest('hex');
@@ -126,6 +127,12 @@ tick();
       await assert.rejects(f.run(),/FIREFLY_RUN/);fs.writeFileSync(path.join(f.runtime,'manifest-done'),'1');
       await f.reconcileCompleted();assert.equal(receipt(f.runtime).phase,'transport_complete');assert.equal(calls(f.runtime),'feed\nrun\nexport\n');
       await f.run();assert.equal(calls(f.runtime),'feed\nrun\nexport\n');
+    });
+    await test('running-job recovery requires a completed manifest and never calls run', async () => {
+      const f=setup('running-recovery');fs.writeFileSync(path.join(f.runtime,'fail-run'),'1');
+      await assert.rejects(f.run(auth),/FIREFLY_RUN/);fs.writeFileSync(path.join(f.runtime,'manifest-done'),'1');
+      await f.recoverRunning();assert.equal(receipt(f.runtime).phase,'transport_complete');
+      assert.equal(calls(f.runtime),'feed\nrun\nrecover-running\nexport\n');
     });
     await test('probe distinguishes login needed from agent infrastructure failure', async () => {
       const f=setup('probe-results'),log=path.join(f.runtime,'probe.log');
