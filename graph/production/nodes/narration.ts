@@ -21,7 +21,7 @@ function digestText(value: string): string { return createHash('sha256').update(
 function digestFile(file: string): string { return createHash('sha256').update(fs.readFileSync(file)).digest('hex'); }
 function removeIfExists(file: string) { try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {} }
 
-function narrationText(scripts: readonly string[]): string {
+export function narrationText(scripts: readonly string[]): string {
   if (!scripts.length) throw new Error('NARRATION_SCRIPT_EMPTY');
   const cleaned = scripts.map(script => script.replace(/\s+/g, ' ').trim());
   if (cleaned.some(script => /\bSCENE[_\s-]*\d+\b/i.test(script))) throw new Error('NARRATION_SCRIPT_CONTAINS_INTERNAL_SCENE_ID');

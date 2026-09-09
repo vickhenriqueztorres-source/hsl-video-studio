@@ -7,15 +7,17 @@ import type {State, VisualPrompt, PromptReview} from '../state';
 import {PHOTOGRAPHIC_CONTRACT_VERSION} from '../../../hsl/startframe/photographicPrompt';
 
 const promptFile = (c: Context, s: State) => path.join(paths(c, s).run, 'visual-prompts.json');
+export const photographicBeats=(s:State)=>s.scenePlan?.beats.filter(beat=>beat.mediaProvider!=='remotion-authored')??[];
 const sourceHash = (s: State) => createHash('sha256').update(JSON.stringify({
   contract: PHOTOGRAPHIC_CONTRACT_VERSION, brief: s.topicInput, plan: s.scenePlan,
   template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts.md'), 'utf8'),
   repairTemplate: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-repair.md'), 'utf8'),
 })).digest('hex');
 function matchesPlan(beats: VisualPrompt[] | undefined, s: State): boolean {
-  if (!beats?.length || beats.length !== s.scenePlan?.beats.length) return false;
-  const expected = new Map(s.scenePlan.beats.map(b => [b.beatId, b.durationSeconds]));
-  return beats.every(b => expected.get(b.beatId) === b.durationSeconds && expected.delete(b.beatId) && b.firstFrameFrom === 'image');
+  const required=photographicBeats(s);
+  if (!beats || beats.length !== required.length) return false;
+  const expected = new Map(required.map(b => [b.beatId, b.durationSeconds]));
+  return beats.every(b => expected.get(b.beatId) === b.durationSeconds && expected.delete(b.beatId) && b.firstFrameFrom === 'image')&&expected.size===0;
 }
 function affectedBeatIds(s: State): string[] {
   const valid = new Set(s.scenePlan?.beats.map(b => b.beatId) ?? []);
@@ -30,6 +32,7 @@ function matchesRepair(beats: VisualPrompt[] | undefined, ids: string[], s: Stat
 export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
   if (s.options.graph.mediaMode === 'legacy') return {__status: 'skipped'};
   const target = promptFile(c, s), signature = sourceHash(s);
+  if(!photographicBeats(s).length){writeJson(target,{beats:[],sourceHash:signature});return{visualPrompts:[],visualPromptsPath:target,__status:'skipped'};}
   const cached = readJson<{beats: VisualPrompt[]; sourceHash?: string}>(target);
   if (cached?.sourceHash === signature && matchesPlan(cached.beats, s) &&
       !(s.promptReview && s.promptReview.score < s.options.graph.promptReviewThreshold &&
@@ -43,7 +46,7 @@ export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
   // Provider-specific task folders prevent stale results across planners/briefs.
   for (const provider of ['antigravity', 'codex'] as const) {
     const repairHash = repairIds.length ? createHash('sha256').update(JSON.stringify({repairIds, issues:s.promptReview?.issues, prompts:s.visualPrompts})).digest('hex') : '';
-    const selectedPlan = repairIds.length ? {...s.scenePlan, beats:s.scenePlan!.beats.filter(b => repairIds.includes(b.beatId))} : s.scenePlan;
+    const selectedPlan = {...s.scenePlan,beats:photographicBeats(s).filter(b=>!repairIds.length||repairIds.includes(b.beatId))};
     const result = await c.deps.ide({threadId: s.episodeId,
       node: repairIds.length
         ? `visual-prompts-repair-${signature.slice(0, 8)}-${repairHash.slice(0, 8)}-${provider}`
@@ -55,7 +58,7 @@ export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
         affectedBeatIds: JSON.stringify(repairIds), affectedScenePlan: JSON.stringify(selectedPlan),
         currentPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput),
         reviewIssues: JSON.stringify(s.promptReview?.issues ?? []),
-      } : {scenePlan: JSON.stringify(s.scenePlan), episodeBrief: JSON.stringify(s.topicInput), reviewIssues: JSON.stringify(s.promptReview?.issues ?? [])},
+      } : {scenePlan: JSON.stringify(selectedPlan), episodeBrief: JSON.stringify(s.topicInput), reviewIssues: JSON.stringify(s.promptReview?.issues ?? [])},
     }, {repoRoot: c.root});
     if (result.headlessResult?.ok) {
       const value = result.headlessResult.output as {beats: VisualPrompt[]};
@@ -76,6 +79,7 @@ export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
 };
 export const visualPromptsWait = (c: Context): NodeFn => s => {
   if (s.options.graph.mediaMode === 'legacy') return {__status: 'skipped'};
+  if(!photographicBeats(s).length)return{__status:'skipped'};
   const target = promptFile(c, s), signature = sourceHash(s);
   const value = readJson<{beats: VisualPrompt[]; sourceHash?: string}>(target);
   if (value?.sourceHash !== signature || !matchesPlan(value.beats, s)) {
@@ -87,6 +91,7 @@ export const visualPromptsWait = (c: Context): NodeFn => s => {
 };
 export const visualPromptsReviewPrepare = (c: Context): NodeFn => async s => {
   if (s.options.graph.mediaMode === 'legacy') return {__status: 'skipped'};
+  if(!photographicBeats(s).length)return{__status:'skipped'};
   const signature = createHash('sha256').update(JSON.stringify({source: sourceHash(s), prompts: s.visualPrompts,
     template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-review.md'), 'utf8')})).digest('hex');
   const result = await c.deps.ide({threadId: s.episodeId, node: `visual-prompts-review-${signature.slice(0, 12)}`,
@@ -126,6 +131,6 @@ export const visualPromptsReviewWait = (_c: Context): NodeFn => s => {
   }
   return {};
 };
-export const routePromptReview = (s: State) => s.options.graph.mediaMode === 'legacy' ? 'fan_out_frames' :
+export const routePromptReview = (s: State) => s.options.graph.mediaMode === 'legacy' ? 'fan_out_frames' : !photographicBeats(s).length?'archive_images':
   (s.promptReviewHumanApproved || s.promptReview!.score >= s.options.graph.promptReviewThreshold
     ? 'image_generate_prepare' : 'visual_prompts_prepare');

@@ -5,12 +5,14 @@ import path from 'node:path';
 import { Command } from '@langchain/langgraph';
 import { createCheckpointer, REPO_ROOT } from '../checkpointer';
 import { createProductionGraph, NODE_ALIASES, NODE_ORDER, NodeName } from './graph';
+import {realDependencies} from './deps';
 import { initialState, STATE_VERSION, State } from './state';
 import { configFor, counts, executeProduction, readHistory, readErrors, rewind } from './runner';
 import { closeAssetServer } from './lib/assetServer';
 import { storageSummary } from './storage/index';
 import { checkCodexAccount } from '../ide/codexAccount';
 import {resolveMediaPolicy,planMedia} from './lib/mediaPlan';
+import {prepareKlingReplacements} from './nodes/firefly_real';
 import {normalizePlanDuration} from './lib/plan';
 import {HslSceneDirectorAgent} from '../../hsl/core/hslSceneDirectorAgent';
 import {readJson,writeJson} from './runtime';
@@ -21,13 +23,13 @@ export function parseArgs(argv: string[]) {
   const args: Record<string, string | boolean> = {};
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
-    if (key === '--offline' || key === '--test-render') args[key] = true;
-    else if (['--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables'].includes(key)) {
+    if (key === '--offline' || key === '--test-render' || key==='--motion-require-3d') args[key] = true;
+    else if (['--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--motion-mode','--motion-scenes','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables','--count'].includes(key)) {
       if (!argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error(`Falta valor: ${key}`);
       args[key] = argv[++i];
     } else throw new Error(`Argumento desconhecido: ${key}`);
   }
-  if (!['run', 'resume', 'status', 'history', 'mermaid','media-plan'].includes(command)) throw new Error(`Comando desconhecido: ${command}`);
+  if (!['run', 'resume', 'status', 'history', 'mermaid','media-plan','replace-kling'].includes(command)) throw new Error(`Comando desconhecido: ${command}`);
   return { command, args, episodeId: String(args['--episode'] ?? 'HSL_EPISODE_001') };
 }
 export async function main(argv = process.argv.slice(2)): Promise<number> {
@@ -79,13 +81,23 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if(storage&&!['off','drive'].includes(storage))throw new Error('--storage aceita off|drive');if(!['dry-run','apply'].includes(prune))throw new Error('--prune aceita dry-run|apply');
     const mediaModeArg=args['--media-mode']?String(args['--media-mode']):undefined;
     const mediaPolicyArg=args['--media-policy']?String(args['--media-policy']):undefined;
+    const motionModeArg=args['--motion-mode']?String(args['--motion-mode']):undefined;
     if(mediaPolicyArg&&!['stills','local-motion','firefly-hybrid'].includes(mediaPolicyArg))throw new Error('--media-policy aceita stills|local-motion|firefly-hybrid');
     if(mediaModeArg&&!['legacy','real'].includes(mediaModeArg))throw new Error('--media-mode aceita legacy|real');
+    if(motionModeArg&&!['legacy','authored'].includes(motionModeArg))throw new Error('--motion-mode aceita legacy|authored');
+    if(args['--motion-scenes']!==undefined&&(!Number.isSafeInteger(Number(args['--motion-scenes']))||Number(args['--motion-scenes'])<1||Number(args['--motion-scenes'])>12))throw new Error('--motion-scenes deve ser inteiro entre 1 e 12');
     if(args['--max-generations']!==undefined&&(!Number.isSafeInteger(Number(args['--max-generations']))||Number(args['--max-generations'])<0))throw new Error('--max-generations deve ser inteiro não negativo');
     if(args['--prompt-review-attempts']!==undefined&&(!Number.isSafeInteger(Number(args['--prompt-review-attempts']))||Number(args['--prompt-review-attempts'])<1||Number(args['--prompt-review-attempts'])>12))throw new Error('--prompt-review-attempts deve ser inteiro entre 1 e 12');
-    const graphOptionUpdates:any={...(storage?{storageMode:storage}:{}),...(mediaModeArg?{mediaMode:mediaModeArg}:{}),...(args['--prune']?{prune}:{}),...(args['--keep-local-deliverables']?{keepLocalDeliverables:Number(args['--keep-local-deliverables'])}:{}),...(args['--max-generations']!==undefined?{maxGenerations:Number(args['--max-generations'])}:{}),...(args['--prompt-review-attempts']!==undefined?{promptReviewMaxIterations:Number(args['--prompt-review-attempts'])}:{})};
+    const graphOptionUpdates:any={...(storage?{storageMode:storage}:{}),...(mediaModeArg?{mediaMode:mediaModeArg}:{}),...(motionModeArg?{motionMode:motionModeArg}:{}),...(args['--motion-scenes']!==undefined?{motionMaxScenes:Number(args['--motion-scenes'])}:{}),...(args['--motion-require-3d']?{motionRequire3d:true}:{}),...(args['--prune']?{prune}:{}),...(args['--keep-local-deliverables']?{keepLocalDeliverables:Number(args['--keep-local-deliverables'])}:{}),...(args['--max-generations']!==undefined?{maxGenerations:Number(args['--max-generations'])}:{}),...(args['--prompt-review-attempts']!==undefined?{promptReviewMaxIterations:Number(args['--prompt-review-attempts'])}:{})};
     if(mediaPolicyArg)graphOptionUpdates.mediaPolicy=mediaPolicyArg;
-    if (command === 'run' && args['--from']) {
+    if(command==='replace-kling') {
+      const count=Number(args['--count']);
+      if(!Number.isSafeInteger(count)||count<1)throw new Error('replace-kling requer --count inteiro positivo');
+      if(!snapshot.next.length)throw new Error('replace-kling requer episódio pendente');
+      const patch=prepareKlingReplacements({root:REPO_ROOT,deps:realDependencies(REPO_ROOT)},snapshot.values,count);
+      await graph.updateState(config,patch as any,'firefly_guide');
+      snapshot=await graph.getState(config);
+    } else if (command === 'run' && args['--from']) {
       await rewind(graph, REPO_ROOT, episodeId, String(args['--from']),graphOptionUpdates);
     } else if (command === 'run') {
       if (snapshot.next.length) throw new Error('Thread pendente: utilize resume ou --from');
@@ -93,7 +105,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (gates.some(g => !['render', 'publish'].includes(g))) throw new Error('--gates aceita render,publish');
       const mediaMode=mediaModeArg??'real';
       input = initialState({episodeId,topic:args['--topic']?String(args['--topic']):undefined,entity:args['--entity']?String(args['--entity']):undefined,mechanism:args['--mechanism']?String(args['--mechanism']):undefined,constraint:args['--constraint']?String(args['--constraint']):undefined,consequence:args['--consequence']?String(args['--consequence']):undefined,thesis:args['--thesis']?String(args['--thesis']):undefined,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1),
-        mediaMode:mediaMode as 'legacy'|'real',mediaPolicy:mediaPolicyArg as any,beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??0),storageMode:storage as 'off'|'drive',prune:prune as 'dry-run'|'apply',keepLocalDeliverables:Number(args['--keep-local-deliverables']??1),gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
+        mediaMode:mediaMode as 'legacy'|'real',mediaPolicy:mediaPolicyArg as any,motionMode:(motionModeArg??'legacy') as 'legacy'|'authored',motionMaxScenes:Number(args['--motion-scenes']??3),motionRequire3d:!!args['--motion-require-3d'],beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??0),storageMode:storage as 'off'|'drive',prune:prune as 'dry-run'|'apply',keepLocalDeliverables:Number(args['--keep-local-deliverables']??1),gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
     } else {
       if (!snapshot.next.length) {
         if (snapshot.values.productionStatus === 'COMPLIANCE_FAILED') {

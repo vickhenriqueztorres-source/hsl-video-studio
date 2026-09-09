@@ -9,14 +9,21 @@ import {takeRecipe} from './firefly/recipe';
 import {repairReceiptPath,resolveFireflyArtifact} from './firefly/repair';
 
 /** Physical files and provider evidence must agree with the required beat set. */
-export function assertMediaCoverage(c:Context,s:State):void {
-  const media=assertMediaPlan(s),expected=s.scenePlan!.beats.filter(b=>b.visualMode==='firefly_video');
-  const actual=new Map(s.videos.map(v=>[v.beatId,v]));
+export function assertMediaCoverage(c:Context,s:State,scope:'all'|'external'='all'):void {
+  const media=assertMediaPlan(s),expected=s.scenePlan!.beats.filter(b=>b.visualMode==='firefly_video'&&(scope==='all'||b.mediaProvider!=='remotion-authored'));
+  const actual=new Map(s.videos.filter(v=>scope==='all'||v.provider!=='remotion-authored').map(v=>[v.beatId,v]));
   if([...actual.keys()].some(id=>!expected.some(b=>b.beatId===id)))throw new Error('MEDIA_UNEXPECTED_VIDEO');
   const ledger=media.fireflyBeatIds.length?new KlingLedger(path.join(c.root,'runs',s.episodeId,'firefly')):undefined;
   try{for(const beat of expected){
     const v=actual.get(beat.beatId);
     if(!v||v.status==='failed'||v.provider!==beat.mediaProvider||!validMedia(c,v.path))throw new Error(`MEDIA_COVERAGE_MISSING:${beat.beatId}`);
+    if(v.provider==='remotion-authored'){
+      const artifact=s.motionArtifacts.find(item=>item.beatId===beat.beatId);
+      if(!artifact||!artifact.approved||!artifact.verified||!artifact.rendered||artifact.videoPath!==v.path||artifact.sha256!==hashFile(v.path)||!fs.existsSync(artifact.receiptPath)||artifact.durationInFrames!==beat.durationFrames)throw new Error(`MOTION_PROVENANCE_INVALID:${beat.beatId}`);
+      const pub=path.join(c.root,'public','runs',s.episodeId,'motion',beat.beatId+'.mp4');
+      if(!fs.existsSync(pub)||hashFile(pub)!==artifact.sha256)throw new Error(`MOTION_PUBLIC_COPY_INVALID:${beat.beatId}`);
+      continue;
+    }
     if(v.provider!=='firefly-kling')continue;
     const receipt=readJson<{provider:string;planHash:string;sha256:string;operations:string[];repairs?:{operationId:string;receiptPath:string;receiptHash:string}[];durationFrames:number}>(v.path+'.provenance.json');
     if(!receipt||receipt.provider!=='firefly-kling'||receipt.planHash!==media.hash||receipt.sha256!==hashFile(v.path)||receipt.durationFrames!==beat.durationFrames||Math.abs(c.deps.inspect(v.path).durationSeconds-beat.durationFrames/30)>0.2)throw new Error(`MEDIA_PROVENANCE_INVALID:${beat.beatId}`);
@@ -38,3 +45,4 @@ export function assertMediaCoverage(c:Context,s:State):void {
     if(!fs.existsSync(pub)||hashFile(pub)!==receipt.sha256)throw new Error(`MEDIA_PUBLIC_COPY_INVALID:${beat.beatId}`);
   }}finally{ledger?.close();}
 }
+export const assertExternalMediaCoverage=(c:Context,s:State)=>assertMediaCoverage(c,s,'external');

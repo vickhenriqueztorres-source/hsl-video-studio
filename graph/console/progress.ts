@@ -8,6 +8,7 @@ import {safeLog,tailJson} from '../production/telemetry';
 const aliases:Record<string,string>={narration:'narration_stage',sound_design:'sound_design',gatekeeper:'gatekeeper_stage',packaging:'packaging_stage',compliance:'compliance_stage'};
 const normalized=(id:string)=>aliases[id]??id;
 const legacyOnly=new Set(['fan_out_frames','image_frames','fan_out_videos','firefly_videos']);
+const authoredOnly=new Set(['motion_plan','narration_lock','motion_dispatch','motion_review_wait','motion_join','archive_motion']);
 const read=(file:string)=>{try{return JSON.parse(fs.readFileSync(file,'utf8'))}catch{return null}};
 export const progressBar=(percent:number,width=22)=>{const n=Math.round(Math.max(0,Math.min(100,percent))*width/100);return'█'.repeat(n)+'░'.repeat(width-n)};
 
@@ -15,6 +16,7 @@ export function deriveProgress(root:string,episode:string,v:any={},next:string[]
   const run=path.join(root,'runs',episode),events=tailJson(path.join(run,'graph','node-events.jsonl')),live=tailJson(path.join(run,'graph','live.jsonl'));
   const journal=tailJson(path.join(run,'graph','history.jsonl'));
   let applicable=NODE_ORDER.filter(id=>v.options?.graph?.mediaMode==='legacy'?!id.startsWith('image_generate')&&!id.startsWith('image_review')&&!id.startsWith('visual_prompts')&&(!id.startsWith('firefly_')||id==='firefly_videos')&&!['archive_images','archive_firefly'].includes(id):!legacyOnly.has(id));
+  if(v.options?.graph?.motionMode!=='authored')applicable=applicable.filter(id=>!authoredOnly.has(id));
   const policy=v.mediaPlan?.policy??v.options?.graph?.mediaPolicy;
   if(policy&&policy!=='firefly-hybrid')applicable=applicable.filter(id=>!['firefly_session_prepare','firefly_session_wait','firefly_guide','kling_budget_wait','firefly_dispatch','firefly_intake_wait','firefly_recovery_wait','firefly_finalize','archive_firefly'].includes(id));
   if(policy==='local-motion')for(const id of ['fan_out_videos','firefly_videos'] as const)if(!applicable.includes(id))applicable.push(id);
@@ -40,8 +42,9 @@ export function deriveProgress(root:string,episode:string,v:any={},next:string[]
   const expectedChunks=v.options?.graph?.testRender?1:Math.ceil((plan?.totalFrames??0)/4500);
   const chunks=new Map((v.renderChunks??[]).map((x:any)=>[x.index,x]));
   const chunksDone=[...chunks.values()].filter((x:any)=>['ok','skipped'].includes(x.status)).length;
-  const partial:Record<string,number>={image_generate_run:queue.length?imageDone/queue.length:0,firefly_dispatch:takes.length?takesDone/takes.length:0,firefly_intake_wait:takes.length?takesDone/takes.length:0,render_chunk:expectedChunks?chunksDone/expectedChunks:0};
-  const itemTotals:Record<string,number>={image_generate_run:queue.length,firefly_dispatch:takes.length,firefly_intake_wait:takes.length,render_chunk:expectedChunks};
+  const motionTotal=v.motionPlan?.scenes?.length??0,motionDone=v.motionArtifacts?.length??0;
+  const partial:Record<string,number>={image_generate_run:queue.length?imageDone/queue.length:0,firefly_dispatch:takes.length?takesDone/takes.length:0,firefly_intake_wait:takes.length?takesDone/takes.length:0,motion_dispatch:motionTotal?motionDone/motionTotal:0,render_chunk:expectedChunks?chunksDone/expectedChunks:0};
+  const itemTotals:Record<string,number>={image_generate_run:queue.length,firefly_dispatch:takes.length,firefly_intake_wait:takes.length,motion_dispatch:motionTotal,render_chunk:expectedChunks};
   const reviewProgress=live.filter(x=>normalized(x.node)==='image_review_prepare'&&x.total&&(!lastEntry||x.at>=lastEntry.at)).at(-1);
   if(reviewProgress)partial.image_review_prepare=reviewProgress.current/reviewProgress.total;
   const nodes=NODE_ORDER.map(id=>{

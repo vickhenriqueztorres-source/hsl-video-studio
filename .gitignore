@@ -4,6 +4,8 @@
 *.db
 *.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
 
 # Local secrets and environment overrides.
 .env

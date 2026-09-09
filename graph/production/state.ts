@@ -15,11 +15,15 @@ export interface GraphOptions {
   mediaMode: MediaMode; mediaPolicy?: MediaPolicy; beats?: number; testRender: boolean; maxGenerations: number;
   promptReviewThreshold: number; promptReviewMaxIterations: number; images: { provider: 'codex' };
   imageReviewThreshold: number;
+  motionMode: 'legacy' | 'authored'; motionMaxScenes: number; motionRequire3d: boolean;
   video: { takeSeconds: 5; splitOver: 5.5 };
   storageMode:'off'|'drive'; prune:'dry-run'|'apply'; keepLocalDeliverables:number;
 }
 export type Options = MasterPipelineOptions & { graph: GraphOptions };
-export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string; provider?: 'firefly-kling'|'local-ffmpeg'|'none'; sha256?: string; recipeHash?: string }
+export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string; provider?: 'firefly-kling'|'local-ffmpeg'|'remotion-authored'|'none'; sha256?: string; recipeHash?: string }
+export interface AuthoredMotionSceneBrief { beatId:string; visualObjective:string; causalRelations:string[]; factualConstraints:string[]; require3d:boolean }
+export interface AuthoredMotionPlan { schema:'hsl.authored-motion-plan/v1'; inputHash:string; scenes:AuthoredMotionSceneBrief[] }
+export interface AuthoredMotionArtifact { beatId:string; videoPath:string; sha256:string; receiptPath:string; sourceManifestPath:string; sourceDirectory:string; previewPath:string; durationInFrames:number; fps:number; width:number; height:number; engine:'remotion-authored'; inputHash:string; approved:true; verified:true; rendered:true }
 export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
 export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
 export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; promptHash?:string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string; generatedBy?:'codex-imagegen'|'antigravity-imagegen' }
@@ -32,6 +36,8 @@ export interface VideoTake {
   outputPath: string; status: 'pending' | 'dispatched' | 'ok' | 'skipped' | 'failed';
   generationCounted?: boolean; startedAt?: string; endedAt?: string; error?: string;
   operationId?: string; recipeHash?: string; provider?: 'firefly-kling';
+  /** Monotonic paid replacement revision; zero/undefined is the original operation. */
+  revision?: number; replacesOperationId?: string;
 }
 export interface SfxItem { id: string; description: string; sourcePath?: string; offsetSeconds: number; targetDb: number; reason?: string }
 export interface ChunkResult { index: number; frameRange: [number, number]; outPath: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; durationMs: number; error?: string }
@@ -57,10 +63,20 @@ const keyedChunks = () =>
     },
     default: () => []
   });
+const keyedMotionArtifacts = () => Annotation<AuthoredMotionArtifact[]>({
+  reducer: (curr, updates) => {
+    const map = new Map(curr.map(value => [value.beatId, value]));
+    for (const update of updates) map.set(update.beatId, update);
+    return [...map.values()];
+  }, default: () => []
+});
 export const ProductionState = Annotation.Root({
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => STATE_VERSION }),
   episodeId: Annotation<string>(), topicInput: Annotation<EpisodeTopicInput>(), options: Annotation<Options>(),
   scenePlan: nullable<HslLongFormProjectPlan>(), scenePlanPath: nullable<string>(),
+  motionPlan: nullable<AuthoredMotionPlan>(), motionArtifacts: keyedMotionArtifacts(),
+  motionIssue: nullable<{beatId:string;status:'review_required'|'provider_unavailable'|'runtime_unavailable';reason:string;receiptPath:string}>(),
+  narrationLock: nullable<{audioPath:string;audioSha256:string;durationSeconds:number;alignmentPath:string;alignmentSha256:string}>(),
   mediaPlan: nullable<MediaPlan>(), klingBudget: nullable<KlingBudget>(), klingAuthorization: nullable<KlingAuthorization>(),
   fireflyIssue: nullable<{kind: string; reason: string; take?:string; receiptPath?:string; retryPolicy?:string}>(),
   environment: nullable<{ agentDir: string; profileDir: string; sessionValid?: boolean }>(),
@@ -88,7 +104,7 @@ export const ProductionState = Annotation.Root({
   finalVideo: nullable<{ outPath: string; deliveryPath: string; runPath: string; durationSeconds: number }>(),
   packaging: nullable<HslPublicationPackage>(), compliance: nullable<ComplianceReport>(),
   productionStatus: Annotation<'RUNNING' | 'BLOCKED_PRE_RENDER' | 'ABORTED' | 'COMPLIANCE_FAILED' | 'COMPLETED'>({ reducer: (_, b) => b, default: () => 'RUNNING' }),
-  gateDecisions: append<{ gate: 'render' | 'publish' | 'kling'; decision: 'proceed' | 'abort'; at: string }>(),
+  gateDecisions: append<{ gate: 'render' | 'publish' | 'kling' | 'motion'; decision: 'proceed' | 'abort'; at: string }>(),
   errors: append<NodeError>(), timings: append<Timing>(),
   storageIndex: append<StorageEntry>(),
 });
@@ -108,6 +124,7 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   threadId(topicInput.episodeId);
   const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
     maxGenerations: 0, promptReviewThreshold: 75, promptReviewMaxIterations: 6, imageReviewThreshold:75, storageMode:'off',prune:'dry-run',keepLocalDeliverables:1,...options.graph,
+    motionMode: options.graph?.motionMode ?? 'legacy', motionMaxScenes: options.graph?.motionMaxScenes ?? 3, motionRequire3d: options.graph?.motionRequire3d ?? true,
     gates: { render: false, publish: false, ...options.graph?.gates }, images: { provider: 'codex' },
     video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
   graph.mediaPolicy ??= graph.mediaMode === 'legacy' ? 'local-motion' : 'firefly-hybrid';
@@ -119,6 +136,9 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   if (graph.promptReviewThreshold < 0 || graph.promptReviewThreshold > 100) throw new Error('promptReviewThreshold deve estar entre 0 e 100');
   if (!Number.isSafeInteger(graph.promptReviewMaxIterations) || graph.promptReviewMaxIterations < 1 || graph.promptReviewMaxIterations > 12) throw new Error('promptReviewMaxIterations deve ser inteiro entre 1 e 12');
   if (graph.imageReviewThreshold < 0 || graph.imageReviewThreshold > 100) throw new Error('imageReviewThreshold deve estar entre 0 e 100');
+  if(!['legacy','authored'].includes(graph.motionMode))throw new Error('motionMode deve ser legacy|authored');
+  if(graph.motionMode==='authored'&&graph.mediaMode!=='real')throw new Error('motionMode authored requer mediaMode real');
+  if(!Number.isSafeInteger(graph.motionMaxScenes)||graph.motionMaxScenes<1||graph.motionMaxScenes>12)throw new Error('motionMaxScenes deve ser inteiro entre 1 e 12');
   if(!['off','drive'].includes(graph.storageMode))throw new Error('storageMode deve ser off|drive');
   if(!['dry-run','apply'].includes(graph.prune))throw new Error('prune deve ser dry-run|apply');
   if(!Number.isSafeInteger(graph.keepLocalDeliverables)||graph.keepLocalDeliverables<0)throw new Error('keepLocalDeliverables deve ser inteiro não negativo');

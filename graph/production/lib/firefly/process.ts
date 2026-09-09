@@ -325,7 +325,17 @@ export async function recoverResultReadyAgentTake(e: FireflyEnvironment, runtime
     // The agent receives the exact local job id and is contractually forbidden
     // from generating. It may only authenticate, locate this job, and export a
     // result whose manifest proves the same job/output/hash.
+    const recoveryStartedAt=Date.now();
     const result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--recover-running-job', String(jobId)], { cwd:e.agentDir, env:agentEnv(e), timeoutMs:600_000, logPath });
+    if(result.exitCode===30&&!result.timedOut&&!result.errorCode){
+      const queryPath=path.join(runtime,'screenshots',`job_${jobId}_provider_result_api.json`);
+      if(fs.existsSync(queryPath)&&fs.statSync(queryPath).mtimeMs>=recoveryStartedAt){
+        const query=readJson(queryPath);
+        if(query.generate_clicked===false&&query.status==='PROVIDER_JOB_RESULT_FAILED'&&query.http_status===400){
+          throw new Error(`FIREFLY_RECOVERY_PROVIDER_QUERY:HTTP_400: consulta inválida; resultado ainda indeterminado; evidence=${queryPath}`);
+        }
+      }
+    }
     requireSuccess(result, 'FIREFLY_RECOVER_RUNNING_RESULT');
     assertOwnership();
     const recoveredHash = outputHash(outputPath);

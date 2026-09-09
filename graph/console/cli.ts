@@ -123,6 +123,8 @@ async function newEpisode(rl:readline.Interface){
   else if(mode==='2'){const ok=(await rl.question('  O teste pode consumir até 3 gerações Kling. Digite TESTAR: ')).trim();if(ok!=='TESTAR'){line('Cancelado.');return;}extra=['--beats','2','--test-render','--max-generations','3'];paid=true;}
   else if(mode==='3'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--max-generations','0'];}
   else{line('Modo inválido.');return;}
+  const authored=(await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s';
+  if(authored)extra.push('--motion-mode','authored','--motion-scenes','3','--motion-require-3d');
   reserveTheme(episodeId,`${idea.title} · ${idea.theme}`,REPO_ROOT);line(`${M}Tema reservado no catálogo: ${episodeId}${X}`);
   const storage=selectMatrixStorage();
   if(storage.mode==='off')line(`${AMBER}Google Drive indisponível (${storage.reason}); esta execução usará armazenamento local.${X}`);
@@ -158,6 +160,12 @@ async function resumeEpisode(rl:readline.Interface,provided?:string){
       if(ok!=='KLING'){line('Retomada cancelada antes do despacho.');return;}
       args.push('--decision','proceed','--max-generations',String(interrupt.requiredGenerations));
       paid=true;
+    }else if(interrupt.kind==='AUTHORED_MOTION_REVIEW'){
+      line(`${RED}${interrupt.reason??'Motion autoral requer revisão.'}${X}`);
+      const decision=(await rl.question('  [r] tentar novamente  [x] abortar  [v] voltar: ')).trim().toLowerCase();
+      if(decision==='v'||!decision)return;
+      if(!['r','x'].includes(decision)){line('Opção inválida.');return;}
+      args.push('--decision',decision==='r'?'retry':'abort');
     }else{
       const needsDecision=!interrupt.kind||interrupt.kind==='IMAGE_HUMAN_REVIEW'||interrupt.kind==='VISUAL_PROMPTS_HUMAN_REVIEW';
       if(needsDecision){

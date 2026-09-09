@@ -7,10 +7,11 @@ import {latestEntries,readIndex,storageSummary} from '../production/storage/inde
 import {deriveProgress} from './progress';
 
 export const PHASES=[
-  {id:'setup',label:'Preparação',nodes:['scene_plan','media_plan_prepare','media_plan_validate','env_check','codex_auth_prepare','codex_auth_wait','drive_auth_wait','archive_scene_plan']},
+  {id:'setup',label:'Preparação',nodes:['scene_plan','motion_plan','media_plan_prepare','media_plan_validate','env_check','codex_auth_prepare','codex_auth_wait','drive_auth_wait','archive_scene_plan']},
   {id:'prompts',label:'Direção visual',nodes:['visual_prompts_prepare','visual_prompts_wait','visual_prompts_review_prepare','visual_prompts_review_wait']},
   {id:'images',label:'Imagens',nodes:['image_generate_prepare','image_generate_run','image_generate_wait','image_review_prepare','image_review_wait','archive_images']},
   {id:'video',label:'Vídeo Kling',nodes:['firefly_session_prepare','firefly_session_wait','firefly_guide','kling_budget_wait','firefly_dispatch','firefly_intake_wait','firefly_recovery_wait','archive_firefly','firefly_finalize']},
+  {id:'motion',label:'Motion autoral',nodes:['narration_lock','motion_dispatch','motion_review_wait','motion_join','archive_motion']},
   {id:'audio',label:'Áudio',nodes:['narration_stage','sound_design','sfx_render','archive_audio']},
   {id:'render',label:'Render',nodes:['gatekeeper_stage','gate_render_wait','render_prepare','fan_out_render','render_chunk','stitch','pre_mux_gate','mux']},
   {id:'delivery',label:'Entrega',nodes:['packaging_stage','compliance_stage','gate_publish_wait','finalize','archive_compliance','prune_verified']},
@@ -23,10 +24,11 @@ export const AGENTS=[
   {id:'review',name:'Vision Gatekeeper',role:'Fidelidade e qualidade',icon:'◎',nodes:['image_review_prepare','image_review_wait']},
   {id:'kling',name:'Kling 2.5 Turbo',role:'Movimento cinematográfico',icon:'▶',nodes:['firefly_session_prepare','firefly_session_wait','firefly_guide','firefly_dispatch','firefly_intake_wait','firefly_finalize']},
   {id:'voice',name:'Narration Engine',role:'Voz e sincronização',icon:'◉',nodes:['narration_stage']},
+  {id:'motion',name:'Motion Graphics Squad',role:'Direção, código 2D/3D e revisão',icon:'◆',nodes:['motion_plan','narration_lock','motion_dispatch','motion_review_wait','motion_join']},
   {id:'sound',name:'Sound Design Crew',role:'SFX narrativo e mix',icon:'≋',nodes:['sound_design','sfx_render']},
   {id:'render',name:'Render Core',role:'Remotion e FFmpeg',icon:'⌁',nodes:['render_prepare','fan_out_render','render_chunk','stitch','pre_mux_gate','mux']},
   {id:'quality',name:'Compliance Sentinel',role:'Gates e conformidade',icon:'✓',nodes:['gatekeeper_stage','gate_render_wait','compliance_stage','gate_publish_wait']},
-  {id:'storage',name:'Drive Vault',role:'Arquivo verificado',icon:'⬢',nodes:['drive_auth_wait','archive_scene_plan','archive_images','archive_firefly','archive_audio','archive_compliance','prune_verified']},
+  {id:'storage',name:'Drive Vault',role:'Arquivo verificado',icon:'⬢',nodes:['drive_auth_wait','archive_scene_plan','archive_images','archive_firefly','archive_motion','archive_audio','archive_compliance','prune_verified']},
 ] as const;
 
 const readJson=(file:string):any=>{try{return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));}catch{return null;}};
@@ -51,7 +53,7 @@ function media(root:string,episode:string,storage:any[]){
   for(const file of walk(path.join(run,'images'),x=>/\.(png|jpg|jpeg|webp)$/i.test(x),160))add(file,'image');
   for(const file of walk(path.join(run,'frames'),x=>/\.(png|jpg|jpeg|webp)$/i.test(x),160))add(file,'image');
   for(const file of walk(path.join(delivery,'thumbnails'),x=>/\.(png|jpg|jpeg|webp)$/i.test(x),20))add(file,'image');
-  for(const file of [...walk(path.join(run,'firefly'),x=>/\.mp4$/i.test(x),100),...walk(path.join(delivery,'video'),x=>/\.mp4$/i.test(x),20)])add(file,'video');
+  for(const file of [...walk(path.join(run,'firefly'),x=>/\.mp4$/i.test(x),100),...walk(path.join(run,'motion'),x=>/\.mp4$/i.test(x),100),...walk(path.join(delivery,'video'),x=>/\.mp4$/i.test(x),20)])add(file,'video');
   for(const file of walk(path.join(run,'audio'),x=>/\.(mp3|wav)$/i.test(x),30))add(file,'audio');
   for(const file of [path.join(run,'scene-plan.json'),path.join(run,'publication-package.json'),path.join(run,'run-manifest.json')])if(fs.existsSync(file))add(file,'document');
   return items;

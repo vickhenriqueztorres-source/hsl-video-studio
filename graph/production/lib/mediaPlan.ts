@@ -48,7 +48,7 @@ function validateTimeline(plan: HslLongFormProjectPlan): void {
     if (!Number.isSafeInteger(beat.durationFrames) || beat.durationFrames <= 0 || !Number.isFinite(beat.durationSeconds)
       || Math.abs(beat.durationSeconds * MEDIA_FPS - beat.durationFrames) > 1e-6) throw new Error(`MEDIA_PLAN_DURATION_INVALID:${beat.beatId}`);
     if (!['firefly_video', 'generated_image_35mm', 'vector_remotion', 'motion_image_diagram'].includes(beat.visualMode)) throw new Error(`MEDIA_PLAN_VISUAL_MODE_INVALID:${beat.beatId}`);
-    if (beat.mediaProvider !== undefined && !['none', 'local-ffmpeg', 'firefly-kling'].includes(beat.mediaProvider)) throw new Error(`MEDIA_PLAN_PROVIDER_INVALID:${beat.beatId}`);
+    if (beat.mediaProvider !== undefined && !['none', 'local-ffmpeg', 'firefly-kling', 'remotion-authored'].includes(beat.mediaProvider)) throw new Error(`MEDIA_PLAN_PROVIDER_INVALID:${beat.beatId}`);
   }
   const frames = plan.beats.reduce((sum, beat) => sum + beat.durationFrames, 0);
   if (!Number.isSafeInteger(plan.totalFrames) || frames !== plan.totalFrames || plan.totalBeatsCount !== plan.beats.length
@@ -92,27 +92,31 @@ function motionFor(beat: HslSceneBeat): Motion {
 }
 
 /** Pure planning over the final normalized timeline; never generates media. */
-export function planMedia(plan: HslLongFormProjectPlan, policy: MediaPolicy): { scenePlan: HslLongFormProjectPlan; mediaPlan: MediaPlan } {
+export function planMedia(plan: HslLongFormProjectPlan, policy: MediaPolicy, authoredBeatIds: ReadonlySet<string> = new Set()): { scenePlan: HslLongFormProjectPlan; mediaPlan: MediaPlan } {
   assertPolicy(policy);
   validateTimeline(plan);
   const entries: MediaPlanBeat[] = [];
   const beats: HslSceneBeat[] = plan.beats.map(beat => {
     const motion = motionFor(beat);
-    const provider = policy === 'stills' || motion.intent === 'none' ? 'none'
+    const authored = authoredBeatIds.has(beat.beatId);
+    const provider = authored ? 'remotion-authored' : policy === 'stills' || motion.intent === 'none' ? 'none'
       : policy === 'local-motion' || beat.mediaProvider === 'local-ffmpeg' ? 'local-ffmpeg' : 'firefly-kling';
     const sourceBeatId = beat.sourceBeatId ?? beat.beatId;
     entries.push({ beatId: beat.beatId, sourceBeatId, provider,
-      motionIntent: provider === 'none' ? 'none' : motion.intent,
-      reason: policy === 'stills' ? `Stills policy: ${motion.reason}` : motion.reason,
+      motionIntent: provider === 'none' ? 'none' : authored ? 'physical' : motion.intent,
+      reason: authored ? 'Authored Remotion scene selected from the script by the motion squad.' : policy === 'stills' ? `Stills policy: ${motion.reason}` : motion.reason,
       durationFrames: beat.durationFrames, takeCount: provider === 'firefly-kling' ? mediaTakeCount(beat.durationFrames) : 0,
     });
-    return { ...beat, sourceBeatId, mediaProvider: provider, motionIntent: motion.intent, motionReason: motion.reason,
+    return { ...beat, sourceBeatId, mediaProvider: provider, motionIntent: authored ? 'physical' : motion.intent,
+      motionReason: authored ? 'Code-authored motion derived from the approved script.' : motion.reason,
+      ...(authored ? { outputVideoPath: `public/runs/${plan.episodeId}/motion/${beat.beatId}.mp4` } : {}),
       visualMode: provider !== 'none' ? 'firefly_video' : beat.visualMode === 'firefly_video' ? 'generated_image_35mm' : beat.visualMode,
     };
   });
   const scenePlan: HslLongFormProjectPlan = { ...plan, beats };
   const firefly = entries.filter(beat => beat.provider === 'firefly-kling');
-  if (policy === 'firefly-hybrid' && !firefly.length) throw new Error('MEDIA_PLAN_REQUIRED_PROVIDER_EMPTY');
+  const authored = entries.filter(beat => beat.provider === 'remotion-authored');
+  if (policy === 'firefly-hybrid' && !firefly.length && !authored.length) throw new Error('MEDIA_PLAN_REQUIRED_PROVIDER_EMPTY');
   const body: Omit<MediaPlan, 'hash'> = {
     schema: MEDIA_PLAN_SCHEMA, scenePlanHash: hash(scenePlan), episodeId: plan.episodeId, policy,
     fps: MEDIA_FPS, takeSeconds: MEDIA_TAKE_SECONDS, coveragePolicy: 'full-coverage-trim', beats: entries,
@@ -120,6 +124,7 @@ export function planMedia(plan: HslLongFormProjectPlan, policy: MediaPolicy): { 
     fireflyBeatIds: firefly.map(beat => beat.beatId),
     localMotionBeatIds: entries.filter(beat => beat.provider === 'local-ffmpeg').map(beat => beat.beatId),
     stillBeatIds: entries.filter(beat => beat.provider === 'none').map(beat => beat.beatId),
+    ...(authored.length ? { authoredBeatIds: authored.map(beat => beat.beatId) } : {}),
     fireflyFrames: firefly.reduce((sum, beat) => sum + beat.durationFrames, 0),
   };
   return { scenePlan, mediaPlan: { ...body, hash: hash(body) } };
@@ -132,7 +137,8 @@ export function validateMediaPlan(scenePlan: HslLongFormProjectPlan, mediaPlan: 
   assertPolicy(mediaPlan.policy);
   if (mediaPlan.beats.length !== scenePlan.beats.length || mediaPlan.beats.some((beat, index) => beat.beatId !== scenePlan.beats[index].beatId)) throw new Error('MEDIA_PLAN_BEAT_SET_MISMATCH');
   if (mediaPlan.beats.some((beat, index) => beat.durationFrames !== scenePlan.beats[index].durationFrames)) throw new Error('MEDIA_PLAN_DURATION_MISMATCH');
-  const expected = planMedia(scenePlan, mediaPlan.policy);
+  const authored = new Set(mediaPlan.authoredBeatIds ?? mediaPlan.beats.filter(beat => beat.provider === 'remotion-authored').map(beat => beat.beatId));
+  const expected = planMedia(scenePlan, mediaPlan.policy, authored);
   if (canonical(expected.scenePlan) !== canonical(scenePlan)) throw new Error('MEDIA_PLAN_SCENE_PROJECTION_MISMATCH');
   if (canonical(expected.mediaPlan) !== canonical(mediaPlan)) throw new Error('MEDIA_PLAN_CONTRACT_MISMATCH');
 }

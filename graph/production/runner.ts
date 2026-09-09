@@ -29,7 +29,8 @@ export async function executeProduction(graph: ProductionGraph, root: string, ep
   const saved=await graph.getState(config);
   const starting=(input&&typeof input==='object'&&'episodeId' in input)?input as Partial<State>:saved.values;
   config.recursionLimit=Math.max(512, executionStepBudget(starting));
-  if(saved.next.length&&!saved.values.mediaPlan&&saved.next.some(n=>!['scene_plan','media_plan_prepare'].includes(n)))throw new Error('MEDIA_CHECKPOINT_MIGRATION_REQUIRED: run --from media_plan_prepare');
+  const beforeMediaPlan=new Set(['scene_plan','env_check','codex_auth_prepare','codex_auth_wait','motion_plan','media_plan_prepare']);
+  if(saved.next.length&&!saved.values.mediaPlan&&saved.next.some(n=>!beforeMediaPlan.has(n)))throw new Error('MEDIA_CHECKPOINT_MIGRATION_REQUIRED: run --from media_plan_prepare');
   const folder = path.join(root, 'runs', episodeId, 'graph'); fs.mkdirSync(folder, { recursive: true });
   const executionFile=path.join(folder,'execution.json');
   writeJson(executionFile,{pid:process.pid,startedAt:new Date().toISOString(),active:true});
@@ -55,6 +56,7 @@ export function counts(items: { status: string; beatId?: string; index?: number 
   return Object.fromEntries(['ok', 'skipped', 'failed'].map(status => [status, [...latest.values()].filter(x => x.status === status).length]));
 }
 const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
+  motion_plan:['motionPlan'],narration_lock:['narrationLock','narration'],motion_dispatch:['motionArtifacts','motionIssue','videos'],motion_review_wait:['motionIssue'],
   media_plan_prepare:['mediaPlan','klingBudget'],kling_budget_wait:['klingAuthorization'],firefly_recovery_wait:['fireflyIssue'],
   codex_auth_prepare:['codexAuth'],image_generate_run:['imageGenerationIssue','imageGenerationRetry'],
   env_check:['environment'],visual_prompts_prepare:['visualPrompts','visualPromptsPath'],visual_prompts_review_prepare:['promptReview'],image_generate_prepare:['imageSpecs','imageQueuePath'],image_generate_wait:['frames','imageValidationRounds'],
@@ -64,7 +66,7 @@ const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
   narration_stage: ['narration'], sound_design: ['soundDesign'], gatekeeper_stage: ['gatekeeper'],
   render_prepare: ['assetServer', 'renderProps'], render_chunk: ['renderChunks'], stitch: ['visualTrackPath'],
   pre_mux_gate: ['preMux'], mux: ['finalVideo'], packaging_stage: ['packaging'], compliance_stage: ['compliance'],
-  archive_scene_plan:['storageIndex'],archive_images:['storageIndex'],archive_firefly:['storageIndex'],archive_audio:['storageIndex'],archive_compliance:['storageIndex'],prune_verified:['storageIndex'],
+  archive_scene_plan:['storageIndex'],archive_images:['storageIndex'],archive_firefly:['storageIndex'],archive_motion:['storageIndex'],archive_audio:['storageIndex'],archive_compliance:['storageIndex'],prune_verified:['storageIndex'],
 };
 export async function rewind(graph: ProductionGraph, root: string, episodeId: string, requested: string,graphOptions?:Partial<GraphOptions>) {
   const node = (NODE_ALIASES[requested] ?? requested) as NodeName;
@@ -77,9 +79,9 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
   const patch: Record<string, unknown> = { productionStatus: 'RUNNING', errors: new Overwrite([]), timings: new Overwrite([]) };
   if(index>NODE_ORDER.indexOf('media_plan_validate'))assertMediaPlan({...snapshot.values,...(graphOptions?{options:{...snapshot.values.options,graph:{...snapshot.values.options.graph,...graphOptions}}}:{})});
   if(graphOptions)patch.options={...snapshot.values.options,graph:{...snapshot.values.options.graph,...graphOptions}};
-  const arrays=new Set(['frames','videos','renderChunks','storageIndex','videoTakes','visualPrompts','imageSpecs','sfxResolved','sfxUnresolved']);
+  const arrays=new Set(['frames','videos','motionArtifacts','renderChunks','storageIndex','videoTakes','visualPrompts','imageSpecs','sfxResolved','sfxUnresolved']);
   const numbers=new Set(['generationCount','imageValidationRounds','imageReviewRounds']);
-  for (const n of NODE_ORDER.slice(first)) for (const field of outputFields[n] ?? []) patch[field] = ['frames','videos','renderChunks','storageIndex'].includes(field)?new Overwrite([]):arrays.has(field)?[]:numbers.has(field)?0:null;
+  for (const n of NODE_ORDER.slice(first)) for (const field of outputFields[n] ?? []) patch[field] = ['frames','videos','motionArtifacts','renderChunks','storageIndex'].includes(field)?new Overwrite([]):arrays.has(field)?[]:numbers.has(field)?0:null;
   if (index <= NODE_ORDER.indexOf('visual_prompts_prepare')) {
     patch.promptIteration = 0;
     patch.promptReviewHumanApproved = false;
@@ -108,6 +110,11 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
     firefly_finalize:'firefly_intake_wait',
     join_frames:'image_frames',
     join_videos:'firefly_videos',
+    narration_lock:'narration_stage',
+    motion_dispatch:'narration_lock',
+    motion_review_wait:'motion_dispatch',
+    motion_join:'motion_dispatch',
+    archive_motion:'motion_join',
     gatekeeper_stage:'archive_audio',
     render_prepare:'gate_render_wait',
     render_chunk:'render_prepare',

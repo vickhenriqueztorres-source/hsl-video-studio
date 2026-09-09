@@ -36,6 +36,10 @@ export class KlingLedger {
     const row=this.db.prepare('SELECT data FROM authorizations WHERE scope=?').get(scope) as {data:string}|undefined;
     return row?JSON.parse(row.data):undefined;
   }
+  authorizationForOperation(operationId:string):KlingAuthorization|undefined {
+    const rows=this.db.prepare('SELECT data FROM authorizations').all() as {data:string}[];
+    return rows.map(row=>JSON.parse(row.data) as KlingAuthorization).find(value=>value.operationIds.includes(operationId));
+  }
   operation(id:string):KlingOperation|undefined {
     const row=this.db.prepare('SELECT data FROM operations WHERE id=?').get(id) as {data:string}|undefined;
     return row?JSON.parse(row.data):undefined;

@@ -14,6 +14,11 @@ export const selectFirefly=(root:string,s:State)=>[
   ...existing(files(path.join(root,'runs',s.episodeId,'firefly')).filter(x=>x.endsWith('.json')||x.split(path.sep).includes('qa'))).map(x=>classifyStatePath(root,s,x,'save')),
   ...existing((s.videos??[]).map(x=>x.path+'.provenance.json')).map(x=>classifyStatePath(root,s,x,'save')),
 ];
+export const selectMotion=(root:string,s:State)=>existing([...new Set([
+  ...(s.motionArtifacts??[]).flatMap(x=>[x.videoPath,x.previewPath,x.receiptPath,x.sourceManifestPath]),
+  path.join(root,'runs',s.episodeId,'motion','plan.json'),path.join(root,'runs',s.episodeId,'motion','alignment.json'),path.join(root,'runs',s.episodeId,'motion','narration-lock.json'),
+  ...files(path.join(root,'runs',s.episodeId,'motion')).filter(x=>/\.(tsx?|json|png)$/i.test(x)),
+])]).map(x=>classifyStatePath(root,s,x,/\.mp4$/i.test(x)?'intermediate':'save'));
 export const selectAudio=(root:string,s:State)=>[
   ...existing([s.narration?.path,s.sfxTrackPath]).map(x=>classifyStatePath(root,s,x,'intermediate')),
   ...existing([s.soundDesign?.audioPlanPath,s.sfxPlanPath,s.sfxQaPath]).map(x=>classifyStatePath(root,s,x,'save'))];

@@ -16,7 +16,7 @@ export const preMuxGate = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_08
   if (!fs.existsSync(sfxPath)) throw new Error('PRE_MUX_SFX_MISSING: sfxTrackPath obrigatório para o master');
   const currentSfx = validMedia(c, sfxPath, 'audio') ? c.deps.inspect(sfxPath) : undefined;
   if (!currentSfx || currentSfx.durationSeconds <= 0) throw new Error('PRE_MUX_SFX_INVALID: faixa de efeitos sonoros ilegível ou vazia');
-  if (cached && currentVisual && currentAudio && Math.abs(cached.visualDuration - currentVisual.durationSeconds) <= 0.2 && Math.abs(cached.audioDuration - currentAudio.durationSeconds) <= 0.2) return {
+  if (s.options.graph.motionMode!=='authored' && cached && currentVisual && currentAudio && Math.abs(cached.visualDuration - currentVisual.durationSeconds) <= 0.2 && Math.abs(cached.audioDuration - currentAudio.durationSeconds) <= 0.2) return {
     update: { preMux: cached, ...(!s.sfxTrackPath ? { sfxTrackPath: sfxPath } : {}) },
     skipped: true,
     metrics: { durationDiffSeconds: cached.durationDiffSeconds, tempoFactor: cached.tempoFactor, synchronized: cached.applied }
@@ -25,6 +25,12 @@ export const preMuxGate = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_08
   const visual = currentVisual, audio = currentAudio;
   let diff = Math.abs(visual.durationSeconds - audio.durationSeconds);
   const result: NonNullable<State['preMux']> = { visualDuration: visual.durationSeconds, audioDuration: audio.durationSeconds, durationDiffSeconds: diff, applied: false };
+  if(s.options.graph.motionMode==='authored'){
+    if(!s.narrationLock||fileContentHash(p.narration)!==s.narrationLock.audioSha256)throw new Error('PRE_MUX_MOTION_AUDIO_LOCK_INVALID');
+    if(diff>HSL_DURATION_TOLERANCE_SECONDS)throw new Error(`PRE_MUX_MOTION_AUDIO_LOCK_DESYNC:${diff.toFixed(3)}s`);
+    writeJson(receipt,result);
+    return{update:{preMux:result},metrics:{durationDiffSeconds:diff,synchronized:false,motionAudioLocked:true}};
+  }
   if (diff > HSL_DURATION_TOLERANCE_SECONDS && !s.options.graph.testRender) {
     const factor = audio.durationSeconds / visual.durationSeconds;
     // A fixed absolute difference is unsafe here: a 300 s episode can have

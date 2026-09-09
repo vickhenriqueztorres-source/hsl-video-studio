@@ -143,3 +143,61 @@
 **Fallback:** se o revisor ou o reparador não produzir resposta válida, o grafo preserva o checkpoint no gate de revisão humana; imagens e Firefly não são iniciados.
 
 **Validação:** build TypeScript e `graph/production/__tests__/phase2.test.ts` aprovados após o reparo dirigido.
+
+## 2026-09-09 — recuperação de exportação de `SCENE_051-take-1`
+
+**Erro:** o Firefly retornou um MP4 de 21.098.920 bytes, 1920×1080 e 5,04 s, mas o agente encerrou o job com `FAILED_MEDIA_VALIDATION: moov atom not found`. A primeira cópia foi validada enquanto ainda era parcial. Na recuperação, o arquivo parcial antigo `.job_1.incoming.part` também era interpretado como um segundo download e causava `DOWNLOAD_TEMP_RESULT_AMBIGUOUS`.
+
+**Classificação:** (c) sincronização do adaptador externo de exportação.
+
+**Solução:** o adaptador agora exige todas as amostras consecutivas de estabilidade configuradas antes do `ffprobe` e passa os parâmetros de estabilidade do `Config` até a validação. A recuperação ignora o espaço de trabalho interno `.job_*.incoming.part` e considera apenas temporários do Chrome. O download completo foi recuperado sem nova geração paga.
+
+**Validação:** testes do adaptador: `firefly_bot/tests/test_export_flow.py` (15 aprovados) e `firefly_bot/tests/test_selectors.py` (7 aprovados). O MP4 recuperado passou na inspeção técnica; a QA semântica do grafo o reprovou por luzes que não apagam e deformação da máquina, então foi colocado em quarentena sem reenvio.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_053-take-1`
+
+**Erro:** o MP4 técnico passou, mas a QA semântica não conseguiu comprovar a pequena estabilização ascendente do ponteiro de pressão nem a rotação contínua do eixo protegido.
+
+**Classificação:** (a) limitação de verificabilidade e deriva temporal do provedor externo.
+
+**Causa:** o Kling entregou movimento de câmera sem evidência visual suficiente das duas ações físicas essenciais solicitadas.
+
+**Solução:** o take foi colocado em quarentena com recibo e QA preservados. O grafo não reenviará a mesma operação e seguirá somente para takes independentes ainda cobertos pela autorização existente.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/f8f01909474e7eca22b6e466d3af3b683d7add5a8f5e73f34f393f547b383be6.mp4.qa.json`; a cobertura de quarentena Firefly e a build serão reexecutadas antes da retomada.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_056-take-1`
+
+**Erro:** a QA semântica detectou que o ponteiro atingiu o limite vermelho sem acionar a bandeira de trip; quando a bandeira caiu no último frame, o ponteiro já havia saído do limite.
+
+**Classificação:** (a) contradição temporal do provedor externo.
+
+**Causa:** o Kling não manteve a relação causal exigida entre a deflexão final do instrumento e o acionamento instantâneo da bandeira.
+
+**Solução:** o take foi colocado em quarentena com evidência preservada e sem reenvio automático. Não restam takes independentes cobertos pela autorização original; os seis pendentes dependem de takes reprovados.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/9c964cf30bfba855716e735cc18aa73ea89e4132a1c9f1e3c006f1be82777495.mp4.qa.json`. A build e os testes focados de quarentena foram aprovados antes da última retomada.
+
+## 2026-09-09 — substituição `SCENE_005-take-1` (revisão 1) recusada
+
+**Erro:** a QA semântica detectou alteração de cor de uma lâmpada, em vez do deslocamento mecânico único do indicador exigido pela cena.
+
+**Classificação:** (a) deriva semântica do provedor externo.
+
+**Causa:** a geração substituta preservou a aparência técnica do MP4, mas interpretou o evento físico como iluminação e não como posição mecânica.
+
+**Solução:** a operação substituta `c8d7dceb…` foi colocada em quarentena. O recibo original e o recibo de substituição foram preservados; não houve reenvio. Restam 14 das 15 substituições explicitamente autorizadas.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/c8d7dceb8950ac75dc86c500616bd2bbcbe46cc6d4af8e7e275db45b2581a336.mp4.qa.json`.
+
+## 2026-09-09 — substituição `SCENE_009-take-1` (revisão 1) recusada
+
+**Erro:** a QA semântica detectou que a carcaça direita perdeu as nervuras radiais do frame aprovado e se transformou em uma superfície lisa e arredondada.
+
+**Classificação:** (a) deriva estrutural do provedor externo.
+
+**Causa:** a segunda geração substituta confundiu o movimento do acoplamento com deformação da geometria rígida da turbina.
+
+**Solução:** a operação substituta `ff3151be…` foi colocada em quarentena, mantendo os recibos original e substituto. Nenhum reenvio dessa operação foi realizado. Restam 13 das 15 substituições autorizadas.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/ff3151bed4f037f270faf02bfd798ad2cc2a7921e738ecfce8e18cdee6c6649a.mp4.qa.json`.

@@ -1,6 +1,6 @@
 export type HslVisualMode = 'firefly_video' | 'generated_image_35mm' | 'vector_remotion' | 'motion_image_diagram';
 export type MediaPolicy = 'stills' | 'local-motion' | 'firefly-hybrid';
-export type MediaProvider = 'firefly-kling' | 'local-ffmpeg' | 'none';
+export type MediaProvider = 'firefly-kling' | 'local-ffmpeg' | 'remotion-authored' | 'none';
 export type MotionIntent = 'none' | 'camera' | 'physical';
 
 export interface MediaPlanBeat {
@@ -30,6 +30,8 @@ export interface MediaPlan {
   readonly fireflyBeatIds: readonly string[];
   readonly localMotionBeatIds: readonly string[];
   readonly stillBeatIds: readonly string[];
+  /** Code-authored Remotion scenes. Omitted on legacy contracts for checkpoint compatibility. */
+  readonly authoredBeatIds?: readonly string[];
   readonly fireflyFrames: number;
 }
 export type HslShotSize = 'EXTREME_WIDE' | 'WIDE' | 'MEDIUM' | 'CLOSE' | 'MACRO' | 'ISOMETRIC_3D';

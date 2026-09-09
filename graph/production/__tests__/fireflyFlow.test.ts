@@ -18,7 +18,7 @@ import type { FireflyAuthorization } from '../lib/firefly/process';
 import {
   fireflyGuide, klingBudgetWait, fireflySessionPrepare, fireflySessionWait,
   fireflyDispatch, fireflyIntakeWait, fireflyRecoveryWait, fireflyFinalize,
-  routeDispatch, routeTakes, routeKlingBudget, routeRecovery,
+  routeDispatch, routeTakes, routeKlingBudget, routeRecovery, prepareKlingReplacements,
 } from '../nodes/firefly_real';
 
 // No realDependencies fallback: any unmocked dependency is an immediate error.
@@ -162,6 +162,24 @@ function fixture(t: TestContext, durations?: number[]) {
   });
   return createFireflyFlowFixture(root, durations);
 }
+
+test('explicit replacement authorization derives a new operation without mutating the rejected receipt', async t => {
+  const f=fixture(t);
+  const guided=await f.apply(fireflyGuide(f.c),f.state);
+  const rejected={...guided,videoTakes:[{...guided.videoTakes[0],status:'failed' as const,error:'fixture rejected'}]};
+  const replacement={...rejected,...prepareKlingReplacements(f.c,rejected,1)} as State;
+  const original=guided.videoTakes[0], retry=replacement.videoTakes[0];
+  assert.notEqual(retry.operationId,original.operationId);
+  assert.equal(retry.revision,1);
+  assert.equal(retry.replacesOperationId,original.operationId);
+  assert.equal(retry.status,'pending');
+  const budgeted=await f.apply(klingBudgetWait(f.c),replacement);
+  assert.equal(budgeted.klingAuthorization?.limit,1);
+  const dispatched=await f.apply(fireflyDispatch(f.c),budgeted);
+  assert.equal(dispatched.videoTakes[0].status,'dispatched');
+  assert.equal(f.calls.transport,1);
+  assert.equal(f.ledger(l=>l.operation(retry.operationId!)?.authorizationId),budgeted.klingAuthorization?.id);
+});
 function miniGraph(f: Fixture, opts: {
   saver?: MemorySaver | ReturnType<typeof createCheckpointer>;
   start?: 'firefly_guide' | 'firefly_dispatch'; dispatch?: NodeFn;

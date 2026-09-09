@@ -74,6 +74,39 @@ export const fireflyGuide=(c:Context):NodeFn=>s=>{
   const guidePath=path.join(directory(c,s),'guide.json');writeJson(guidePath,{...budget,takes});
   return{frames:recovered,videoTakes:takes,fireflyGuidePath:guidePath,klingBudget:budget,fireflyIssue:null};
 };
+/**
+ * Derive one new paid operation for each rejected take without altering or
+ * reusing its original receipt. This is invoked only by the explicit CLI
+ * replacement authorization path.
+ */
+export function prepareKlingReplacements(c:Context,s:State,count:number):Partial<State> {
+  if(!Number.isSafeInteger(count)||count<1)throw new Error('KLING_REPLACEMENT_COUNT_INVALID');
+  const media=assertMediaPlan(s);
+  const rejected=s.videoTakes.filter(t=>t.status==='failed');
+  if(rejected.length!==count)throw new Error(`KLING_REPLACEMENT_COUNT_MISMATCH:failed=${rejected.length};requested=${count}`);
+  const takes=s.videoTakes.map(t=>({...t}));
+  const replacementIds:string[]=[];
+  const audit=rejected.map(rejectedTake=>{
+    const target=takes.find(t=>t.operationId===rejectedTake.operationId);
+    if(!target?.operationId)throw new Error(`KLING_REPLACEMENT_OPERATION_MISSING:${key(rejectedTake)}`);
+    const original={operationId:target.operationId,recipeHash:target.recipeHash,outputPath:target.outputPath,error:target.error};
+    target.revision=(target.revision??0)+1;
+    target.replacesOperationId=target.operationId;
+    target.recipeHash=takeRecipe(s,target);
+    target.operationId=digest([s.episodeId,target.recipeHash]);
+    target.outputPath=path.join(directory(c,s),'takes',`${target.operationId}.mp4`);
+    target.status='pending';delete target.error;delete target.generationCounted;delete target.startedAt;delete target.endedAt;
+    replacementIds.push(target.operationId);
+    return {take:key(target),revision:target.revision,replaces:original,replacement:{operationId:target.operationId,recipeHash:target.recipeHash,outputPath:target.outputPath}};
+  });
+  const budget={kind:'KLING_BUDGET' as const,model:'Kling 2.5 Turbo' as const,planHash:media.hash,
+    scopeHash:digest(['replacement',media.hash,replacementIds]),videoBeats:new Set(rejected.map(t=>t.beatId)).size,
+    totalTakes:count,reusableTakes:0,reconciliationRequired:0,requiredGenerations:count,operationIds:replacementIds};
+  const auditPath=path.join(directory(c,s),'replacement-authorization.json');
+  writeJson(auditPath,{schema:'hsl.kling-replacement.v1',episodeId:s.episodeId,createdAt:new Date().toISOString(),authorizedGenerations:count,budget,replacements:audit});
+  return {videoTakes:takes,klingBudget:budget,klingAuthorization:null,fireflyIssue:null,
+    options:{...s.options,graph:{...s.options.graph,maxGenerations:count}},gateDecisions:[{gate:'kling',decision:'proceed' as const,at:new Date().toISOString()}]};
+}
 export const klingBudgetWait=(c:Context):NodeFn=>s=>{
   const b=s.klingBudget;if(!b||b.planHash!==assertMediaPlan(s).hash)throw new Error('KLING_BUDGET_PLAN_MISMATCH');
   const existing=useLedger(c,s,l=>l.authorization(b.scopeHash));if(existing)return{klingAuthorization:existing};
@@ -125,8 +158,10 @@ export const fireflyDispatch=(c:Context):NodeFn=>async s=>{
   // A durable reservation survives death before the node checkpoint. Only a
   // reconciled, unstarted external job may be submitted again automatically.
   if(prior&&!(matches&&transport?.phase==='enqueued')&&!(prior.phase==='unstarted'&&!fs.existsSync(receiptPath)))return recovery('KLING_DISPATCH_UNCERTAIN: reconciliar o recibo antes de retomar');
-  const auth=s.klingAuthorization??useLedger(c,s,l=>l.authorization(s.klingBudget!.scopeHash));
-  if(!auth||auth.scopeHash!==s.klingBudget.scopeHash)throw new Error('KLING_PAID_DISPATCH_NOT_AUTHORIZED');
+  // Original pending dependent takes remain covered by their original
+  // authorization. Replacement operations use the new replacement scope.
+  const auth=useLedger(c,s,l=>l.authorizationForOperation(next.operationId!)??s.klingAuthorization??l.authorization(s.klingBudget!.scopeHash));
+  if(!auth||auth.planHash!==media.hash)throw new Error('KLING_PAID_DISPATCH_NOT_AUTHORIZED');
   const reservation=useLedger(c,s,l=>l.reserve(auth,{id:next.operationId!,planHash:media.hash,recipeHash:next.recipeHash!,inputHash:hashFile(next.firstFramePath),outputPath:next.outputPath}));
   if(!reservation.created&&!prior)return recovery('KLING_CONCURRENT_RESERVATION');
   const guide=path.join(runtime,'guide.json');writeJson(guide,agentGuide(prompt,next));

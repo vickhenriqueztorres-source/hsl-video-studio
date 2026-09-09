@@ -51,6 +51,20 @@ test('full frame coverage includes the former 5.5-second gap', () => {
   for (const frames of [0, -1, 1.5, Infinity, NaN]) assert.throws(() => mediaTakeCount(frames), /DURATION_INVALID/);
 });
 
+test('authored motion replaces only selected beats and survives contract replay', () => {
+  const source=timeline([beat('photo'),beat('authored'),beat('video')]);
+  const {scenePlan,mediaPlan}=planMedia(source,'firefly-hybrid',new Set(['authored']));
+  const authored=scenePlan.beats.find(item=>item.beatId==='authored')!;
+  assert.equal(authored.mediaProvider,'remotion-authored');
+  assert.equal(authored.visualMode,'firefly_video');
+  assert.equal(authored.outputVideoPath,'public/runs/MEDIA_TEST/motion/authored.mp4');
+  assert.deepEqual(mediaPlan.authoredBeatIds,['authored']);
+  assert.ok(!mediaPlan.fireflyBeatIds.includes('authored'));
+  assert.ok(!mediaPlan.localMotionBeatIds.includes('authored'));
+  assert.ok(!mediaPlan.stillBeatIds.includes('authored'));
+  validateMediaPlan(scenePlan,mediaPlan);
+});
+
 test('explicit cooling motion survives the director and normalization with original IDs', () => {
   assert.equal(getAiCoolingBeatData(1, 2, cooling).motionIntent, 'physical');
   assert.equal(getAiCoolingBeatData(1, 3, cooling).motionIntent, 'none');

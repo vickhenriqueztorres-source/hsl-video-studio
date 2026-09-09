@@ -60,7 +60,7 @@ export function scenePlanHash(plan: unknown): string {
   }
   return identityHash(content);
 }
-type Provider = 'firefly-kling' | 'local-ffmpeg' | 'none';
+type Provider = 'firefly-kling' | 'local-ffmpeg' | 'remotion-authored' | 'none';
 export interface RenderMediaBeat {
   beatId: string; visualMode: string; provider: Provider | 'unspecified';
   assetPath: string; path: string; hash: string;
@@ -106,7 +106,7 @@ export function createRenderIdentity(c: Context, s: State): RenderIdentity {
     const source = result?.path ?? (fs.existsSync(candidates[1]) ? candidates[1] : served);
     const resolved = localFile(c.root, served), sourcePath = localFile(c.root, source);
     const provider = (beat as typeof beat & { mediaProvider?: Provider }).mediaProvider ?? 'unspecified';
-    if (!['firefly-kling', 'local-ffmpeg', 'none', 'unspecified'].includes(provider)) throw new Error(`RENDER_MEDIA_PROVIDER_INVALID: ${beat.beatId}`);
+    if (!['firefly-kling', 'local-ffmpeg', 'remotion-authored', 'none', 'unspecified'].includes(provider)) throw new Error(`RENDER_MEDIA_PROVIDER_INVALID: ${beat.beatId}`);
     return { beatId: beat.beatId, visualMode: beat.visualMode, provider, assetPath,
       path: resolved, hash: fileContentHash(resolved), sourcePath, sourceHash: fileContentHash(sourcePath), frameRange };
   });

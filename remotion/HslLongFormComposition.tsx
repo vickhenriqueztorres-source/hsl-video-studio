@@ -122,6 +122,7 @@ const MediaBeatLayer: React.FC<{
     episodeId.toLowerCase().includes('blackout') ||
     (subtitle && subtitle.toLowerCase().includes('hz'));
   const isWallStreetLatencyEpisode = isWallStreetLatencyPlan(episodeId, subtitle);
+  const isAuthoredMotion = beat.mediaProvider === 'remotion-authored';
   const accentColor = beat.actNumber >= 4 && beat.actNumber <= 5 ? '#FF2E00' : '#FFE500';
 
   // 🎥 DYNAMIC CAMERA MATRIX BASEADA NO CAMERAMOVEMENT
@@ -186,15 +187,15 @@ const MediaBeatLayer: React.FC<{
       {/* 🎬 SEÇÃO 1: RENDERIZAÇÃO DO MODO VISUAL */}
       {beat.visualMode === 'firefly_video' ? (
         /* 🎥 VÍDEO DE MOVIMENTO CONTÍNUO */
-        <AbsoluteFill style={{transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`}}>
+        <AbsoluteFill style={{transform: isAuthoredMotion ? undefined : `scale(${scale}) translate(${translateX}px, ${translateY}px)`}}>
           <OffthreadVideo
             src={resolveMediaSrc(beat.outputVideoPath!, assetBaseUrl)}
             muted
             style={{width: '100%', height: '100%', objectFit: 'cover'}}
           />
-          <AbsoluteFill style={{
+          {!isAuthoredMotion && <AbsoluteFill style={{
             background: 'radial-gradient(circle at center, rgba(13,14,21,0.05) 0%, rgba(13,14,21,0.50) 100%)'
-          }} />
+          }} />}
         </AbsoluteFill>
       ) : (
         /* 🖼️ IMAGEM 35MM / FRAME SVG DE ALTA DEFINIÇÃO COM KEN BURNS */
@@ -209,7 +210,7 @@ const MediaBeatLayer: React.FC<{
         </AbsoluteFill>
       )}
 
-      {isWallStreetLatencyEpisode && (
+      {!isAuthoredMotion && isWallStreetLatencyEpisode && (
         <LatencySafeMotionOverlay
           beat={beat}
           frame={frame}
@@ -219,13 +220,13 @@ const MediaBeatLayer: React.FC<{
       )}
 
       {/* 🎯 CORNER HUD RETICLES (Estética Apple / Vox Technical) */}
-      <div style={{position: 'absolute', top: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>
-      <div style={{position: 'absolute', top: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>
-      <div style={{position: 'absolute', bottom: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>
-      <div style={{position: 'absolute', bottom: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>
+      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
 
       {/* 📐 UNIVERSAL TOP HUD HEADER (Adaptativo a qualquer tema) */}
-      <HslUniversalHeader
+      {!isAuthoredMotion && <HslUniversalHeader
         episodeSubtitle={subtitle || (
           (episodeId.toLowerCase().includes('megaship') || episodeId.toLowerCase().includes('ship') || episodeId.toLowerCase().includes('suez') || episodeId.toLowerCase().includes('240000'))
             ? 'THE 240,000-TON MONSTER THAT NEEDS 5 KM TO BRAKE // MEGASHIP HYDRODYNAMICS'
@@ -235,10 +236,10 @@ const MediaBeatLayer: React.FC<{
         )}
         stageTitle={`ACT 0${beat.actNumber} // ${beat.stage}`}
         accentColor={accentColor}
-      />
+      />}
 
       {/* ⚡ TIPOGRAFIA MONUMENTAL VOX / HSL (Exibida em cenas fotorrealistas sem texto embutido) */}
-      {!beat.infographicArchetype && beat.visualMode !== 'motion_image_diagram' && beat.graphicHeadline && (
+      {!isAuthoredMotion && !beat.infographicArchetype && beat.visualMode !== 'motion_image_diagram' && beat.graphicHeadline && (
         <div style={{
           position: 'absolute',
           bottom: 110,
