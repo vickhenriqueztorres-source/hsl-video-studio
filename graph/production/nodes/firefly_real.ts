@@ -25,6 +25,14 @@ const key=(t:VideoTake)=>`${t.beatId}-take-${t.takeIndex}`;
 const readyPendingTake=(takes:VideoTake[])=>takes.find(t=>t.status==='pending'&&(!t.dependsOnTake||takes.some(parent=>key(parent)===t.dependsOnTake&&['ok','skipped'].includes(parent.status))));
 const directory=(c:Context,s:State)=>path.join(paths(c,s).run,'firefly');
 const runtimeFor=(c:Context,s:State,t:VideoTake)=>path.join(directory(c,s),'runtime',t.operationId!);
+function terminalProviderNoOutput(runtime:string,take:VideoTake):string|undefined {
+  const artifacts=path.join(runtime,'screenshots','provider','terminal_state_artifacts');
+  if(fs.existsSync(path.join(runtime,'saida',key(take)+'.mp4'))||!fs.existsSync(artifacts))return;
+  for(const file of fs.readdirSync(artifacts).filter(name=>name.endsWith('_provider_reason.json'))){
+    const text=JSON.stringify(readJson<unknown>(path.join(artifacts,file))??{}).toLowerCase();
+    if(text.includes('não podemos exibir o vídeo gerado')||text.includes('tente novamente mais tarde'))return `FIREFLY_PROVIDER_TERMINAL_NO_OUTPUT:${file}`;
+  }
+}
 function useLedger<T>(c:Context,s:State,fn:(ledger:KlingLedger)=>T):T {
   const ledger=new KlingLedger(directory(c,s));
   try{return fn(ledger);}finally{try{writeJson(path.join(directory(c,s),'ledger-export.json'),ledger.export());}finally{ledger.close();}}
@@ -150,6 +158,8 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
   const deferred=(reason:string)=>({fireflyIssue:{...issue,reason},videoTakes:s.videoTakes.map(t=>t.operationId===take.operationId?{...t,status:'failed' as const,error:reason}:t)});
   const persistedQa=readJson<{passed?:boolean;issues?:string[]}>(take.outputPath+'.qa.json');
   if(persistedQa?.passed===false)return deferred(`FIREFLY_QA_REJECTED:${(persistedQa.issues??['revisão visual reprovada']).join('; ')}`);
+  const terminalNoOutput=terminalProviderNoOutput(runtime,take);
+  if(terminalNoOutput)return deferred(terminalNoOutput);
   const receipt=readJson<TransportReceipt>(issue.receiptPath);
   // A completed transport is retried only through intake/QA. An already
   // enqueued operation may resume the same external job. Neither path creates

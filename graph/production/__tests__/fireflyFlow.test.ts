@@ -253,6 +253,23 @@ test('semantic QA rejection quarantines its paid take and advances only independ
   assert.equal(f.ledger(l=>l.count()),2,'no replacement generation was created');
 });
 
+test('terminal provider error with no output quarantines only its submitted take', async t => {
+  const f=fixture(t,[300,150]),s=await f.prepare(),first=s.videoTakes[0];
+  const reservation=f.reserve(s,first),receiptPath=f.receiptPath(first);
+  writeJson(receiptPath,{schema:'hsl.kling-dispatch.v2',name:'B001-take-1',phase:'uncertain',paidDispatchPossible:true,inputFrameHash:hashFile(first.firstFramePath),authorization:{authorizationId:s.klingAuthorization!.id,planHash:s.mediaPlan!.hash,operationId:first.operationId!,recipeHash:first.recipeHash!},outputPath:path.join(f.runtime(first),'saida','B001-take-1.mp4')});
+  writeJson(path.join(f.runtime(first),'screenshots','provider','terminal_state_artifacts','job_1_unknown_provider_reason.json'),{bodyText:'Não podemos exibir o vídeo gerado. Você pode editar e tentar novamente.'});
+  assert.ok(reservation.operation);
+  const graph=miniGraph(f,{start:'firefly_dispatch'}),cfg=config(f);
+  await graph.invoke(s,cfg);
+  await graph.invoke(new Command({resume:{}}),cfg);
+  const snapshot=await graph.getState(cfg),takes=snapshot.values.videoTakes;
+  assert.equal(takes[0].status,'failed');
+  assert.match(takes[0].error!,/^FIREFLY_PROVIDER_TERMINAL_NO_OUTPUT:/);
+  assert.equal(takes[1].status,'pending');
+  assert.equal(takes[2].status,'ok');
+  assert.equal(f.calls.transport,1,'only independent work is sent');
+});
+
 test('101 takes cross the old recursion ceiling, chain frames, validate coverage, and reuse without transport', async t => {
   const f = fixture(t, [...Array<number>(50).fill(300), 150]);
   const graph = miniGraph(f), cfg = config(f);

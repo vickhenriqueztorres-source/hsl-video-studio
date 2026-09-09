@@ -1,5 +1,89 @@
 # Registro de erros de produção
 
+## 2026-09-09 — `SCENE_041-take-1` terminou sem mídia após o provedor sinalizar erro
+
+**Erro:** depois de confirmar o clique de geração, Firefly exibiu “Não podemos exibir o vídeo gerado” e o modal de desaceleração “Tente novamente mais tarde”. O agente classificava a página como `unknown` e encerrava como infraestrutura ambígua.
+
+**Classificação:** (b) capacidade do provedor, com lacuna de detecção de estado externo.
+
+**Causa:** o seletor de erro conhecia apenas “Ocorreu um erro”; o painel atual usa a mensagem de vídeo indisponível, alojada no componente de erro do Firefly.
+
+**Solução:** o agente externo agora detecta explicitamente “Não podemos exibir o vídeo gerado”. No LangGraph, evidência terminal sem MP4 marca apenas a operação como `FIREFLY_PROVIDER_TERMINAL_NO_OUTPUT`, preserva o recibo e libera os takes independentes sem reenviar a geração paga.
+
+**Validação:** `firefly_bot/tests/test_selectors.py`: 7 aprovados; `npm run build`; e três cenários focados em `fireflyFlow.test.ts` aprovados, incluindo erro terminal sem saída.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_040-take-1`
+
+**Erro:** a cena terminou em redução parcial de iluminação, sem blackout metropolitano completo e sem as reflexões de giroflex vermelho/azul exigidas.
+
+**Classificação:** (a) deriva de evento temporal e iluminação do provedor externo.
+
+**Causa:** Kling não representou nem a transição instantânea de apagão nem o efeito posterior de emergência definidos no prompt e no frame de referência.
+
+**Solução:** o take foi reprovado e isolado; a dependência da cena permanece bloqueada e o recibo impede reenvio ambíguo. A substituição só pode ocorrer sob nova autorização paga.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/48f7cabf18cdd4bedb28ea34ed6b9f4dc31b58d2a787bc11ec79fbab867884e5.mp4.qa.json`; build e teste focado da política de quarentena passaram antes da retomada.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_038-take-1`
+
+**Erro:** a transição de status do disjuntor terminou com ambas as lâmpadas acesas, contrariando a extinção contínua da lâmpada vermelha exigida pela cena.
+
+**Classificação:** (a) deriva de estado discreto do provedor externo.
+
+**Causa:** o Kling não preservou a regra de um único estado de iluminação durante a sequência, apesar de entregar mídia tecnicamente válida.
+
+**Solução:** o grafo isolou a operação, bloqueou o take dependente e preservou evidências. Não houve reenvio, alteração do recibo ou consumo adicional para essa operação.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/4534e23c1ca150f68e3c46a7bc46be2b1fe6c82dcde1da0f3e427c5827c72fa9.mp4.qa.json`; o teste de quarentena de QA e a build TypeScript seguem aprovados.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_028-take-1`
+
+**Erro:** a QA semântica não confirmou a pequena deflexão ascendente do ponteiro e detectou um feixe vermelho amplo, ausente no frame aprovado, a partir de 2,875 s.
+
+**Classificação:** (a) deriva temporal e de iluminação do provedor externo.
+
+**Causa:** Kling manteve o ponteiro perto do limite baixo e introduziu iluminação vermelha que altera a continuidade óptica da cena.
+
+**Solução:** quarentena do take e do respectivo recibo; dependências seguem bloqueadas e o grafo não poderá reenviar a mesma operação. A cena só poderá receber substituição com nova autorização paga.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/3da2962c350eb10b147f4ce3fcb13ca483b10865b7db6ae231cb3af5d43fd1fc.mp4.qa.json`; build e teste focado de quarentena permanecem aprovados.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_023-take-1`
+
+**Erro:** a QA semântica detectou que o ponteiro central se moveu no sentido horário, contrário ao movimento anti-horário exigido para representar a queda até o limiar vermelho.
+
+**Classificação:** (a) deriva temporal do provedor externo.
+
+**Causa:** o MP4 foi entregue com parâmetros técnicos válidos, mas o movimento gerado contradiz o prompt aprovado; a validação semântica impediu que esse take fosse incorporado ao vídeo final.
+
+**Solução:** o take foi colocado em quarentena com recibo e artefatos preservados. Nenhuma nova geração será disparada para a mesma operação; uma substituição requer autorização paga adicional.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/cd9375be502172aad8ac3485790ae212ea82bfd0d739a5ca061709036d968a43.mp4.qa.json` e teste focado de quarentena de QA aprovado.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_020-take-2`
+
+**Erro:** o segundo take da cena 020 passou na inspeção técnica, mas a QA semântica identificou movimento do ponteiro no sentido oposto e deformação da carcaça central rígida.
+
+**Classificação:** (a) deriva visual do provedor externo.
+
+**Causa:** a geração Kling não manteve a geometria da máquina nem o vetor temporal solicitado. O take anterior da mesma cena foi aprovado, mas esse take dependente não pode fornecer continuidade segura.
+
+**Solução:** o grafo preservou o MP4 e a evidência, marcou somente este take como reprovado e bloqueou reenvio automático. Uma substituição exige uma nova autorização paga explícita, pois a geração original já foi consumida.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/6031c980bac63401e70aa68148e979bea8bc6ae4d43084a190e4617e9138998d.mp4.qa.json`; a regra de quarentena foi coberta pelo teste focado do fluxo Firefly.
+
+## 2026-09-09 — `firefly_intake_wait` recusou `SCENE_019-take-1`
+
+**Erro:** o take retornou vídeo tecnicamente válido, mas a QA semântica encontrou números e texto espúrios no mostrador, mudança nas marcações e um ponteiro com movimento incompatível com a instrução contínua.
+
+**Classificação:** (a) deriva visual do provedor externo; não é erro de transporte nem de checkpoint.
+
+**Causa:** o Kling alterou detalhes rígidos do mostrador e a trajetória do ponteiro durante a geração. A análise determinística passou, enquanto a revisão semântica reprovou correspondência e continuidade.
+
+**Solução:** `firefly_intake_wait` registrou a reprovação com evidência e colocou somente `SCENE_019-take-1` em quarentena. O roteamento preserva os takes dependentes bloqueados e libera somente cenas independentes já autorizadas; o recibo original não pode ser reenviado automaticamente.
+
+**Validação:** evidência em `runs/HSL_EPISODE_006/firefly/takes/2073446d432776273abe2765af96d192ac03710d1c5837a8fa87a61bd9959831.mp4.qa.json`. O teste focado cobre a quarentena por QA sem criação de geração substituta.
+
 ## 2026-09-08 — `firefly_dispatch` classificou render em andamento como resultado pronto
 
 **Erro:** o primeiro take do EP006 foi enviado ao Kling 2.5 Turbo, mas o agente tentou exportá-lo enquanto a tela ainda exibia “Gerando vídeo…”. O botão `Baixar` estava desabilitado e a execução terminava em `RESULT_READY_DOWNLOAD_BUTTON_DISABLED`.
