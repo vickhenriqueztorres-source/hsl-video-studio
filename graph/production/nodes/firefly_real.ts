@@ -22,6 +22,7 @@ function matchesTransport(receipt:TransportReceipt|undefined,take:VideoTake,oper
 }
 
 const key=(t:VideoTake)=>`${t.beatId}-take-${t.takeIndex}`;
+const readyPendingTake=(takes:VideoTake[])=>takes.find(t=>t.status==='pending'&&(!t.dependsOnTake||takes.some(parent=>key(parent)===t.dependsOnTake&&['ok','skipped'].includes(parent.status))));
 const directory=(c:Context,s:State)=>path.join(paths(c,s).run,'firefly');
 const runtimeFor=(c:Context,s:State,t:VideoTake)=>path.join(directory(c,s),'runtime',t.operationId!);
 function useLedger<T>(c:Context,s:State,fn:(ledger:KlingLedger)=>T):T {
@@ -41,7 +42,7 @@ export const fireflyGuide=(c:Context):NodeFn=>s=>{
   beginStage(c,s,'STAGE_03_FIREFLY_VIDEOS');
   const prompts=s.visualPrompts.filter(p=>ids.has(p.beatId));
   if(prompts.length!==ids.size||new Set(prompts.map(p=>p.beatId)).size!==ids.size)throw new Error('FIREFLY_PROMPT_COVERAGE_MISMATCH');
-  const allBeatIds=s.scenePlan!.beats.map(beat=>beat.beatId);
+  const allBeatIds=[...ids];
   const usable=new Map(s.frames.filter(f=>f.status!=='failed'&&fs.existsSync(f.path)).map(f=>[f.beatId,f.path]));
   const recovered=allBeatIds.some(id=>!usable.has(id))?resolveValidatedFrames(c,s,allBeatIds):s.frames;
   const images=new Map(recovered.filter(f=>f.status!=='failed').map(f=>[f.beatId,f.path]));
@@ -88,7 +89,9 @@ export const fireflySessionWait:NodeFn=s=>{if(s.environment?.sessionValid)return
 export const fireflyDispatch=(c:Context):NodeFn=>async s=>{
   const media=assertMediaPlan(s),takes=s.videoTakes.map(t=>({...t}));
   if(!takes.length||!s.klingBudget||s.klingBudget.planHash!==media.hash)throw new Error('FIREFLY_TAKES_NOT_PREPARED');
-  const next=takes.find(t=>!['ok','skipped'].includes(t.status));if(!next)return{__status:'skipped'};
+  // A failed export must not hold unrelated, already authorized scenes. Never
+  // select a dependent take until its parent's last frame passed intake/QA.
+  const next=takes.find(t=>t.status==='dispatched')??readyPendingTake(takes)??takes.find(t=>t.status==='failed')??takes.find(t=>!['ok','skipped'].includes(t.status));if(!next)return{__status:'skipped'};
   if(!next.operationId||!next.recipeHash)throw new Error('FIREFLY_CHECKPOINT_MIGRATION_REQUIRED: run --from media_plan_prepare');
   if(takeRecipe(s,next)!==next.recipeHash||digest([s.episodeId,next.recipeHash])!==next.operationId)throw new Error('KLING_RECIPE_CHANGED: replanejar e revalidar orçamento');
   if(next.dependsOnTake&&!takes.some(t=>key(t)===next.dependsOnTake&&['ok','skipped'].includes(t.status)))throw new Error('FIREFLY_DEPENDENCY_PENDING');
@@ -133,20 +136,29 @@ export const fireflyDispatch=(c:Context):NodeFn=>async s=>{
   return{videoTakes:takes,generationCount:useLedger(c,s,l=>l.count()),fireflyIssue:null};
 };
 export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
-  const issue=s.fireflyIssue??{kind:'FIREFLY_RECOVERY',reason:'Resultado externo requer reconciliação'};
+  // `interruptAfter` can preserve the next recovery task after intake while
+  // retaining the state immediately before the intake update. Rehydrate the
+  // exact dispatched take so a resume never loses its receipt or guesses a
+  // different provider result.
+  const inFlight=s.videoTakes.find(t=>t.status==='dispatched');
+  const issue=s.fireflyIssue??(inFlight?{kind:'FIREFLY_RECOVERY',take:key(inFlight),receiptPath:path.join(runtimeFor(c,s,inFlight),'dispatch-receipt.json'),retryPolicy:'intake-state-repair-no-auto-resubmit',reason:'FIREFLY_INTAKE_STATE_REPAIR: retomar a verificação do take já exportado; nenhuma nova geração será criada.'}:{kind:'FIREFLY_RECOVERY',reason:'Resultado externo requer reconciliação'});
   interrupt(issue);
   if(!issue.receiptPath)throw new Error('FIREFLY_RECOVERY_RECEIPT_MISSING');
   const runtime=path.dirname(issue.receiptPath),take=s.videoTakes.find(item=>runtime===runtimeFor(c,s,item));
   if(!take?.operationId)throw new Error('FIREFLY_RECOVERY_OPERATION_MISSING');
+  const recovered=()=>({fireflyIssue:null,videoTakes:s.videoTakes.map(t=>t.operationId===take.operationId?{...t,status:'pending' as const,error:undefined}:t)});
+  const deferred=(reason:string)=>({fireflyIssue:{...issue,reason},videoTakes:s.videoTakes.map(t=>t.operationId===take.operationId?{...t,status:'failed' as const,error:reason}:t)});
+  const persistedQa=readJson<{passed?:boolean;issues?:string[]}>(take.outputPath+'.qa.json');
+  if(persistedQa?.passed===false)return deferred(`FIREFLY_QA_REJECTED:${(persistedQa.issues??['revisão visual reprovada']).join('; ')}`);
   const receipt=readJson<TransportReceipt>(issue.receiptPath);
   // A completed transport is retried only through intake/QA. An already
   // enqueued operation may resume the same external job. Neither path creates
   // a second job or consumes a new reservation.
-  if(receipt?.phase==='transport_complete'||receipt?.phase==='enqueued')return{fireflyIssue:null};
+  if(receipt?.phase==='transport_complete'||receipt?.phase==='enqueued')return recovered();
   if(receipt?.phase==='uncertain'&&receipt.outputPath&&fs.existsSync(receipt.outputPath)){
     try{
       await c.deps.reconcileCompletedFireflyTake(c.deps.fireflyEnvironment(),runtime,path.join(runtime,'guide.json'),path.join(paths(c,s).audit,`${take.operationId}-completed-reconcile.log`));
-      return{fireflyIssue:null};
+      return recovered();
     }catch(error){
       const reason=error instanceof Error?error.message:String(error);
       return{fireflyIssue:{...issue,reason:`FIREFLY_COMPLETED_RECONCILIATION_PENDING:${reason}`}};
@@ -170,9 +182,12 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
       if(!sessionValid)return{environment:{agentDir:environment.agentDir,profileDir:environment.profileDir,sessionValid:false},fireflyIssue:{kind:'FIREFLY_LOGIN',take:key(take),receiptPath:issue.receiptPath,retryPolicy:'recover-existing-job-only',reason:'FIREFLY_RECOVERY_LOGIN_REQUIRED: autentique o perfil Adobe para recuperar o job já enviado; nenhuma nova geração será criada.'}};
       await c.deps.recoverFireflyResult(environment,runtime,path.join(runtime,'guide.json'),path.join(paths(c,s).audit,`${take.operationId}-result-recovery.log`));
       useLedger(c,s,ledger=>ledger.update(take.operationId!,{phase:'submitted',error:undefined}));
-      return{fireflyIssue:null};
+      return recovered();
     }catch(error){
       const reason=error instanceof Error?error.message:String(error);
+      // Defer only provider-result recovery failures, not profile, protocol,
+      // provenance or infrastructure failures that also threaten other takes.
+      if(reason.startsWith('FIREFLY_RECOVERY_PROVIDER_QUERY:'))return deferred(`FIREFLY_RESULT_RECOVERY_PENDING:${reason}`);
       return{fireflyIssue:{...issue,reason:`FIREFLY_RESULT_RECOVERY_PENDING:${reason}`}};
     }
   }
@@ -182,7 +197,7 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
   try{
     await c.deps.reconcileFireflyTake(c.deps.fireflyEnvironment(),runtime,path.join(runtime,'guide.json'),path.join(paths(c,s).audit,`${take.operationId}-reconcile.log`));
     useLedger(c,s,ledger=>ledger.update(take.operationId!,{phase:'unstarted',error:undefined}));
-    return{fireflyIssue:null};
+    return recovered();
   }catch(error){
     const reason=error instanceof Error?error.message:String(error);
     return{fireflyIssue:{...issue,reason:`FIREFLY_RECONCILIATION_PENDING:${reason}`}};
@@ -191,7 +206,9 @@ export const fireflyRecoveryWait=(c:Context):NodeFn=>async s=>{
 export const routeDispatch=(s:State)=>s.fireflyIssue?'firefly_recovery_wait':'firefly_intake_wait';
 /** Keep a recovery checkpoint suspended until a reconciliation has proved it safe to advance.
  * A static edge here would re-enter dispatch with the same uncertain receipt. */
-export const routeRecovery=(s:State)=>s.fireflyIssue?.kind==='FIREFLY_LOGIN'?'firefly_session_prepare':s.fireflyIssue?'firefly_recovery_wait':'firefly_dispatch';
+export const routeRecovery=(s:State)=>s.fireflyIssue?.kind==='FIREFLY_LOGIN'?'firefly_session_prepare':s.fireflyIssue
+  ?s.videoTakes.some(t=>key(t)===s.fireflyIssue?.take&&t.status==='failed')&&readyPendingTake(s.videoTakes)?'firefly_dispatch':'firefly_recovery_wait'
+  :'firefly_dispatch';
 export const fireflyIntakeWait=(c:Context):NodeFn=>async s=>{
   assertMediaPlan(s);const takes=s.videoTakes.map(t=>({...t})),t=takes.find(x=>x.status==='dispatched');if(!t)return{};
   try{
@@ -202,7 +219,14 @@ export const fireflyIntakeWait=(c:Context):NodeFn=>async s=>{
     if(!qa.passed)throw new Error(`FIREFLY_QA_REJECTED:${qa.issues.join('; ')}`);
     useLedger(c,s,l=>l.update(t.operationId!,{phase:'validated',outputHash:hashFile(t.outputPath),duration:p.duration}));t.status='ok';t.actualSeconds=p.duration;t.endedAt=new Date().toISOString();
     await c.deps.extractLastFrame(t.outputPath,t.outputPath+'.last-frame.png');return{videoTakes:takes,fireflyIssue:null};
-  }catch(e){return{fireflyIssue:{kind:'FIREFLY_RECOVERY',reason:e instanceof Error?e.message:String(e),take:key(t),receiptPath:path.join(runtimeFor(c,s,t),'dispatch-receipt.json'),retryPolicy:'manual-reconcile-no-auto-resubmit'}};}
+  }catch(e){
+    const reason=e instanceof Error?e.message:String(e),receiptPath=path.join(runtimeFor(c,s,t),'dispatch-receipt.json');
+    // Semantic rejection consumes the existing provider job. Preserve its QA
+    // evidence, never resubmit it, and let other authorized independent takes
+    // progress. Dependents remain blocked because their first frame is absent.
+    if(reason.startsWith('FIREFLY_QA_REJECTED:'))return{videoTakes:takes.map(item=>item.operationId===t.operationId?{...item,status:'failed' as const,error:reason}:item),fireflyIssue:{kind:'FIREFLY_RECOVERY',reason,take:key(t),receiptPath,retryPolicy:'qa-rejected-no-auto-resubmit'}};
+    return{fireflyIssue:{kind:'FIREFLY_RECOVERY',reason,take:key(t),receiptPath,retryPolicy:'manual-reconcile-no-auto-resubmit'}};
+  }
 };
 export const routeTakes=(s:State)=>{if(s.fireflyIssue)return'firefly_recovery_wait';if(!s.videoTakes.length)throw new Error('MEDIA_PLAN_REQUIRED_PROVIDER_EMPTY');return s.videoTakes.every(t=>['ok','skipped'].includes(t.status))?'firefly_finalize':'firefly_dispatch';};
 export const fireflyFinalize=(c:Context):NodeFn=>async s=>{

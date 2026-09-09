@@ -204,6 +204,55 @@ test('recovery routes an expired Adobe session to the existing login gate', t =>
   assert.equal(routeRecovery(blocked), 'firefly_session_prepare');
 });
 
+test('failed query defers only that take; independent takes pass QA and dependent takes wait', async t => {
+  const f=fixture(t,[300,150]),s=await f.prepare(),first=s.videoTakes[0];
+  f.seedComplete(s,first);
+  const receipt=readJson<any>(f.receiptPath(first));
+  fs.unlinkSync(receipt.outputPath);
+  writeJson(f.receiptPath(first),{...receipt,phase:'uncertain'});
+  writeJson(path.join(f.runtime(first),'screenshots','provider_result_identity.json'),{});
+  f.ledger(l=>l.update(first.operationId!,{phase:'uncertain'}));
+  f.c.deps.recoverFireflyResult=async()=>{throw new Error('FIREFLY_RECOVERY_PROVIDER_QUERY:HTTP_400');};
+  const graph=miniGraph(f,{start:'firefly_dispatch'}),cfg=config(f);
+  // First run meets the unresolved take's durable receipt and suspends.
+  await graph.invoke(s,cfg);
+  assert.deepEqual((await graph.getState(cfg)).next,['firefly_recovery_wait']);
+  await graph.invoke(new Command({resume:{}}),cfg);
+  const snapshot=await graph.getState(cfg),takes=snapshot.values.videoTakes;
+  assert.equal(takes[0].status,'failed');
+  assert.equal(takes[1].status,'pending','dependent last frame unavailable');
+  assert.equal(takes[2].status,'ok','independent take completed and passed QA');
+  assert.equal(f.calls.transport,1);
+  assert.equal(f.calls.qa,1);
+  assert.equal(f.ledger(l=>l.count()),2,'same exact authorization, no replacement');
+  assert.deepEqual(snapshot.next,['firefly_recovery_wait']);
+  assert.throws(()=>assertMediaCoverage(f.c,snapshot.values),'incomplete delivery remains blocked');
+  await graph.invoke(new Command({resume:{}}),cfg);
+  assert.equal(f.calls.transport,1,'repeated resume must not resend either take');
+});
+
+test('semantic QA rejection quarantines its paid take and advances only independent work', async t => {
+  const f=fixture(t,[300,150]),s=await f.prepare();
+  const first=await f.apply(fireflyDispatch(f.c),s);
+  assert.equal(first.videoTakes[0].status,'dispatched');
+  f.controls.qaPassed=false;
+  const rejected=await f.apply(fireflyIntakeWait(f.c),first);
+  assert.equal(rejected.videoTakes[0].status,'failed');
+  assert.match(rejected.videoTakes[0].error!,/^FIREFLY_QA_REJECTED:/);
+  assert.equal(rejected.videoTakes[1].status,'pending','dependent frame remains unavailable');
+  assert.equal(routeTakes(rejected),'firefly_recovery_wait');
+  assert.equal(routeRecovery(rejected),'firefly_dispatch','independent work may continue');
+  f.controls.qaPassed=true;
+  const next=await f.apply(fireflyDispatch(f.c),rejected);
+  assert.equal(next.videoTakes[0].status,'failed','rejected provider output is never sent again');
+  assert.equal(next.videoTakes[2].status,'dispatched','only the independent take is sent');
+  assert.equal(f.calls.transport,2);
+  const accepted=await f.apply(fireflyIntakeWait(f.c),next);
+  assert.equal(accepted.videoTakes[2].status,'ok');
+  assert.equal(f.calls.qa,2);
+  assert.equal(f.ledger(l=>l.count()),2,'no replacement generation was created');
+});
+
 test('101 takes cross the old recursion ceiling, chain frames, validate coverage, and reuse without transport', async t => {
   const f = fixture(t, [...Array<number>(50).fill(300), 150]);
   const graph = miniGraph(f), cfg = config(f);
