@@ -17,6 +17,8 @@ import {normalizePlanDuration} from './lib/plan';
 import {HslSceneDirectorAgent} from '../../hsl/core/hslSceneDirectorAgent';
 import {readJson,writeJson} from './runtime';
 import type {HslLongFormProjectPlan} from '../../hsl/core/types';
+import { assertChannelConsistency, isKnownChannel, verifySnapshotIntegrity } from '../../channels';
+import type { ChannelId } from '../../channels';
 
 export function parseArgs(argv: string[]) {
   const command = argv.shift() ?? 'run';
@@ -24,7 +26,7 @@ export function parseArgs(argv: string[]) {
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
     if (key === '--offline' || key === '--test-render' || key==='--motion-require-3d') args[key] = true;
-    else if (['--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--motion-mode','--motion-scenes','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables','--count'].includes(key)) {
+    else if (['--channel','--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--motion-mode','--motion-scenes','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables','--count'].includes(key)) {
       if (!argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error(`Falta valor: ${key}`);
       args[key] = argv[++i];
     } else throw new Error(`Argumento desconhecido: ${key}`);
@@ -34,8 +36,23 @@ export function parseArgs(argv: string[]) {
 }
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const { command, args, episodeId } = parseArgs(argv);
+  const channelArg = args['--channel'] ? String(args['--channel']).toLowerCase() : undefined;
+  if (channelArg !== undefined && !isKnownChannel(channelArg)) {
+    throw new Error(`CHANNEL_UNKNOWN: Canal desconhecido "${channelArg}". Canais suportados: hsl, brecha`);
+  }
+  let resolvedChannel: ChannelId;
+  if (channelArg) {
+    resolvedChannel = channelArg as ChannelId;
+  } else if (episodeId.startsWith('BRECHA_')) {
+    resolvedChannel = 'brecha';
+  } else if (episodeId.startsWith('HSL_')) {
+    resolvedChannel = 'hsl';
+  } else {
+    throw new Error('CHANNEL_REQUIRED: Especifique --channel hsl|brecha para este episódio.');
+  }
+
   if(command==='media-plan'){
-    const state=initialState({episodeId,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph:{mediaMode:(args['--media-mode']??'real') as any,mediaPolicy:args['--media-policy'] as any}});
+    const state=initialState({episodeId,channel:resolvedChannel,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph:{mediaMode:(args['--media-mode']??'real') as any,mediaPolicy:args['--media-policy'] as any}});
     const existing=readJson<HslLongFormProjectPlan>(path.join(REPO_ROOT,'runs',episodeId,'scene-plan.json'));
     const original=existing??HslSceneDirectorAgent.planEpisodeFromScratch(state.topicInput!);
     const plan=normalizePlanDuration(original,args['--target-minutes']?Number(args['--target-minutes']):original.targetMinutes);
@@ -47,7 +64,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   const requestedUntil = args['--until'] ? String(args['--until']) : undefined;
   const until = requestedUntil ? (NODE_ALIASES[requestedUntil] ?? requestedUntil) as NodeName : undefined;
   if (until && !NODE_ORDER.includes(until)) throw new Error(`Nó desconhecido em --until: ${requestedUntil}`);
-  const config = configFor(episodeId);
+  const config = configFor(episodeId, resolvedChannel);
   const saver = createCheckpointer();
   const graph = createProductionGraph(saver, {}, REPO_ROOT, { interruptAfter: until ? [until] : undefined });
   let lock: string | undefined;
@@ -56,6 +73,12 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === 'history') { console.log(JSON.stringify(readHistory(REPO_ROOT, episodeId), null, 2)); return 0; }
     let snapshot = await graph.getState(config);
     if (snapshot.values.episodeId && snapshot.values.stateVersion !== STATE_VERSION) throw new Error('Checkpoint incompatível; utilize nova stateVersion');
+    if (snapshot.values.channelSnapshot || snapshot.values.channelId) {
+      assertChannelConsistency(resolvedChannel, snapshot.values.channelSnapshot ?? snapshot.values.channelId);
+      if (snapshot.values.channelSnapshot && !verifySnapshotIntegrity(snapshot.values.channelSnapshot)) {
+        throw new Error('CHANNEL_POLICY_INTEGRITY_COMPROMISED: Hash de integridade de snapshot do canal falhou.');
+      }
+    }
     if (command === 'status') {
       console.log(JSON.stringify({ thread_id: config.configurable.thread_id, next: snapshot.next,
         Progress:deriveProgress(REPO_ROOT,episodeId,snapshot.values,snapshot.next,snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value))),
@@ -98,18 +121,18 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       await graph.updateState(config,patch as any,'firefly_guide');
       snapshot=await graph.getState(config);
     } else if (command === 'run' && args['--from']) {
-      await rewind(graph, REPO_ROOT, episodeId, String(args['--from']),graphOptionUpdates);
+      await rewind(graph, REPO_ROOT, episodeId, String(args['--from']),graphOptionUpdates, resolvedChannel);
     } else if (command === 'run') {
       if (snapshot.next.length) throw new Error('Thread pendente: utilize resume ou --from');
       const gates = String(args['--gates'] ?? '').split(',').filter(Boolean);
       if (gates.some(g => !['render', 'publish'].includes(g))) throw new Error('--gates aceita render,publish');
       const mediaMode=mediaModeArg??'real';
-      input = initialState({episodeId,topic:args['--topic']?String(args['--topic']):undefined,entity:args['--entity']?String(args['--entity']):undefined,mechanism:args['--mechanism']?String(args['--mechanism']):undefined,constraint:args['--constraint']?String(args['--constraint']):undefined,consequence:args['--consequence']?String(args['--consequence']):undefined,thesis:args['--thesis']?String(args['--thesis']):undefined,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1),
+      input = initialState({episodeId,channel:resolvedChannel,topic:args['--topic']?String(args['--topic']):undefined,entity:args['--entity']?String(args['--entity']):undefined,mechanism:args['--mechanism']?String(args['--mechanism']):undefined,constraint:args['--constraint']?String(args['--constraint']):undefined,consequence:args['--consequence']?String(args['--consequence']):undefined,thesis:args['--thesis']?String(args['--thesis']):undefined,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1),
         mediaMode:mediaMode as 'legacy'|'real',mediaPolicy:mediaPolicyArg as any,motionMode:(motionModeArg??'legacy') as 'legacy'|'authored',motionMaxScenes:Number(args['--motion-scenes']??3),motionRequire3d:!!args['--motion-require-3d'],beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??0),storageMode:storage as 'off'|'drive',prune:prune as 'dry-run'|'apply',keepLocalDeliverables:Number(args['--keep-local-deliverables']??1),gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
     } else {
       if (!snapshot.next.length) {
         if (snapshot.values.productionStatus === 'COMPLIANCE_FAILED') {
-          await rewind(graph, REPO_ROOT, episodeId, 'compliance_stage', graphOptionUpdates);
+          await rewind(graph, REPO_ROOT, episodeId, 'compliance_stage', graphOptionUpdates, resolvedChannel);
           snapshot = await graph.getState(config);
         } else if (snapshot.values.productionStatus === 'COMPLETED') {
           console.log(`\n  Episódio ${episodeId} já está 100% concluído! Entregáveis em deliveries/${episodeId}/`);
@@ -140,7 +163,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         input = new Command({ update: { options: updatedOptions } });
       }
     }
-    snapshot = await executeProduction(graph, REPO_ROOT, episodeId, input);
+    snapshot = await executeProduction(graph, REPO_ROOT, episodeId, input, undefined, resolvedChannel);
     const executedThisCommand=[...new Set(readHistory(REPO_ROOT,episodeId).slice(historyOffset).map((event:any)=>event.node).filter(Boolean))];
     console.log(JSON.stringify({ thread_id: config.configurable.thread_id, productionStatus: snapshot.values.productionStatus, executedThisCommand, progress:deriveProgress(REPO_ROOT,episodeId,snapshot.values,snapshot.next,snapshot.tasks.flatMap(t=>t.interrupts.map(i=>i.value))).percent, next: snapshot.next, interrupts: snapshot.tasks.flatMap(t => t.interrupts), kling:{plannedTakes:snapshot.values.videoTakes?.length??0,approvedLimit:snapshot.values.options?.graph.maxGenerations??0}, generationCount:snapshot.values.generationCount??0, finalVideo: snapshot.values.finalVideo }, null, 2));
     if (snapshot.tasks.some(t => t.interrupts.length)) return 2;

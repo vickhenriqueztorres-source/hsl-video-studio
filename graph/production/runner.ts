@@ -6,7 +6,7 @@ import { State, Update, threadId, NodeError,GraphOptions } from './state';
 import { readJson, writeJson } from './runtime';
 import { HslRunManifest, StageName } from '../../hsl/core/hslRunManifest';
 import {assertMediaPlan} from './lib/mediaPlan';
-export function configFor(episodeId: string) { return { configurable: { thread_id: threadId(episodeId) }, recursionLimit: 512 }; }
+export function configFor(episodeId: string, channelId?: string) { return { configurable: { thread_id: threadId(episodeId, channelId) }, recursionLimit: 512 }; }
 export function executionStepBudget(state:Partial<State>):number {
   const frames=state.scenePlan?.totalFrames??Math.ceil((state.topicInput?.targetMinutes??12)*60*30);
   const beats=state.scenePlan?.beats.length??Math.max(128,state.options?.graph.beats??0);
@@ -24,8 +24,8 @@ export function readErrors(root: string, episodeId: string): NodeError[] {
   return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean)
     .map(line => JSON.parse(line)).filter(e => e.type === 'error').map(({ type, ...e }) => e) : [];
 }
-export async function executeProduction(graph: ProductionGraph, root: string, episodeId: string, input: Parameters<ProductionGraph['stream']>[0], signal?: AbortSignal) {
-  const config = configFor(episodeId);
+export async function executeProduction(graph: ProductionGraph, root: string, episodeId: string, input: Parameters<ProductionGraph['stream']>[0], signal?: AbortSignal, channelId?: string) {
+  const config = configFor(episodeId, channelId);
   const saved=await graph.getState(config);
   const starting=(input&&typeof input==='object'&&'episodeId' in input)?input as Partial<State>:saved.values;
   config.recursionLimit=Math.max(512, executionStepBudget(starting));
@@ -68,11 +68,12 @@ const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
   pre_mux_gate: ['preMux'], mux: ['finalVideo'], packaging_stage: ['packaging'], compliance_stage: ['compliance'],
   archive_scene_plan:['storageIndex'],archive_images:['storageIndex'],archive_firefly:['storageIndex'],archive_motion:['storageIndex'],archive_audio:['storageIndex'],archive_compliance:['storageIndex'],prune_verified:['storageIndex'],
 };
-export async function rewind(graph: ProductionGraph, root: string, episodeId: string, requested: string,graphOptions?:Partial<GraphOptions>) {
+export async function rewind(graph: ProductionGraph, root: string, episodeId: string, requested: string,graphOptions?:Partial<GraphOptions>, channelId?: string) {
   const node = (NODE_ALIASES[requested] ?? requested) as NodeName;
   const index = NODE_ORDER.indexOf(node);
   if (index < 0) throw new Error(`Nó desconhecido: ${requested}`);
-  const snapshot = await graph.getState(configFor(episodeId));
+  const config = configFor(episodeId, channelId);
+  const snapshot = await graph.getState(config);
   if (!snapshot.values.episodeId) throw new Error('--from requer thread existente');
   if(['firefly_dispatch','firefly_intake_wait','firefly_finalize'].includes(node))throw new Error('PAID_REWIND_USE_FIREFLY_GUIDE: replaneja e reconcilia sem apagar recibos');
   const first = node === 'fan_out_frames' ? NODE_ORDER.indexOf('image_frames') : node === 'fan_out_videos' ? NODE_ORDER.indexOf('firefly_videos') : index;
@@ -125,7 +126,7 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
     compliance_stage:'packaging_stage',
   };
   const predecessor = index === 0 ? START : branchPredecessors[node]??NODE_ORDER[index - 1];
-  await graph.updateState(configFor(episodeId), patch as Update, predecessor);
+  await graph.updateState(config, patch as Update, predecessor);
 
   const safeUnlink = (f: string) => { try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch {} };
   const e = episodeId.toLowerCase();

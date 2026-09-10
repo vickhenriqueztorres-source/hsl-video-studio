@@ -99,20 +99,55 @@ async function graph(args:string[],paid=false){
   try{return await runTs('graph/production/cli.ts',args,[0,2,3],paid?{HSL_ALLOW_PAID_FIREFLY_DISPATCH:'true'}:{});}
   finally{stop();if(episode&&startsProduction)await showStatus(episode);}
 }
+import type {ChannelId} from '../../channels/types';
+
 const latestEpisode=()=>episodes(REPO_ROOT)[0]?.id??'HSL_EPISODE_001';
 async function askEpisode(rl:readline.Interface){const fallback=latestEpisode();return(await rl.question(`  Episódio [${fallback}]: `)).trim()||fallback;}
+async function askChannel(rl:readline.Interface):Promise<ChannelId>{
+  console.log(`\n  ${WHITE}Selecione o canal:${X}`);
+  console.log(`  ${WHITE}[1]${X} HSL — Hidden Systems Lab (Inglês, Sistemas Complexos)`);
+  console.log(`  ${WHITE}[2]${X} BRECHA (Português, Fraudes Digitais, Segurança & Cibercrime)`);
+  const ans=(await rl.question(`  Canal [1]: `)).trim();
+  if(ans==='2'||ans.toLowerCase()==='brecha')return'brecha';
+  return'hsl';
+}
 
-function showEpisodes(){const records=new Map(themeRecords(REPO_ROOT).map(x=>[x.episodeId,x]));console.table(episodes(REPO_ROOT).map(x=>({episodio:x.id,status:x.status,tema:records.get(x.id)?.theme.slice(0,54)??x.title,beats:x.beats,duracao:x.duration?`${Math.round(x.duration/60)} min`:'—'})));}
-function showThemes(){const records=themeRecords(REPO_ROOT);if(!records.length){line('Nenhum tema registrado.');return;}console.table(records.map(x=>({episodio:x.episodeId,status:x.status,tema:x.theme.slice(0,82)})));}
-function showSuggestions(limit=3){const ideas=suggestThemes(REPO_ROOT,limit);if(!ideas.length){line(`${AMBER}O catálogo atual não contém temas inéditos.${X}`);return[]}console.log(`\n${M}  PRÓXIMOS TEMAS INÉDITOS${X}`);ideas.forEach((x,i)=>{line(`${WHITE}[${i+1}]${X} ${x.theme}`);line(`${M}    Nome automático: ${x.title}${X}`);line(`${DIM}    ${x.thesis}${X}`)});return ideas;}
+function showEpisodes(){
+  const records=new Map(themeRecords(REPO_ROOT).map(x=>[x.episodeId,x]));
+  console.table(episodes(REPO_ROOT).map(x=>{
+    const rec=records.get(x.id);
+    const canal=(rec?.channelId??(x.id.startsWith('BRECHA_')?'brecha':'hsl')).toUpperCase();
+    return{episodio:x.id,canal,status:x.status,tema:rec?.theme.slice(0,50)??x.title,beats:x.beats,duracao:x.duration?`${Math.round(x.duration/60)} min`:'—'};
+  }));
+}
+function showThemes(){
+  const records=themeRecords(REPO_ROOT);
+  if(!records.length){line('Nenhum tema registrado.');return;}
+  console.table(records.map(x=>({
+    episodio:x.episodeId,
+    canal:(x.channelId??(x.episodeId.startsWith('BRECHA_')?'brecha':'hsl')).toUpperCase(),
+    status:x.status,
+    tema:x.theme.slice(0,75)
+  })));
+}
+function showSuggestions(channel:ChannelId='hsl',limit=3){
+  const ideas=suggestThemes(channel,REPO_ROOT,limit);
+  const label=channel==='brecha'?'BRECHA':'HSL';
+  if(!ideas.length){line(`${AMBER}O catálogo de ${label} não contém temas inéditos.${X}`);return[];}
+  console.log(`\n${M}  PRÓXIMOS TEMAS INÉDITOS (${label})${X}`);
+  ideas.forEach((x,i)=>{line(`${WHITE}[${i+1}]${X} ${x.theme}`);line(`${M}    Nome automático: ${x.title}${X}`);line(`${DIM}    ${x.thesis}${X}`);});
+  return ideas;
+}
 
 async function newEpisode(rl:readline.Interface){
-  const ideas=showSuggestions(3);if(!ideas.length)return;
+  const channel=await askChannel(rl);
+  const ideas=showSuggestions(channel,3);if(!ideas.length)return;
   const chosen=(await rl.question(`\n  Digite apenas o número do tema (1-${ideas.length}) [1]: `)).trim()||'1';
   if(!/^[1-3]$/.test(chosen)||!ideas[Number(chosen)-1]){line(`${RED}Escolha somente 1, 2 ou 3.${X}`);return;}
-  const idea=ideas[Number(chosen)-1],episodeId=nextEpisodeId(REPO_ROOT);
-  const duplicate=findDuplicate(`${idea.theme} ${idea.title} ${idea.entity}`,REPO_ROOT);if(duplicate){line(`${RED}TEMA BLOQUEADO:${X} similaridade ${Math.round(duplicate.score*100)}% com ${duplicate.record.episodeId}`);line(`${DIM}${duplicate.record.theme}${X}`);return;}
+  const idea=ideas[Number(chosen)-1],episodeId=nextEpisodeId(channel,REPO_ROOT);
+  const duplicate=findDuplicate(`${idea.theme} ${idea.title} ${idea.entity}`,channel,REPO_ROOT);if(duplicate){line(`${RED}TEMA BLOQUEADO:${X} similaridade ${Math.round(duplicate.score*100)}% com ${duplicate.record.episodeId}`);line(`${DIM}${duplicate.record.theme}${X}`);return;}
   if(fs.existsSync(path.join(REPO_ROOT,'runs',episodeId))){line(`${RED}${episodeId} já existe.${X}`);return;}
+  line(`${M}Canal: ${channel.toUpperCase()}${X}`);
   line(`${M}Episódio: ${episodeId}${X}`);
   line(`${WHITE}Nome: ${idea.title}${X}`);
   const minutes=(await rl.question('  Duração em minutos [10]: ')).trim()||'10';
@@ -125,10 +160,10 @@ async function newEpisode(rl:readline.Interface){
   else{line('Modo inválido.');return;}
   const authored=(await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s';
   if(authored)extra.push('--motion-mode','authored','--motion-scenes','3','--motion-require-3d');
-  reserveTheme(episodeId,`${idea.title} · ${idea.theme}`,REPO_ROOT);line(`${M}Tema reservado no catálogo: ${episodeId}${X}`);
+  reserveTheme(episodeId,`${idea.title} · ${idea.theme}`,channel,REPO_ROOT);line(`${M}Tema reservado no catálogo (${channel.toUpperCase()}): ${episodeId}${X}`);
   const storage=selectMatrixStorage();
   if(storage.mode==='off')line(`${AMBER}Google Drive indisponível (${storage.reason}); esta execução usará armazenamento local.${X}`);
-  const args=['run','--episode',episodeId,'--topic',idea.title,'--entity',idea.entity,'--mechanism',idea.mechanism,'--constraint',idea.constraint,'--consequence',idea.consequence,'--thesis',idea.thesis,'--target-minutes',minutes,'--media-mode','real','--storage',storage.mode,'--prune','dry-run',...extra];
+  const args=['run','--channel',channel,'--episode',episodeId,'--topic',idea.title,'--entity',idea.entity,'--mechanism',idea.mechanism,'--constraint',idea.constraint,'--consequence',idea.consequence,'--thesis',idea.thesis,'--target-minutes',minutes,'--media-mode','real','--storage',storage.mode,'--prune','dry-run',...extra];
   await graph(args,paid);
 }
 
@@ -217,7 +252,7 @@ function help(){console.log(`
   npm run hsl:matrix -- doctor     verifica contas e ferramentas
 `);}
 
-async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl);else if(['sugerir','suggest'].includes(cmd))showSuggestions();else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0]);else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
+async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl);else if(['sugerir','suggest'].includes(cmd)){const ch=args[0]?.toLowerCase()==='brecha'?'brecha':args[0]?.toLowerCase()==='hsl'?'hsl':undefined;if(ch)showSuggestions(ch);else{showSuggestions('hsl');showSuggestions('brecha');}}else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0]);else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
 
 export async function main(argv=process.argv.slice(2)){banner();
   if(argv.length){const directRl=createConsoleReadline();try{await dispatch(argv[0],directRl,argv.slice(1));}finally{directRl.close();}return;}
@@ -230,6 +265,6 @@ export async function main(argv=process.argv.slice(2)){banner();
   ${WHITE}[5]${X} Gerar imagens pendentes   ${WHITE}[D]${X} Abrir Google Drive
   ${WHITE}[K]${X} Fiscal técnico do Kling   ${WHITE}[L]${X} Logs ao vivo
   ${WHITE}[A]${X} Contas Codex / Antigravity  ${WHITE}[E]${X} Chaves ElevenLabs
-  ${WHITE}[0]${X} Sair`);const choice=(await rl.question(`${M}\n  matrix> ${X}`)).trim().toLowerCase();if(choice==='0')break;if(/^hsl[\\_ -]*episode/i.test(choice)){line(`${AMBER}O ID é automático. Escolha [1] Criar novo episódio.${X}`);continue;}const command:{[key:string]:string}={1:'novo',2:'sugerir',3:'continuar',4:'status',5:'imagens',6:'mapa',7:'episodios',8:'temas',9:'doctor',d:'drive',k:'kling',l:'logs',a:'contas',e:'elevenlabs'};const selected=command[choice]??choice;try{if(selected==='status')await showStatus(await askEpisode(rl));else if(await dispatch(selected,rl)==='open')return;}catch(error){line(`${RED}${error instanceof Error?error.message:String(error)}${X}`);line('O comando parou. O Matrix continua aberto; corrija a causa e use Continuar episódio.');}}
+  ${WHITE}[0]${X} Sair`);const choice=(await rl.question(`${M}\n  matrix> ${X}`)).trim().toLowerCase();if(choice==='0')break;if(/^hsl[\\_ -]*episode/i.test(choice)){line(`${AMBER}O ID é automático. Escolha [1] Criar novo episódio.${X}`);continue;}const command:{[key:string]:string}={1:'novo',2:'sugerir',3:'continuar',4:'status',5:'imagens',6:'mapa',7:'episodios',8:'temas',9:'doctor',d:'drive',k:'kling',l:'logs',a:'contas',e:'elevenlabs'};const selected=command[choice]??choice;try{if(selected==='status')await showStatus(await askEpisode(rl));else if(selected==='sugerir'){const ch=await askChannel(rl);showSuggestions(ch);}else if(await dispatch(selected,rl)==='open')return;}catch(error){line(`${RED}${error instanceof Error?error.message:String(error)}${X}`);line('O comando parou. O Matrix continua aberto; corrija a causa e use Continuar episódio.');}}
 }finally{rl.close();}}
 if(require.main===module)main().catch(e=>{console.error(`${RED}${e instanceof Error?e.message:e}${X}`);process.exitCode=1;});
