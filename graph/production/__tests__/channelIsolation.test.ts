@@ -403,3 +403,66 @@ test('I15: Remotion component tree visual isolation (Zero HSL leaks in BRECHA)',
   assert.ok(promptContent.includes('Canal BRECHA'));
   assert.ok(promptContent.includes('Canal HSL'));
 });
+
+test('I16: Brand Bible visual mode and scene distribution fidelity (Zero foreign references, canonical 6 modes, freeze-frame Momento da Brecha, real evidence, and cold open callback)', () => {
+  // 1. Purge of invented foreign references across brecha files
+  const brechaVisualPath = path.resolve(__dirname, '../../../channels/brecha/visual.md');
+  const brechaVisual = fs.readFileSync(brechaVisualPath, 'utf8');
+  assert.ok(!/LEMMiNO/i.test(brechaVisual), 'LEMMiNO must not exist in brecha visual.md');
+  assert.ok(!/Jim Browning/i.test(brechaVisual), 'Jim Browning must not exist in brecha visual.md');
+  assert.ok(!/\bneo\b/i.test(brechaVisual), 'neo must not exist in brecha visual.md');
+  assert.ok(!/Elementar/i.test(brechaVisual), 'Elementar must not exist in brecha visual.md');
+  assert.ok(!/Disrupt/i.test(brechaVisual), 'Disrupt must not exist in brecha visual.md');
+  assert.ok(!/James Jani/i.test(brechaVisual), 'James Jani must not exist in brecha visual.md');
+  assert.ok(!/BRECHA_RULE_02/i.test(brechaVisual), 'BRECHA_RULE_02 must not exist');
+
+  // fern is strictly permitted only as cutting pace metric
+  assert.ok(brechaVisual.includes('fern'), 'fern should be present as pace benchmark');
+  assert.ok(brechaVisual.includes('19 a 35 mudanças'), '19-35 changes metric must be present');
+
+  // 2. Profile and Prompt files clean of foreign references
+  const promptPath = path.resolve(__dirname, '../../prompts/visual-prompts.md');
+  const promptContent = fs.readFileSync(promptPath, 'utf8');
+  assert.ok(!/LEMMiNO/i.test(promptContent), 'LEMMiNO must not exist in visual-prompts.md');
+  assert.ok(!/Fincher/i.test(promptContent), 'Fincher must not exist in visual-prompts.md');
+
+  const profilePath = path.resolve(__dirname, '../../../channels/brecha/profile.ts');
+  const profileContent = fs.readFileSync(profilePath, 'utf8');
+  assert.ok(!/BRECHA_RULE_02/i.test(profileContent), 'BRECHA_RULE_02 must not exist in profile.ts');
+  assert.ok(profileContent.includes('RULE_BRECHA_MOMENTO_DA_BRECHA'));
+
+  // 3. Plan scene selection fidelity
+  const plan = BrechaSceneDirectorAgent.planEpisodeFromScratch({
+    episodeId: 'BRECHA_EPISODE_001',
+    topic: 'A ligação era perfeita — até este detalhe',
+    entity: 'Falsa Central Bancária',
+    mechanism: 'Spoofing telefônico e URA simulada',
+    constraint: 'Janela de reação',
+    consequence: 'Transferências Pix fraudulentas',
+    thesis: 'A central falsa não explora o código; explora a anatomia da confiança humana.'
+  });
+
+  // Check evidence mode presence
+  const evidenceBeats = plan.beats.filter((b: HslSceneBeat) => b.telemetryLabel?.includes('EVIDÊNCIA') || b.telemetryLabel?.includes('PROVA'));
+  assert.ok(evidenceBeats.length > 0, 'Must have on-screen evidence beats');
+  assert.ok(evidenceBeats.some((b: HslSceneBeat) => b.evidenceRefs?.includes('SRC_BCB_MED_2024')), 'Evidence beats must reference BCB MED');
+
+  // Check Momento da Brecha freeze-frame positioning in Act 2
+  const breachMoments = plan.beats.filter((b: HslSceneBeat) => b.telemetryLabel === 'MOMENTO DA BRECHA');
+  assert.ok(breachMoments.length > 0, 'Must have MOMENTO DA BRECHA');
+  assert.ok(breachMoments.some((b: HslSceneBeat) => b.actNumber === 2), 'Momento da Brecha must be at the climax of Act 2 decision point');
+  assert.ok(breachMoments.every((b: HslSceneBeat) => !b.cinematicPrompt.includes('pulso concêntrico')), 'Must not have concentric light pulse');
+
+  // Check Act 4 closing: Cold open callback + 3 defense steps + No YubiKey
+  const act4Beats = plan.beats.filter((b: HslSceneBeat) => b.actNumber === 4);
+  assert.ok(act4Beats.length > 0);
+  const coldOpenCallback = act4Beats[0];
+  assert.ok(coldOpenCallback.cinematicPrompt.includes('Retorno visual à mesma mesa') || coldOpenCallback.cinematicPrompt.includes('smartphone da abertura'), 'Act 4 must return to cold open object');
+  assert.ok(!act4Beats.some((b: HslSceneBeat) => /yubikey|chave física/i.test(b.cinematicPrompt)), 'Must not reference YubiKey or physical hardware key');
+
+  // Check 3 prioritized defense steps in Act 4
+  const defenseStepBeat = act4Beats[act4Beats.length - 1];
+  assert.ok(defenseStepBeat.cinematicPrompt.includes('Desligar') && defenseStepBeat.cinematicPrompt.includes('cartão'), 'Must contain 3 practical defense steps');
+  assert.ok(/toda fraude começa por uma brecha/i.test(defenseStepBeat.voiceoverScript), 'Closing voiceover must conclude with brand signature');
+});
+

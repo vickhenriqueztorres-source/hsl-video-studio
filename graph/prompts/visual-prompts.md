@@ -1,12 +1,15 @@
 # Direção visual de Produção (HSL & BRECHA)
 
 Crie prompts para cada beat do plano JSON abaixo respeitando as diretrizes do canal especificado:
-- **Canal BRECHA** (documentário de defesa cotidiana e investigação forense):
+- **Canal BRECHA** (documentário de defesa cotidiana e investigação forense brasileira):
   - **Ambientes reais cotidianos brasileiros:** cozinha, quarto, portaria, carro no trânsito, loja, ônibus, calçada, escritório. A ameaça entra na vida real, nunca em um "laboratório hacker".
   - **Objetos tangíveis reconhecíveis:** celular, cartão, comprovante bancário, QR code, chip SIM, câmera de segurança, chave, documento.
-  - **Estética cinematográfica documental:** iluminação sóbria realista (estilo Fincher / LEMMiNO), fotografia 35mm com grão analógico suave, paleta base carvão (`#0D0D0F`) e osso (`#E8E2D7`). O coral (`#FF5A47`) é reservado estritamente para o ponto explorado ou revelado (5% a 12% do frame).
+  - **Estética cinematográfica documental brasileira:** iluminação natural e sóbria realista, fotografia 35mm com grão analógico suave, paleta base carvão (`#0D0D0F`) e osso (`#E8E2D7`). O coral (`#FF5A47`) é reservado estritamente para o ponto explorado ou revelado (5% a 12% do frame).
+  - **Momento da Brecha canônico:** O congelamento (freeze-frame) ocorre no instante da decisão crítica humana da vítima (o dedo hesitando sobre a tela/teclado). A fissura coral assimétrica contorna cirurgicamente o botão/campo. É PROIBIDO qualquer pulso concêntrico de luz, efeito neon, aura brilhante ou sabre de luz.
+  - **Evidência Real obrigatória:** Cenas de evidência devem retratar documentos autênticos (relatórios do Banco Central MED, Febraban, boletins da SSP, extratos bancários com blur de privacidade), nunca imagens de IA fingindo ser prova.
+  - **Retorno ao Objeto no Fechamento:** O fechamento (Ato 4) encerra com retorno visual obrigatório ao mesmo objeto do cold open (o mesmo smartphone sobre a mesma mesa de madeira da Cena 1, com o golpe desarmado). Três passos de defesa práticos em menos de 10 minutos (zero chaves físicas YubiKey ou hardware gringo).
   - **Continuidade causal:** o objeto de uma cena causa a próxima (ex: o celular na mão vira a tela do app; a tela vira o alerta do banco).
-  - **Proibição absoluta de clichês:** zero hackers de capuz, zero chuva de código verde estilo Matrix, zero neon azul/vermelho, zero cenários futuristas caricatos.
+  - **Proibição absoluta de clichês:** zero hackers de capuz, zero chuva de código verde estilo Matrix, zero neon azul/vermelho, zero cenários futuristas caricatos, zero pulsos concêntricos.
 - **Canal HSL** (engenharia e infraestrutura física oculta): siga o estilo das skills `hsl-scene-direction` e `cinematography`: corte técnico, escala monumental, máquinas e sistemas físicos com iluminação de precisão.
 
 Não inclua texto, letras, legendas, logotipos ou marcas na imagem.

@@ -52,7 +52,7 @@ export const brechaProfile: ChannelProfile = {
       dataMonospace: 'IBM Plex Mono, monospace'
     },
     textures: ['papel_fino', 'concreto_suave', 'vidro_fosco', 'grao_cinematografico_leve'],
-    cameraLanguage: 'continuidade causal de fern, espaco investigativo de LEMMiNO, ancoras documentais de Jim Browning',
+    cameraLanguage: 'documentário de defesa cotidiana brasileira; dinamismo de corte (19-35 mudanças no primeiro minuto inspirado em fern); continuidade de objetos cotidianos; luz natural e enquadramentos sóbrios',
     reconstructionLabelRequired: true
   },
   narration: {
@@ -86,9 +86,11 @@ export const brechaProfile: ChannelProfile = {
   },
   compliance: {
     rules: [
-      { id: 'BRECHA_RULE_01', name: 'Presença do Momento da Brecha', required: true, description: 'O episódio deve conter o congelamento explicativo e fenda coral' },
-      { id: 'BRECHA_RULE_02', name: 'Selo de Reconstrução em Cenas Dramatizadas', required: true, description: 'Cenas geradas não podem se passar por prova real' },
-      { id: 'BRECHA_RULE_03', name: 'Idioma Português Brasileiro (pt-BR)', required: true, description: 'Narração e textos devem ser estritamente em pt-BR' }
+      { id: 'RULE_BRECHA_MOMENTO_DA_BRECHA', name: 'Presença do Momento da Brecha', required: true, description: 'O episódio deve conter o congelamento explicativo e fenda coral na decisão da vítima' },
+      { id: 'RULE_BRECHA_RECONSTRUCTION_LABELS', name: 'Selo de Reconstrução em Cenas Dramatizadas', required: true, description: 'Cenas geradas não podem se passar por prova real' },
+      { id: 'RULE_BRECHA_LOCALE_PORTUGUESE', name: 'Idioma Português Brasileiro (pt-BR)', required: true, description: 'Narração e textos devem ser estritamente em pt-BR natural' },
+      { id: 'RULE_BRECHA_EVIDENCE_INTEGRITY', name: 'Integridade de Evidências Reais', required: true, description: 'Nenhum fato central pode depender exclusivamente de imagem gerada' },
+      { id: 'RULE_BRECHA_COLD_OPEN_CALLBACK', name: 'Retorno ao Objeto no Fechamento', required: true, description: 'O fechamento deve retornar ao objeto físico da abertura com o golpe desarmado' }
     ]
   },
   references: {
