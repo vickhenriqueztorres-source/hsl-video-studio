@@ -139,10 +139,29 @@ function showSuggestions(channel:ChannelId='hsl',limit=3){
   return ideas;
 }
 
-async function newEpisode(rl:readline.Interface){
-  const channel=await askChannel(rl);
+async function newEpisode(rl:readline.Interface, args:string[]=[]){
+  let channelArg: ChannelId | undefined = undefined;
+  let chosenArg: string | undefined = undefined;
+  let minutesArg: string | undefined = undefined;
+  let modeArg: string | undefined = undefined;
+  let authoredArg: boolean | undefined = undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === '--channel' && args[i+1]) channelArg = (args[++i].toLowerCase() === 'brecha' ? 'brecha' : 'hsl');
+    else if (a === '--minutes' && args[i+1]) minutesArg = args[++i];
+    else if (a === '--duration' && args[i+1]) minutesArg = args[++i];
+    else if (a === '--theme' && args[i+1]) chosenArg = args[++i];
+    else if (a === '--mode' && args[i+1]) modeArg = args[++i];
+    else if (a === '--authored') authoredArg = true;
+    else if (!channelArg && ['brecha', 'hsl'].includes(a.toLowerCase())) channelArg = a.toLowerCase() as ChannelId;
+    else if (!chosenArg && /^[1-3]$/.test(a)) chosenArg = a;
+    else if (!minutesArg && /^\d+$/.test(a)) minutesArg = a;
+  }
+
+  const channel = channelArg ?? (await askChannel(rl));
   const ideas=showSuggestions(channel,3);if(!ideas.length)return;
-  const chosen=(await rl.question(`\n  Digite apenas o número do tema (1-${ideas.length}) [1]: `)).trim()||'1';
+  const chosen = chosenArg ?? ((await rl.question(`\n  Digite apenas o número do tema (1-${ideas.length}) [1]: `)).trim() || '1');
   if(!/^[1-3]$/.test(chosen)||!ideas[Number(chosen)-1]){line(`${RED}Escolha somente 1, 2 ou 3.${X}`);return;}
   const idea=ideas[Number(chosen)-1],episodeId=nextEpisodeId(channel,REPO_ROOT);
   const duplicate=findDuplicate(`${idea.theme} ${idea.title} ${idea.entity}`,channel,REPO_ROOT);if(duplicate){line(`${RED}TEMA BLOQUEADO:${X} similaridade ${Math.round(duplicate.score*100)}% com ${duplicate.record.episodeId}`);line(`${DIM}${duplicate.record.theme}${X}`);return;}
@@ -150,24 +169,24 @@ async function newEpisode(rl:readline.Interface){
   line(`${M}Canal: ${channel.toUpperCase()}${X}`);
   line(`${M}Episódio: ${episodeId}${X}`);
   line(`${WHITE}Nome: ${idea.title}${X}`);
-  const minutes=(await rl.question('  Duração em minutos [10]: ')).trim()||'10';
+  const minutes = minutesArg ?? ((await rl.question('  Duração em minutos [10]: ')).trim() || '10');
   console.log(`\n  ${WHITE}[1]${X} Planejar roteiro e prompts ${M}(recomendado, sem Kling)${X}\n  ${WHITE}[2]${X} Teste completo de 2 cenas (teto 3 Kling)\n  ${WHITE}[3]${X} Produção completa`);
-  const mode=(await rl.question('  Modo [1]: ')).trim()||'1';let extra:string[]=[];
+  const mode = modeArg ?? ((await rl.question('  Modo [1]: ')).trim() || '1');let extra:string[]=[];
   let paid=false;
   if(mode==='1')extra=['--until','visual_prompts_review_wait','--max-generations','0'];
-  else if(mode==='2'){const ok=(await rl.question('  O teste pode consumir até 3 gerações Kling. Digite TESTAR: ')).trim();if(ok!=='TESTAR'){line('Cancelado.');return;}extra=['--beats','2','--test-render','--max-generations','3'];paid=true;}
-  else if(mode==='3'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--max-generations','0'];}
+  else if(mode==='2'){const ok=modeArg?'TESTAR':(await rl.question('  O teste pode consumir até 3 gerações Kling. Digite TESTAR: ')).trim();if(ok!=='TESTAR'){line('Cancelado.');return;}extra=['--beats','2','--test-render','--max-generations','3'];paid=true;}
+  else if(mode==='3'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--max-generations','0'];}
   else{line('Modo inválido.');return;}
-  const authored=(await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s';
+  const authored = authoredArg ?? ((await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s');
   if(authored)extra.push('--motion-mode','authored','--motion-scenes','3','--motion-require-3d');
   reserveTheme(episodeId,`${idea.title} · ${idea.theme}`,channel,REPO_ROOT);line(`${M}Tema reservado no catálogo (${channel.toUpperCase()}): ${episodeId}${X}`);
   const storage=selectMatrixStorage();
   if(storage.mode==='off')line(`${AMBER}Google Drive indisponível (${storage.reason}); esta execução usará armazenamento local.${X}`);
-  const args=['run','--channel',channel,'--episode',episodeId,'--topic',idea.title,'--entity',idea.entity,'--mechanism',idea.mechanism,'--constraint',idea.constraint,'--consequence',idea.consequence,'--thesis',idea.thesis,'--target-minutes',minutes,'--media-mode','real','--storage',storage.mode,'--prune','dry-run',...extra];
-  await graph(args,paid);
+  const runArgs=['run','--channel',channel,'--episode',episodeId,'--topic',idea.title,'--entity',idea.entity,'--mechanism',idea.mechanism,'--constraint',idea.constraint,'--consequence',idea.consequence,'--thesis',idea.thesis,'--target-minutes',minutes,'--media-mode','real','--storage',storage.mode,'--prune','dry-run',...extra];
+  await graph(runArgs,paid);
 }
 
-async function resumeEpisode(rl:readline.Interface,provided?:string){
+async function resumeEpisode(rl:readline.Interface,provided?:string,extraArgs:string[]=[]){
   const episode=provided||await askEpisode(rl),data=await overview(episode,REPO_ROOT);
   if(data.status==='COMPLETED'||data.live?.status==='COMPLETED'){
     line(`${M}O episódio ${episode} já está 100% concluído com sucesso!${X}`);
@@ -186,18 +205,25 @@ async function resumeEpisode(rl:readline.Interface,provided?:string){
     args=['run','--episode',episode,'--from','image_generate_wait','--storage',storage.mode,'--prune','dry-run'];
     line(`${AMBER}Cota do Codex detectada no gate de revisão; revalidando o inventário físico e reabrindo apenas o lote pendente para rotação automática de provedor.${X}`);
   }
+  let decisionArg: string | undefined = undefined;
+  for (let i = 0; i < extraArgs.length; i++) {
+    if (extraArgs[i] === '--decision' && extraArgs[i+1]) decisionArg = extraArgs[++i].toLowerCase();
+    else if (['a', 'aprovar', 'proceed'].includes(extraArgs[i].toLowerCase())) decisionArg = 'a';
+    else if (['r', 'retry'].includes(extraArgs[i].toLowerCase())) decisionArg = 'r';
+    else if (['x', 'abort'].includes(extraArgs[i].toLowerCase())) decisionArg = 'x';
+  }
   const interrupt=quotaReview?undefined:currentInterrupt;let paid=Boolean(data.klingBudget?.approvedAt);
   if(interrupt){
     line(`${AMBER}Gate ativo: ${interrupt.kind??interrupt.gate??'DECISÃO HUMANA'}${X}`);
     if(interrupt.kind==='KLING_BUDGET'){
       line(`${WHITE}${interrupt.totalTakes} takes planejados · ${interrupt.reusableTakes} reaproveitados · ${interrupt.requiredGenerations} novas gerações${X}`);
-      const ok=(await rl.question(`  Autorizar exatamente ${interrupt.requiredGenerations} gerações Kling? Digite KLING: `)).trim();
+      const ok=decisionArg==='a'?'KLING':(await rl.question(`  Autorizar exatamente ${interrupt.requiredGenerations} gerações Kling? Digite KLING: `)).trim();
       if(ok!=='KLING'){line('Retomada cancelada antes do despacho.');return;}
       args.push('--decision','proceed','--max-generations',String(interrupt.requiredGenerations));
       paid=true;
     }else if(interrupt.kind==='AUTHORED_MOTION_REVIEW'){
       line(`${RED}${interrupt.reason??'Motion autoral requer revisão.'}${X}`);
-      const decision=(await rl.question('  [r] tentar novamente  [x] abortar  [v] voltar: ')).trim().toLowerCase();
+      const decision=decisionArg??(await rl.question('  [r] tentar novamente  [x] abortar  [v] voltar: ')).trim().toLowerCase();
       if(decision==='v'||!decision)return;
       if(!['r','x'].includes(decision)){line('Opção inválida.');return;}
       args.push('--decision',decision==='r'?'retry':'abort');
@@ -205,7 +231,7 @@ async function resumeEpisode(rl:readline.Interface,provided?:string){
       const needsDecision=!interrupt.kind||interrupt.kind==='IMAGE_HUMAN_REVIEW'||interrupt.kind==='VISUAL_PROMPTS_HUMAN_REVIEW';
       if(needsDecision){
         const visualRetry=interrupt.kind==='VISUAL_PROMPTS_HUMAN_REVIEW';
-        const decision=(await rl.question(visualRetry?'  [r] corrigir novamente  [a] aprovar  [x] abortar  [v] voltar: ':'  [a] aprovar  [x] abortar  [v] voltar: ')).trim().toLowerCase();
+        const decision=decisionArg??(await rl.question(visualRetry?'  [r] corrigir novamente  [a] aprovar  [x] abortar  [v] voltar: ':'  [a] aprovar  [x] abortar  [v] voltar: ')).trim().toLowerCase();
         if(decision==='v'||!decision)return;
         if(!['a','x',...(visualRetry?['r']:[])].includes(decision)){line('Opção inválida.');return;}
         args.push('--decision',decision==='a'?'proceed':decision==='r'?'retry':'abort');
@@ -252,7 +278,7 @@ function help(){console.log(`
   npm run hsl:matrix -- doctor     verifica contas e ferramentas
 `);}
 
-async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl);else if(['sugerir','suggest'].includes(cmd)){const ch=args[0]?.toLowerCase()==='brecha'?'brecha':args[0]?.toLowerCase()==='hsl'?'hsl':undefined;if(ch)showSuggestions(ch);else{showSuggestions('hsl');showSuggestions('brecha');}}else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0]);else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
+async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl,args);else if(['sugerir','suggest'].includes(cmd)){const ch=args[0]?.toLowerCase()==='brecha'?'brecha':args[0]?.toLowerCase()==='hsl'?'hsl':undefined;if(ch)showSuggestions(ch);else{showSuggestions('hsl');showSuggestions('brecha');}}else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0],args.slice(1));else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
 
 export async function main(argv=process.argv.slice(2)){banner();
   if(argv.length){const directRl=createConsoleReadline();try{await dispatch(argv[0],directRl,argv.slice(1));}finally{directRl.close();}return;}

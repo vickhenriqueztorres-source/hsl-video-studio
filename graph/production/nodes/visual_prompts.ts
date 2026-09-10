@@ -94,19 +94,25 @@ export const visualPromptsReviewPrepare = (c: Context): NodeFn => async s => {
   if(!photographicBeats(s).length)return{__status:'skipped'};
   const signature = createHash('sha256').update(JSON.stringify({source: sourceHash(s), prompts: s.visualPrompts,
     template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-review.md'), 'utf8')})).digest('hex');
-  const result = await c.deps.ide({threadId: s.episodeId, node: `visual-prompts-review-${signature.slice(0, 12)}`,
-    attempt: s.promptIteration || 1, provider: 'codex', ioMode: 'stdout', readOnly: true, maxAttempts: 2,
-    promptTemplate: 'graph/prompts/visual-prompts-review.md', schemaPath: 'graph/prompts/visual-prompts-review.schema.json',
-    vars: {visualPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput), scenePlan: JSON.stringify(s.scenePlan)},
-  }, {repoRoot: c.root});
-  if (!result.headlessResult?.ok) return {promptReview: {
+  let lastReason: string | undefined;
+  for (const provider of ['antigravity', 'codex'] as const) {
+    const result = await c.deps.ide({threadId: s.episodeId, node: `visual-prompts-review-${signature.slice(0, 12)}-${provider}`,
+      attempt: s.promptIteration || 1, provider, ioMode: 'stdout', readOnly: true, maxAttempts: 2,
+      promptTemplate: 'graph/prompts/visual-prompts-review.md', schemaPath: 'graph/prompts/visual-prompts-review.schema.json',
+      vars: {visualPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput), scenePlan: JSON.stringify(s.scenePlan)},
+    }, {repoRoot: c.root});
+    if (result.headlessResult?.ok) {
+      const review = result.headlessResult.output as Omit<PromptReview, 'iteration'>;
+      return {promptReview: {...review, iteration: s.promptIteration || 1}};
+    }
+    lastReason = result.headlessResult?.reason;
+  }
+  return {promptReview: {
     score: 0,
-    issues: [{beatId: 'GLOBAL', message: result.headlessResult?.reason ?? 'Codex did not return a validated review'}],
+    issues: [{beatId: 'GLOBAL', message: lastReason ?? 'Nenhum provedor IDE retornou uma revisão validada'}],
     iteration: s.promptIteration || 1,
     skipped: true,
   }};
-  const review = result.headlessResult.output as Omit<PromptReview, 'iteration'>;
-  return {promptReview: {...review, iteration: s.promptIteration || 1}};
 };
 export const visualPromptsReviewWait = (_c: Context): NodeFn => s => {
   if (s.options.graph.mediaMode === 'legacy') return {__status: 'skipped'};
