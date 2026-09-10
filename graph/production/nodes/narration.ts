@@ -43,7 +43,7 @@ export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_
   const ch = s.channelSnapshot?.channelId ?? s.channelId ?? (s.episodeId.startsWith('BRECHA_') ? 'brecha' : 'hsl');
   const locale = s.channelSnapshot?.profile.narration.locale ?? (ch === 'brecha' ? 'pt-BR' : 'en-US');
   // G0-02: Garantir versão canônica única de roteiro entre síntese, lock e motion
-  const narrativePlan = s.scenePlan ?? readJson<HslLongFormProjectPlan>(p.plan);
+  const narrativePlan = readJson<HslLongFormProjectPlan>(p.plan) ?? s.scenePlan;
   const text = narrationText(narrativePlan?.beats.map(beat => beat.voiceoverScript) ?? [], locale);
   const scriptSha256 = digestText(text);
   const receipt = readJson<NarrationReceipt>(p.narrationReceipt);
@@ -100,6 +100,7 @@ export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_
   const info = c.deps.inspect(p.narration);
   const original = manifest(c, s).getData().artifacts.narrationDurationSeconds ?? info.durationSeconds;
   return {
+    scenePlan: narrativePlan,
     update: { narration: { path: p.narration, publicCopyPath: p.publicNarration, durationSeconds: info.durationSeconds } },
     skipped: cache, metrics: { durationSeconds: original, scriptSha256, qa },
     artifacts: { narrationAudioPath: p.narration, narrationDurationSeconds: original }

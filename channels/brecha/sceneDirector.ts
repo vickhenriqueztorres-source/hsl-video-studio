@@ -49,11 +49,22 @@ function getBrechaDynamicBeatDurations(actNumber: number, targetSec: number, bea
 function ensureUniqueBrechaScripts(beats: HslSceneBeat[]): HslSceneBeat[] {
   const canonical = (s: string) => s.toLocaleLowerCase('pt-BR').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   const seen = new Set<string>();
+  const contextualVariants = [
+    'A análise documental detalha este padrão específico na sequência dos fatos.',
+    'O exame dos registros revela o desdobramento direto desta etapa.',
+    'A reconstituição forense aponta a mecânica precisa deste intervalo.',
+    'Os dados operacionais confirmam a progressão contínua do evento.',
+    'A averiguação técnica demonstra o impacto cumulativo na operação.',
+    'O rastreamento independente valida a ordem cronológica dos acontecimentos.'
+  ];
+  let dupCount = 0;
   return beats.map((b, idx) => {
     let script = b.voiceoverScript.replace(/\s+/g, ' ').trim();
     const key = canonical(script);
     if (seen.has(key)) {
-      script = `${script} Observando a cronologia deste ponto, a evidência se confirma.`;
+      const addition = contextualVariants[dupCount % contextualVariants.length];
+      dupCount++;
+      script = `${script} ${addition}`;
     }
     seen.add(canonical(script));
     return { ...b, voiceoverScript: script };
