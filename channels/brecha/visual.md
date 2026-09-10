@@ -27,9 +27,10 @@ O diretor de cenas e o pipeline de produção operam com seis modos visuais espe
 
 ### Modo 1 — SUPERFÍCIE
 **O que a vítima percebe.**
-- **Estética:** Câmera próxima, luz natural e ambiente cotidiano brasileiro. Fotografia documental sóbria em 35mm com grão analógico suave. Paleta neutra baseada em carvão (`#0D0D0F`) e osso (`#E8E2D7`).
-- **Elementos:** Telefone celular sobre a mesa, xícara de café, tela de chamada recebida, conversa de aplicativo ou comprovante de pagamento.
-- **Função:** Familiaridade e identificação imediata com o espectador comum.
+- **Estética:** Câmera próxima, luz neutra e crua funcional (lâmpada de teto comum, fluorescente de cozinha/portaria, dia nublado, sem golden hour ou pôr do sol) e ambiente cotidiano brasileiro autêntico (cozinha com azulejos, portaria, ponto de ônibus, mesa simples de trabalho). Fotografia documental sóbria em 35mm com grão analógico suave. Paleta majoritariamente neutra baseada em cinzas minerais, carvão (`#0D0D0F`) e osso (`#E8E2D7`).
+- **Elementos:** Telefone celular sobre bancada de fórmica ou granito cinza, boletos e contas mensais de rotina, tela de chamada recebida, comprovante de pagamento.
+- **Política de Personagem:** `characterPolicy: 'ausente' | 'periferica'`. O objeto físico é o protagonista absoluto; figuração humana restrita a mãos funcionais em plano detalhe, sem poses de stock.
+- **Função:** Familiaridade e identificação imediata com a rotina do cidadão comum.
 - **Duração usual:** 3 a 7 segundos por tomada.
 - **Som:** Som ambiente natural (diegese) entra antes da narração.
 
@@ -113,3 +114,29 @@ Para manter o equilíbrio documental e evitar a monocultura de imagens geradas, 
 | `MomentOfBreach` | Freeze-frame com isolamento temporal e fenda coral contornando a decisão crítica. |
 | `HslUniversalHeader` | Header superior adaptativo com badge Coral `BRECHA` e atos brasileiros (`ATO 01 // ...`). |
 | `ChannelShell` | Container que orquestra as camadas de conformidade e metadados visuais. |
+
+---
+
+## 6. Política de Personagem e Enquadramento Humano (`characterPolicy`)
+
+O canal BRECHA adota uma diretriz estrita para a presença humana: **o objeto, o documento oficial ou a interface do sistema é o protagonista absoluto**.
+
+### Princípios de Figuração Documental
+- **Modos de Presença Permitidos:** Estritamente `periferica` ou `ausente`.
+- **Ausente (`absent`):** O objeto vive sozinho no espaço documental (exemplo: smartphone tocando sobre a bancada de fórmica, documento oficial aberto, tela do caixa eletrônico, painel do carro com GPS).
+- **Periférica (`peripheral`):** A presença humana é sempre parcial, funcional e mecânica:
+  - Enquadramento em plano detalhe (macro ou close) de mãos operando o dispositivo (atendendo chamada, hesitando sobre a tecla virtual, segurando comprovante). Mãos comuns, sem unhas perfeitas de modelo de publicidade.
+  - Antebraço apoiado ou silhueta de perfil/costas em segundo plano desfocado (*shallow depth of field*).
+- **Proibição Absoluta de Closes Dramáticos em Rostos:** É terminantemente proibido gerar closes frontais em rostos com expressões forçadas de pânico, susto ou desespero ("expressões de thumbnail de terror"). Se uma pessoa for mostrada em plano aberto de contextualização, o enquadramento deve ser lateral, neutro e sem caricatura emocional.
+
+### Comparativo: Documentário Real vs Clichês de Midjourney / Banco de Imagem
+
+| Dimensão Visual | Proibido (Clichê de Banco de Imagem / Midjourney) | Obrigatório (Documentário Canônico BRECHA) |
+|---|---|---|
+| **Iluminação** | Luz dourada de fim de tarde (*golden hour*), sombras poéticas de pôr do sol, claridade acolhedora de Pinterest | Luz crua, neutra e funcional: lâmpada fluorescente branca de cozinha/portaria, luz difusa de dia nublado por janela simples, lâmpada de teto comum |
+| **Mobiliário** | Mesa de madeira maciça envernizada, bancada de carvalho escuro, escritório sofisticado | Mesa de fórmica clara, bancada de granito cinza salpicado, azulejo branco de cozinha, balcão de portaria de condomínio, assento de ônibus urbano |
+| **Cenografia** | Xícara de café com vapor subindo, plantas decorativas, velas, livros de design | Boletos de água/luz, correspondências bancárias, bloco de anotações com caneta esferográfica, chave comum, cartão de banco gasto |
+| **Ambiente de Rede** | "Bancada técnica investigativa com laptop, fones e roteador" (*laboratório hacker disfarçado*) | **Zero bancadas hackers.** Cenas de rede são diagramas causais 2.5D ortogonais em Remotion; Cenas de prova são documentos oficiais auditados |
+| **Figura Humana** | Modelos em poses dramáticas de sofrimento ou mãos posando artificialmente | Mãos em gestual funcional e mecânico cotidiano; presença periférica ou ausente |
+| **Câmera** | Movimentos excessivos de grua/drone, giros rápidos, zooms dramáticos | Enquadramentos sóbrios e estáveis, câmera fixa (`LOCKED_TELEMETRY`), deslocamento suave (`CAMERA_DRIFT`) e planos detalhe funcionais |
+

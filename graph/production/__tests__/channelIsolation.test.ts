@@ -464,5 +464,23 @@ test('I16: Brand Bible visual mode and scene distribution fidelity (Zero foreign
   const defenseStepBeat = act4Beats[act4Beats.length - 1];
   assert.ok(defenseStepBeat.cinematicPrompt.includes('Desligar') && defenseStepBeat.cinematicPrompt.includes('cartão'), 'Must contain 3 practical defense steps');
   assert.ok(/toda fraude começa por uma brecha/i.test(defenseStepBeat.voiceoverScript), 'Closing voiceover must conclude with brand signature');
+
+  // 4. Anti-stock / Anti-Midjourney documentary realism check
+  assert.ok(
+    plan.beats.every((b: HslSceneBeat) => !/golden hour|luz de fim de tarde|luz suave de fim de tarde|madeira maciça|vapor de|bancada técnica investigativa/i.test(b.cinematicPrompt)),
+    'Prompts must not contain stock or Midjourney clichés (golden hour, coffee vapor, fake hacker desks)'
+  );
+  assert.ok(
+    plan.beats.some((b: HslSceneBeat) => /fórmica|granito|fluorescente|neutra/i.test(b.cinematicPrompt)),
+    'Prompts must feature authentic Brazilian documentary materials and functional lighting'
+  );
+
+  // 5. Strict Character Policy contract
+  assert.ok(profileContent.includes('characterPolicy'), 'profile.ts must define characterPolicy');
+  assert.ok(profileContent.includes('periferica_ou_ausente'), 'profile.ts characterPolicy must require periferica_ou_ausente');
+  assert.ok(profileContent.includes('objeto_protagonista'), 'profile.ts characterPolicy must require objeto_protagonista');
+  assert.ok(profileContent.includes('proibido_close_frontal_dramatico'), 'profile.ts characterPolicy must forbid dramatic frontal face closeups');
+  assert.ok(brechaVisual.includes('characterPolicy'), 'visual.md must document characterPolicy');
+  assert.ok(promptContent.includes('characterPolicy'), 'visual-prompts.md must document characterPolicy');
 });
 

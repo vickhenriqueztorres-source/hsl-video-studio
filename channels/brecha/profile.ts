@@ -51,9 +51,15 @@ export const brechaProfile: ChannelProfile = {
       body: 'Source Sans 3, sans-serif',
       dataMonospace: 'IBM Plex Mono, monospace'
     },
-    textures: ['papel_fino', 'concreto_suave', 'vidro_fosco', 'grao_cinematografico_leve'],
-    cameraLanguage: 'documentário de defesa cotidiana brasileira; dinamismo de corte (19-35 mudanças no primeiro minuto inspirado em fern); continuidade de objetos cotidianos; luz natural e enquadramentos sóbrios',
-    reconstructionLabelRequired: true
+    textures: ['formica_clara', 'granito_cinza', 'azulejo_comum', 'cimento_fino', 'plastico_fosco', 'papel_timbrado', 'grao_cinematografico_leve'],
+    cameraLanguage: 'documentário de defesa cotidiana brasileira; iluminação crua, neutra e funcional (fluorescente de cozinha/portaria, dia nublado, lâmpada de teto comum sem golden hour ou pôr do sol); materiais autênticos como fórmica clara e granito; presença humana periférica ou ausente com o objeto ou evidência documental como protagonista; dinamismo de corte (19-35 mudanças no primeiro minuto inspirado em fern); enquadramentos sóbrios e planos detalhe funcionais',
+    reconstructionLabelRequired: true,
+    characterPolicy: {
+      presence: 'periferica_ou_ausente',
+      dominance: 'objeto_protagonista',
+      faceFraming: 'proibido_close_frontal_dramatico',
+      handsAndGestures: 'funcional_cotidiano_sem_pose_stock'
+    }
   },
   narration: {
     locale: 'pt-BR',
