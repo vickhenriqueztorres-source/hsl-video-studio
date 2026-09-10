@@ -98,6 +98,7 @@
     "hsl:langgraph:dry-run": "python hsl_langgraph_cli.py run --dry-run",
     "hsl:langgraph:graph": "python hsl_langgraph_cli.py graph",
     "hsl:langgraph:presets": "python hsl_langgraph_cli.py presets",
+    "matrix": "ts-node -T graph/console/cli.ts",
     "hsl:matrix": "ts-node -T graph/console/cli.ts",
     "hsl:codex:login": "ts-node -T graph/ide/codexAccount.ts login",
     "hsl:codex:status": "ts-node -T graph/ide/codexAccount.ts status",
