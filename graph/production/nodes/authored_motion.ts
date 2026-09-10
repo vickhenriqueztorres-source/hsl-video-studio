@@ -14,6 +14,7 @@ import {
   type PhraseRequest,
 } from '../../motion-audio';
 import type {AuthoredMotionArtifact, State} from '../state';
+import type {HslLongFormProjectPlan} from '../../../hsl/core/types';
 import {copyFile, type Context, type NodeFn, paths, readJson, writeJson} from '../runtime';
 import {fileContentHash} from '../lib/renderIdentity';
 import {assertMediaCoverage} from '../lib/mediaCoverage';
@@ -28,9 +29,10 @@ function motionRoot(c:Context,s:State){return path.join(paths(c,s).run,'motion')
 function alignmentFile(c:Context,s:State){return path.join(motionRoot(c,s),'alignment.json');}
 function lockReceiptFile(c:Context,s:State){return path.join(motionRoot(c,s),'narration-lock.json');}
 
-function scripts(s:State):readonly string[]{
-  if(!s.scenePlan?.beats.length)throw new Error('AUTHORED_MOTION_SCENE_PLAN_MISSING');
-  return s.scenePlan.beats.map(beat=>beat.voiceoverScript.replace(/\s+/g,' ').trim());
+function scripts(s:State, c?:Context):readonly string[]{
+  const plan = c ? (readJson<HslLongFormProjectPlan>(paths(c,s).plan) ?? s.scenePlan) : s.scenePlan;
+  if(!plan?.beats.length)throw new Error('AUTHORED_MOTION_SCENE_PLAN_MISSING');
+  return plan.beats.map(beat=>beat.voiceoverScript.replace(/\s+/g,' ').trim());
 }
 
 function phraseRequests(parts:readonly string[]):PhraseRequest[]{
@@ -57,14 +59,14 @@ function validCachedLock(c:Context,s:State,receipt:MotionNarrationReceipt|undefi
 /** Freezes and aligns narration before any model is allowed to author motion. */
 export const narrationLock=(c:Context):NodeFn=>async s=>{
   if(s.options.graph.motionMode!=='authored')return{narrationLock:null,__status:'skipped'};
-  if(!s.narration||!s.scenePlan)throw new Error('AUTHORED_MOTION_NARRATION_MISSING');
-  const parts=scripts(s),script=narrationText(parts),root=motionRoot(c,s),receiptPath=lockReceiptFile(c,s);
+  let activePlan = readJson<HslLongFormProjectPlan>(paths(c,s).plan) ?? s.scenePlan;
+  if(!s.narration||!activePlan)throw new Error('AUTHORED_MOTION_NARRATION_MISSING');
+  const parts=scripts(s,c),script=narrationText(parts),root=motionRoot(c,s),receiptPath=lockReceiptFile(c,s);
   fs.mkdirSync(root,{recursive:true});
   const cached=readJson<MotionNarrationReceipt>(receiptPath);
   if(validCachedLock(c,s,cached,script)){
     return{narrationLock:{audioPath:cached!.lock.lockedPath,audioSha256:cached!.lock.lockedAudioSha256,durationSeconds:cached!.lock.durationSeconds,alignmentPath:alignmentFile(c,s),alignmentSha256:fileContentHash(alignmentFile(c,s))},__status:'skipped'};
   }
-  let activePlan = s.scenePlan;
   const audioDuration = s.narration.durationSeconds;
   const currentPlanDuration = activePlan.totalFrames / FPS;
 
@@ -125,7 +127,7 @@ export const motionDispatch=(c:Context):NodeFn=>async s=>{
   if(localStart<0||localEnd>beat.durationFrames||localEnd<=localStart){
     return{motionIssue:{beatId:beat.beatId,status:'review_required' as const,reason:`MOTION_ALIGNMENT_OUTSIDE_BEAT:${localStart}:${localEnd}/${beat.durationFrames}`,receiptPath:lockReceiptFile(c,s)}};
   }
-  const cleanScripts=scripts(s);
+  const cleanScripts=scripts(s,c);
   const ch = s.channelSnapshot?.channelId ?? s.channelId ?? (s.episodeId.startsWith('BRECHA_') ? 'brecha' : 'hsl');
   const isBrecha = ch === 'brecha';
   const channelPalette = isBrecha
