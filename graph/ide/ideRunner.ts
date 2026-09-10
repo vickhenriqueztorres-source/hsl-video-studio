@@ -1,7 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Ajv from 'ajv';
+import Ajv2020 from 'ajv/dist/2020';
 import { REPO_ROOT } from '../checkpointer';
+
+function compileJsonSchema(schema: any, options: { allErrors?: boolean; strict?: boolean } = { allErrors: true, strict: true }) {
+  const is2020 = typeof schema === 'object' && schema !== null && typeof schema.$schema === 'string' && schema.$schema.includes('2020-12');
+  const Cls = is2020 ? Ajv2020 : Ajv;
+  return new Cls(options).compile(schema);
+}
 import { DriverResult, IdePreparation, IdeResult, IdeTask, PreparedTask, RunnerContext } from './types';
 import { inlineAntigravityContext, runAntigravity } from './drivers/antigravity';
 import { runCodex } from './drivers/codex';
@@ -49,7 +56,7 @@ export function prepareIdeTask(task: IdeTask, context: RunnerContext = {}, error
   if (fs.existsSync(prepared.promptPath) && fs.existsSync(prepared.schemaPath)) return prepared;
   const template = fs.readFileSync(path.resolve(repoRoot, task.promptTemplate), 'utf8');
   const schemaText = fs.readFileSync(path.resolve(repoRoot, task.schemaPath), 'utf8');
-  new Ajv({ allErrors: true, strict: true }).compile(JSON.parse(schemaText));
+  compileJsonSchema(JSON.parse(schemaText));
   let prompt = template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => task.vars?.[key] ?? match);
   if (task.provider === 'antigravity' && ioMode === 'stdout') {
     prompt += inlineAntigravityContext(task, repoRoot);
@@ -74,7 +81,7 @@ export function prepareIdeTask(task: IdeTask, context: RunnerContext = {}, error
 
 /** Read-only: safe in the interrupt node, including on every re-entry. */
 export function validateIdeOutput(prepared: PreparedTask, driver: DriverResult = {}, durationMs = 0): IdeResult {
-  const validate = new Ajv({ allErrors: true, strict: true }).compile(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
+  const validate = compileJsonSchema(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
   const outputPath = driver.outputPath ?? prepared.outputPath;
   let output: unknown;
   let errors: string[] = [];

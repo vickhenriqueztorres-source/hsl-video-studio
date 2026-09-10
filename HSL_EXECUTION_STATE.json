@@ -1,11 +1,11 @@
 {
-  "episodeId": "HSL_EPISODE_005",
-  "timestamp": "2026-09-07T00:22:41.939Z",
+  "episodeId": "HSL_EPISODE_016",
+  "timestamp": "2026-09-09T20:35:54.204Z",
   "gatekeeperStatus": "PASSED",
   "autoRecovered": false,
-  "totalBeats": 48,
-  "validBeats": 48,
+  "totalBeats": 58,
+  "validBeats": 58,
   "failedBeats": 0,
-  "narrationDurationSeconds": 600,
+  "narrationDurationSeconds": 599.981708,
   "errors": []
 }

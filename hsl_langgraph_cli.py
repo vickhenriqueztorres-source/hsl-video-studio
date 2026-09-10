@@ -188,10 +188,15 @@ def cmd_run(args):
     print_banner()
 
     # Determine Episode Parameters
-    preset_data = get_preset(args.preset) if args.preset else None
+    preset_key = getattr(args, "preset", None)
+    target_pos = getattr(args, "target", None)
+    if not preset_key and target_pos and get_preset(target_pos):
+        preset_key = target_pos
+
+    preset_data = get_preset(preset_key) if preset_key else None
 
     ep_id = args.episode_id or (preset_data["id"] if preset_data else "HSL_EPISODE_001")
-    topic = args.topic or (preset_data["topic"] if preset_data else "THE HIDDEN SYSTEM THAT KEEPS PLANES FLYING")
+    topic = args.topic or (target_pos if target_pos and not preset_data else None) or (preset_data["topic"] if preset_data else "THE HIDDEN SYSTEM THAT KEEPS PLANES FLYING")
     target_minutes = args.target_minutes or (preset_data["target_minutes"] if preset_data else 10)
     entity = args.entity or (preset_data["entity"] if preset_data else "Airport Jet Fuel Logistics")
     mechanism = args.mechanism or (preset_data["mechanism"] if preset_data else "Pipeline to Hydrant Manifold High-Pressure Injection")
@@ -288,6 +293,7 @@ def main():
 
     # Command: run
     run_parser = subparsers.add_parser("run", help="Executa o pipeline completo via LangGraph")
+    run_parser.add_argument("target", nargs="?", default=None, help="Preset canônico ou tema personalizado")
     run_parser.add_argument("--preset", "-p", choices=list(HSL_PRESETS.keys()), help="Preset canônico HSL")
     run_parser.add_argument("--episode-id", "-e", help="ID único do episódio (ex: HSL_EPISODE_001)")
     run_parser.add_argument("--topic", "-t", help="Tema personalizado do documentário")

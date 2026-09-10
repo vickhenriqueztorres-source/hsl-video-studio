@@ -297,7 +297,7 @@ export class HslSceneDirectorAgent {
 
 
         // Geração do prompt cinematográfico de alta fidelidade Kinetic Velocity individualizado
-        const cinematicPrompt = `Cinematic 35mm pop-documentary shot, ${shotSize.toLowerCase()} angle, ${cameraMovement.toLowerCase().replace(/_/g, ' ')}, ${promptSubject}, Apple Keynote meets Vox high-voltage documentary aesthetic, monumental off-white typography overlays (#F4F4F0), Arri Alexa LF 8k.`;
+        const cinematicPrompt = `Cinematic 35mm photorealistic documentary shot, ${shotSize.toLowerCase()} angle, ${cameraMovement.toLowerCase().replace(/_/g, ' ')}, ${promptSubject}, Vox meets BBC Horizon technical engineering aesthetic, authentic physical textures and lighting, Arri Alexa LF 8k, NO TEXT, NO NUMBERS, NO OVERLAYS, NO TYPOGRAPHY.`;
 
         allBeats.push({
           beatId,

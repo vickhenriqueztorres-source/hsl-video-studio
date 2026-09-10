@@ -149,7 +149,7 @@
     "@react-three/fiber": "^9.7.0",
     "@remotion/cli": "^4.0.513",
     "@remotion/media": "^4.0.513",
-    "@remotion/three": "^4.0.513",
+    "@remotion/three": "^4.0.523",
     "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

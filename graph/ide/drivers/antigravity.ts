@@ -1,6 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Ajv from 'ajv';
+import Ajv2020 from 'ajv/dist/2020';
+
+function compileJsonSchema(schema: any, options: { allErrors?: boolean } = { allErrors: true }) {
+  const is2020 = typeof schema === 'object' && schema !== null && typeof schema.$schema === 'string' && schema.$schema.includes('2020-12');
+  const Cls = is2020 ? Ajv2020 : Ajv;
+  return new Cls(options).compile(schema);
+}
 import { DriverResult, IdeTask, PreparedTask } from '../types';
 import { findCli, runProcess, unavailableReason } from './process';
 import { spawnTool } from '../../lib/proc';
@@ -103,7 +110,7 @@ export async function runAntigravity(prepared: PreparedTask): Promise<DriverResu
     const output = extractAntigravityJson(result.stdout);
     if (output !== undefined) {
       fs.writeFileSync(prepared.outputPath, JSON.stringify(output, null, 2) + '\n');
-      const validate = new Ajv({ allErrors: true }).compile(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
+      const validate = compileJsonSchema(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
       if (!validate(output)) fs.appendFileSync(prepared.logPath, `[stdout-validation] ${JSON.stringify(validate.errors)}\n`);
     }
   }

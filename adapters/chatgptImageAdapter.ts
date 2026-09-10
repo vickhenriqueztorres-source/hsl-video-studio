@@ -99,24 +99,38 @@ export class ChatGptImageAdapter {
     return map;
   }
 
-  public runGeneratorBot(): void {
+  public runGeneratorBot(pendingCount: number = 1): void {
     const scriptPath = path.join(this.botDir, 'src', 'main.py');
     if (!fs.existsSync(scriptPath)) {
       console.log(`[ChatGPTImageAdapter] Bot script principal não encontrado em: ${scriptPath}. Pulando execução externa.`);
       return;
     }
-    console.log(`[ChatGPTImageAdapter] Executando bot gerador em: ${this.botDir}`);
+    console.log(`[ChatGPTImageAdapter] Executando bot gerador em: ${this.botDir} com suporte a pool de 3 contas...`);
     const pythonExe = process.platform === 'win32' ? 'python' : 'python3';
+
+    // Timeout dinâmico: mínimo 10 minutos (600s), escalando 120s por imagem pendente
+    const timeoutMs = Math.max(600000, pendingCount * 120000);
+    console.log(`[ChatGPTImageAdapter] Timeout de segurança alocado: ${Math.round(timeoutMs / 60000)} minutos.`);
 
     const result = spawnSync(pythonExe, ['-m', 'src.main', '--run'], {
       cwd: this.botDir,
       encoding: 'utf8',
+      timeout: timeoutMs,
       env: {...process.env, PYTHONUNBUFFERED: '1'}
     });
 
+    if (result.stdout) {
+      const lines = result.stdout.split('\n').filter(Boolean);
+      // Imprime as últimas linhas de log relevantes
+      const tail = lines.slice(-15).join('\n');
+      console.log(`[ChatGPTImageAdapter Output]:\n${tail}`);
+    }
+
     if (result.status !== 0) {
       console.warn(`[ChatGPTImageAdapter] Bot de imagens finalizou com código ${result.status}`);
-      console.warn(`[ChatGPTImageAdapter] Stderr: ${result.stderr}`);
+      if (result.stderr) {
+        console.warn(`[ChatGPTImageAdapter] Stderr: ${result.stderr}`);
+      }
     } else {
       console.log('[ChatGPTImageAdapter] Geração de imagens no ChatGPT finalizada com sucesso!');
     }
@@ -153,7 +167,7 @@ export class ChatGptImageAdapter {
       fs.writeFileSync(this.queuePath, Array.from(newQueueSet).join('\n') + '\n', 'utf8');
 
       if (autoRunBot) {
-        this.runGeneratorBot();
+        this.runGeneratorBot(pendingRequests.length);
         manifestMap = this.loadCompletedManifestMap();
       }
     }

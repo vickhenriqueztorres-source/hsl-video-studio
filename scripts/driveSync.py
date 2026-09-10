@@ -2,33 +2,186 @@ import os
 import sys
 import json
 import argparse
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.errors import HttpError
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
 
 ROOT = Path(__file__).parent.parent
-TOKEN_FILE = ROOT / 'config' / 'token.json'
+TOKEN_FILE = Path(os.environ.get('HSL_GOOGLE_TOKEN_FILE', str(ROOT / 'config' / 'token.json')))
 SERVICE_KEY_FILE = ROOT / 'config' / 'google-drive-key.json'
-SCOPES = [
-    'https://www.googleapis.com/auth/drive',
-    'https://www.googleapis.com/auth/drive.file'
-]
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 DEFAULT_FOLDER_ID = '1j2tFJVmQrXOLE_aEvlDG1Yo1zQUx-sTq'
+_FOLDER_CACHE = {}
+_FOLDER_LOCK = threading.Lock()
+
+def _safe_error(exc):
+    return exc.__class__.__name__
+
+def _load_oauth_credentials(require=False):
+    if not TOKEN_FILE.exists():
+        if require:
+            raise FileNotFoundError('token ausente')
+        return None
+    creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        TOKEN_FILE.write_text(creds.to_json(), encoding='utf-8')
+    if not creds or not creds.valid:
+        raise RuntimeError('token inválido')
+    return creds
+
+def oauth_auth():
+    secret = os.environ.get('HSL_GOOGLE_CLIENT_SECRET_FILE', '')
+    if not secret or not Path(secret).is_absolute() or not Path(secret).is_file():
+        raise FileNotFoundError('client secret ausente ou não absoluto')
+    # Use Google's current OAuth v2 endpoint explicitly. Some freshly-created
+    # Desktop client downloads still contain the legacy /o/oauth2/auth URI.
+    client_config = json.loads(Path(secret).read_text(encoding='utf-8'))
+    client_config['installed']['auth_uri'] = 'https://accounts.google.com/o/oauth2/v2/auth'
+    flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
+    creds = flow.run_local_server(
+        host='127.0.0.1',
+        port=0,
+        open_browser=False,
+        authorization_prompt_message="AUTH_URL {url}",
+        success_message="Autorizacao concluida. Volte ao Codex.",
+    )
+    TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+    TOKEN_FILE.write_text(creds.to_json(), encoding='utf-8')
+
+def _execute_retry(factory):
+    for attempt in range(3):
+        try:
+            return factory().execute()
+        except HttpError as exc:
+            status = getattr(exc.resp, 'status', None)
+            if status not in (429, 500, 502, 503, 504) or attempt == 2:
+                raise
+            time.sleep(2 ** attempt)
+
+def _escape_query(value):
+    return str(value).replace('\\', '\\\\').replace("'", "\\'")
+
+def ensure_remote_path(service, root_id, parts):
+    parent = root_id
+    for name in parts:
+        cache_key = (parent, name)
+        with _FOLDER_LOCK:
+            if cache_key in _FOLDER_CACHE:
+                parent = _FOLDER_CACHE[cache_key]
+                continue
+            query = "mimeType = 'application/vnd.google-apps.folder' and name = '%s' and '%s' in parents and trashed = false" % (_escape_query(name), _escape_query(parent))
+            result = _execute_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id,name)', supportsAllDrives=True, includeItemsFromAllDrives=True))
+            found = result.get('files', [])
+            if found:
+                parent = found[0]['id']
+            else:
+                body = {'name': name, 'mimeType': 'application/vnd.google-apps.folder', 'parents': [parent]}
+                parent = _execute_retry(lambda: service.files().create(body=body, fields='id', supportsAllDrives=True))['id']
+            _FOLDER_CACHE[cache_key] = parent
+    return parent
+
+def find_remote_file(service, parent_id, name):
+    query = "name = '%s' and '%s' in parents and trashed = false" % (_escape_query(name), _escape_query(parent_id))
+    result = _execute_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id,name,size,md5Checksum)', supportsAllDrives=True, includeItemsFromAllDrives=True))
+    return (result.get('files') or [None])[0]
+
+def find_remote_folder(service, parent_id, name):
+    query = "mimeType = 'application/vnd.google-apps.folder' and name = '%s' and '%s' in parents and trashed = false" % (_escape_query(name), _escape_query(parent_id))
+    result = _execute_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id,name)', supportsAllDrives=True, includeItemsFromAllDrives=True))
+    found = result.get('files') or []
+    return found[0]['id'] if found else None
+
+def resolve_episode_folders(service, root_id, episode_id):
+    deliveries_root = find_remote_folder(service, root_id, '01_DELIVERIES')
+    saves_root = find_remote_folder(service, root_id, '03_EPISODE_SAVES')
+    delivery_episode = find_remote_folder(service, deliveries_root, episode_id) if deliveries_root else None
+    save_episode = find_remote_folder(service, saves_root, episode_id) if saves_root else None
+    images = find_remote_folder(service, save_episode, 'images') if save_episode else None
+    videos = find_remote_folder(service, save_episode, 'video') if save_episode else None
+    delivery_video = find_remote_folder(service, delivery_episode, 'video') if delivery_episode else None
+    return {'episode': save_episode or delivery_episode, 'images': images, 'videos': videos or delivery_video, 'deliverables': delivery_episode, 'root': root_id}
+
+def _process_verified_item(service, root_folder_id, item, upload):
+    base = {'localPath': item.get('localPath')}
+    try:
+        local = Path(item['localPath'])
+        parts = [part for part in str(item['remoteSubpath']).replace('\\', '/').split('/') if part]
+        if not local.is_file() or not parts:
+            raise FileNotFoundError('arquivo local ou remoteSubpath inválido')
+        parent = ensure_remote_path(service, root_folder_id, parts[:-1])
+        existing = None
+        if item.get('driveFileId'):
+            existing = _execute_retry(lambda: service.files().get(fileId=item['driveFileId'], fields='id,md5Checksum,size', supportsAllDrives=True))
+        if not existing:
+            existing = find_remote_file(service, parent, parts[-1])
+        if not upload:
+            if not existing:
+                return {**base, 'status': 'error', 'error': 'remote ausente'}
+            meta = _execute_retry(lambda: service.files().get(fileId=existing['id'], fields='id,md5Checksum,size', supportsAllDrives=True))
+            same = meta.get('md5Checksum') == item['md5'] and int(meta.get('size', -1)) == int(item['sizeBytes'])
+            return {**base, 'driveFileId': meta['id'], 'driveFolderId': parent, 'remoteMd5': meta.get('md5Checksum'), 'status': 'already' if same else 'mismatch'}
+        if existing and existing.get('md5Checksum') == item['md5'] and int(existing.get('size', -1)) == int(item['sizeBytes']):
+            file_id, status = existing['id'], 'already'
+        else:
+            media = MediaFileUpload(str(local), resumable=True, chunksize=10*1024*1024)
+            if existing:
+                response = _execute_retry(lambda: service.files().update(fileId=existing['id'], media_body=media, fields='id', supportsAllDrives=True))
+            else:
+                response = _execute_retry(lambda: service.files().create(body={'name': parts[-1], 'parents': [parent]}, media_body=media, fields='id', supportsAllDrives=True))
+            file_id, status = response['id'], 'uploaded'
+        meta = _execute_retry(lambda: service.files().get(fileId=file_id, fields='id,md5Checksum,size', supportsAllDrives=True))
+        same = meta.get('md5Checksum') == item['md5'] and int(meta.get('size', -1)) == int(item['sizeBytes'])
+        return {**base, 'driveFileId': file_id, 'driveFolderId': parent, 'remoteMd5': meta.get('md5Checksum'), 'status': status if same else 'mismatch'}
+    except Exception as exc:
+        return {**base, 'status': 'error', 'error': _safe_error(exc)}
+
+def process_verified_items(service, root_folder_id, items, upload=True, service_factory=None, workers=1):
+    total = len(items)
+    if total == 0:
+        return {'items': []}
+    output = [None] * total
+    progress = {'completed': 0}
+    progress_lock = threading.Lock()
+    thread_services = threading.local()
+
+    def run(index):
+        active_service = service
+        if service_factory:
+            if not hasattr(thread_services, 'service'):
+                thread_services.service = service_factory()
+            active_service = thread_services.service
+        output[index] = _process_verified_item(active_service, root_folder_id, items[index], upload)
+        with progress_lock:
+            progress['completed'] += 1
+            completed = progress['completed']
+            if completed % 25 == 0 or completed == total:
+                print(f"drive-progress {completed}/{total}", file=sys.stderr, flush=True)
+
+    if workers > 1:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            list(executor.map(run, range(total)))
+    else:
+        for index in range(total):
+            run(index)
+    return {'items': output}
 
 def get_drive_service():
     if TOKEN_FILE.exists():
-        creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            with open(str(TOKEN_FILE), 'w', encoding='utf-8') as f:
-                f.write(creds.to_json())
+        creds = _load_oauth_credentials(require=True)
         return build('drive', 'v3', credentials=creds)
     elif SERVICE_KEY_FILE.exists():
         creds = service_account.Credentials.from_service_account_file(
@@ -194,15 +347,54 @@ def upload_checkpoint_files(service, root_folder_id, dest_subfolder, file_paths)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--folder-id', default=DEFAULT_FOLDER_ID, help="Google Drive Root Folder ID")
-    parser.add_argument('--action', choices=['all', 'deliveries', 'saves', 'assets', 'sync-episode', 'checkpoint'], default='all')
+    parser.add_argument('--folder-id', default=os.environ.get('HSL_DRIVE_FOLDER_ID', DEFAULT_FOLDER_ID), help="Google Drive Root Folder ID")
+    parser.add_argument('--action', choices=['all', 'deliveries', 'saves', 'assets', 'sync-episode', 'checkpoint', 'auth', 'check-auth', 'upload-verified', 'verify', 'resolve-folders'], default='all')
     parser.add_argument('--episode-id', help="ID do episódio para sync específico")
     parser.add_argument('--dest-subfolder', help="Subpasta de destino no Drive (ex: 03_EPISODE_SAVES/EP_012)")
     parser.add_argument('--files', nargs='*', help="Lista de arquivos para upload em checkpoint")
+    parser.add_argument('--manifest')
+    parser.add_argument('--result')
     args = parser.parse_args()
 
-    service = get_drive_service()
+    if args.action == 'auth':
+        try:
+            oauth_auth(); print('ok'); return
+        except Exception as exc:
+            print('error: ' + _safe_error(exc)); raise SystemExit(1)
+    if args.action == 'check-auth':
+        try:
+            _load_oauth_credentials(require=True); print('ok'); return
+        except Exception:
+            print('error: auth required'); raise SystemExit(2)
+    try:
+        service = get_drive_service()
+    except Exception as exc:
+        print('error: ' + _safe_error(exc)); raise SystemExit(1)
     root_id = args.folder_id
+
+    if args.action == 'resolve-folders':
+        if not args.episode_id or not args.result:
+            print('error: episode-id/result required'); raise SystemExit(1)
+        result_path = Path(args.result); result_path.parent.mkdir(parents=True, exist_ok=True)
+        result_path.write_text(json.dumps(resolve_episode_folders(service, root_id, args.episode_id), indent=2), encoding='utf-8')
+        print('ok'); return
+
+    if args.action in ['upload-verified', 'verify']:
+        if not args.manifest or not args.result:
+            print('error: manifest/result required'); raise SystemExit(1)
+        payload = json.loads(Path(args.manifest).read_text(encoding='utf-8-sig'))
+        workers = max(1, min(4, int(os.environ.get('HSL_DRIVE_WORKERS', '4'))))
+        result = process_verified_items(
+            service,
+            payload.get('folderId') or root_id,
+            payload.get('items', []),
+            upload=args.action == 'upload-verified',
+            service_factory=get_drive_service if workers > 1 else None,
+            workers=workers,
+        )
+        result_path = Path(args.result); result_path.parent.mkdir(parents=True, exist_ok=True)
+        result_path.write_text(json.dumps(result, indent=2), encoding='utf-8')
+        return
 
     if args.action == 'sync-episode' and args.episode_id:
         sync_single_episode(service, root_id, args.episode_id)

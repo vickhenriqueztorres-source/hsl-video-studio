@@ -13,7 +13,8 @@ def invoke_typescript_stage(
     stage_name: str,
     state: HslPipelineState,
     dry_run: Optional[bool] = None,
-    verbose: bool = True
+    verbose: bool = True,
+    timeout: int = 600
 ) -> Dict[str, Any]:
     """
     Executes an individual pipeline stage via the TypeScript bridge (hslStageBridge.ts).
@@ -43,6 +44,7 @@ def invoke_typescript_stage(
     if is_dry:
         cmd.append("--dry-run")
 
+    process = None
     try:
         process = subprocess.Popen(
             cmd,
@@ -68,10 +70,9 @@ def invoke_typescript_stage(
                     except Exception:
                         pass
                 elif verbose and clean_line:
-                    # Print stage activity
                     print(f"    [TS] {clean_line}")
 
-        process.wait()
+        process.wait(timeout=timeout)
 
         if result_payload:
             return result_payload
@@ -91,7 +92,20 @@ def invoke_typescript_stage(
                 "error": stderr_output or "".join(stdout_lines) or f"Process exited with code {process.returncode}"
             }
 
+    except subprocess.TimeoutExpired:
+        if process:
+            process.kill()
+        return {
+            "status": "FAILED",
+            "stage": stage_name,
+            "error": f"Processo do estágio {stage_name} excedeu o timeout de {timeout}s e foi terminado."
+        }
     except Exception as exc:
+        if process:
+            try:
+                process.kill()
+            except Exception:
+                pass
         return {
             "status": "ERROR",
             "stage": stage_name,

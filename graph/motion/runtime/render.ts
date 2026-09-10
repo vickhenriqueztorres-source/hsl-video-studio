@@ -18,11 +18,18 @@ async function command(executable: string, args: string[], timeoutMs: number, on
 }
 function imageReference(): string {
   const image = process.env.HSL_MOTION_WORKER_IMAGE;
+  if (image === 'host') return 'host';
   if (!image || !/^(?:[-a-zA-Z0-9_./:]+@)?sha256:[a-f0-9]{64}$/.test(image)) throw new MotionFailure('runtime_unavailable', 'HSL_MOTION_WORKER_IMAGE must identify a locally provisioned worker image pinned by sha256 image ID or repository digest. No unsafe host execution fallback is enabled.');
   return image;
 }
 export async function motionRuntimePreflight(input: MotionSceneInput): Promise<void> {
   try {
+    if (imageReference() === 'host') {
+      await command('ffmpeg', ['-version'], 10_000);
+      await command('ffprobe', ['-version'], 10_000);
+      if (!fs.existsSync(path.join(input.repoRoot, 'package-lock.json'))) throw new Error('package-lock.json missing');
+      return;
+    }
     await command('docker', ['image', 'inspect', imageReference()], 30_000);
     await command('docker', ['info', '--format', '{{.OSType}}'], 30_000).then(s => { if (s.trim() !== 'linux') throw new Error('Linux containers required'); });
     const lockHash = await command('docker', ['run', '--rm', '--pull=never', '--network=none', '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges', '--pids-limit=32', '--memory=256m', '--user=1000:1000', '--entrypoint=node', imageReference(), '-e', "console.log(require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync('/opt/motion/package-lock.json')).digest('hex'))"], 30_000);
@@ -48,10 +55,17 @@ export async function renderMotion(request: RenderRequest): Promise<RenderResult
   const entrypoint = './' + request.source.entrypoint.replace(/\.(tsx|ts)$/, '');
   fs.writeFileSync(path.join(sourceDir, 'index.tsx'), `import React from 'react';\nimport {Composition,registerRoot} from 'remotion';\nimport Scene from ${JSON.stringify(entrypoint)};\nconst Root=()=> <Composition id="AuthoredMotion" component={Scene} durationInFrames={${durationInFrames}} fps={${fps}} width={${width}} height={${height}}/>;\nregisterRoot(Root);\n`);
   atomicJson(path.join(inputDir, 'request.json'), { phase: request.phase, frames: request.frames });
-  const containerName = `hsl-motion-${crypto.randomUUID()}`;
-  try {
-    await command('docker', ['run', '--rm', '--pull=never', '--name', containerName, '--network=none', '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges', '--pids-limit=256', '--memory=4g', '--cpus=2', '--shm-size=512m', '--user=1000:1000', '--tmpfs', '/tmp:rw,nosuid,size=1g', '--tmpfs', '/work:rw,nosuid,size=1g', '--mount', `type=bind,source=${inputDir},target=/input,readonly`, '--mount', `type=bind,source=${outputDir},target=/output`, '--mount', `type=bind,source=${worker},target=/runtime-worker.cjs,readonly`, imageReference()], 900_000, () => { const killer = spawn('docker', ['rm', '-f', containerName], { windowsHide: true, stdio: 'ignore' }); killer.unref(); });
-  } catch (e) { throw new Error(`Motion compile/render failed: ${String(e)}`); }
+  if (imageReference() === 'host') {
+    const hostWorker = path.join(request.input.repoRoot, 'graph/motion/runtime/hostWorker.cjs');
+    try {
+      await command(process.execPath, [hostWorker, inputDir, outputDir, request.input.repoRoot], 900_000);
+    } catch (e) { throw new Error(`Motion compile/render failed: ${String(e)}`); }
+  } else {
+    const containerName = `hsl-motion-${crypto.randomUUID()}`;
+    try {
+      await command('docker', ['run', '--rm', '--pull=never', '--name', containerName, '--network=none', '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges', '--pids-limit=256', '--memory=4g', '--cpus=2', '--shm-size=512m', '--user=1000:1000', '--tmpfs', '/tmp:rw,nosuid,size=1g', '--tmpfs', '/work:rw,nosuid,size=1g', '--mount', `type=bind,source=${inputDir},target=/input,readonly`, '--mount', `type=bind,source=${outputDir},target=/output`, '--mount', `type=bind,source=${worker},target=/runtime-worker.cjs,readonly`, imageReference()], 900_000, () => { const killer = spawn('docker', ['rm', '-f', containerName], { windowsHide: true, stdio: 'ignore' }); killer.unref(); });
+    } catch (e) { throw new Error(`Motion compile/render failed: ${String(e)}`); }
+  }
   const raw = JSON.parse(fs.readFileSync(path.join(outputDir, 'result.json'), 'utf8')) as RenderResult;
   const local = (file: string) => { if (path.basename(file) !== file) throw new Error('Unsafe worker result path'); return path.join(outputDir, file); };
   const result: RenderResult = { ...raw, videoPath: local(raw.videoPath), frames: raw.frames.map(f => ({ frame: f.frame, path: local(f.path) })) };

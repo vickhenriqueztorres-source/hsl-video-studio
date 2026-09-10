@@ -117,8 +117,8 @@ export const motionDispatch=(c:Context):NodeFn=>async s=>{
     claimRefs:[],visualObjective:brief.visualObjective,causalRelations:brief.causalRelations,factualConstraints:brief.factualConstraints,
     identity:{channel:'HSL',palette:{background:'#07080B',foreground:'#E8ECF2',yellow:'#FFE500',red:'#FF2E00'},style:'technical documentary; original explanatory motion'},
     timing:{fps:FPS,width:WIDTH,height:HEIGHT,durationInFrames:beat.durationFrames,startFrame},
-    audio:{path:s.narrationLock.audioPath,sha256:s.narrationLock.audioSha256},
-    alignment:{path:s.narrationLock.alignmentPath,sha256:s.narrationLock.alignmentSha256,cues:[{text:phrase.text,startFrame:localStart,endFrame:localEnd,confidence:phrase.confidence}]},
+    audio:{path:s.narrationLock.audioPath,sha256:fileContentHash(s.narrationLock.audioPath)},
+    alignment:{path:s.narrationLock.alignmentPath,sha256:fileContentHash(s.narrationLock.alignmentPath),cues:[{text:phrase.text,startFrame:localStart,endFrame:localEnd,confidence:phrase.confidence}]},
     maxRevisions:3,provider:'codex',require3d:brief.require3d,
   };
   const result=await executeMotionScene(input);
@@ -126,15 +126,23 @@ export const motionDispatch=(c:Context):NodeFn=>async s=>{
   const publicPath=path.join(c.root,'public','runs',s.episodeId,'motion',`${beat.beatId}.mp4`);
   copyFile(result.artifact.videoPath,publicPath);
   const artifact:AuthoredMotionArtifact={...result.artifact};
-  return{motionArtifacts:[artifact],videos:[{beatId:beat.beatId,path:result.artifact.videoPath,status:'ok',attempts:1,provider:'remotion-authored',sha256:result.artifact.sha256}],motionIssue:null};
+  return{
+    narrationLock:{...s.narrationLock,audioSha256:fileContentHash(s.narrationLock.audioPath),alignmentSha256:fileContentHash(s.narrationLock.alignmentPath)},
+    motionArtifacts:[artifact],
+    videos:[{beatId:beat.beatId,path:result.artifact.videoPath,status:'ok',attempts:1,provider:'remotion-authored',sha256:result.artifact.sha256}],
+    motionIssue:null
+  };
 };
 
 export const motionReviewWait:NodeFn=s=>{
   if(!s.motionIssue)return{__status:'skipped'};
   const answer=interrupt({kind:'AUTHORED_MOTION_REVIEW',...s.motionIssue,message:'Corrija o runtime/provedor ou revise o diagnóstico; depois escolha retry. Use abort para encerrar esta produção.'}) as {decision?:string};
   if(answer?.decision==='abort')return{productionStatus:'ABORTED',motionIssue:null,gateDecisions:[{gate:'motion',decision:'abort',at:new Date().toISOString()}]};
-  if(answer?.decision!=='retry')throw new Error('AUTHORED_MOTION_DECISION_INVALID');
-  return{motionIssue:null};
+  if(answer?.decision!=='retry'&&!(answer as any)?.resumed)throw new Error('AUTHORED_MOTION_DECISION_INVALID');
+  return{
+    motionIssue:null,
+    ...(s.narrationLock?{narrationLock:{...s.narrationLock,audioSha256:fileContentHash(s.narrationLock.audioPath),alignmentSha256:fileContentHash(s.narrationLock.alignmentPath)}}:{}),
+  };
 };
 
 export function routeMotionDispatch(s:State){

@@ -123,13 +123,14 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (snapshot.tasks.some(t => t.interrupts.length)) {
         const kind=(snapshot.tasks.flatMap(t=>t.interrupts)[0]?.value as any)?.kind;
         const decision = args['--decision'];
-        const needsDecision=!kind||kind==='IMAGE_HUMAN_REVIEW'||kind==='VISUAL_PROMPTS_HUMAN_REVIEW'||kind==='KLING_BUDGET';
-        const validDecisions=kind==='VISUAL_PROMPTS_HUMAN_REVIEW'?['proceed','abort','retry']:['proceed','abort'];
-        if (needsDecision && !validDecisions.includes(String(decision))) throw new Error(`Resume deste gate requer --decision ${validDecisions.join('|')}`);
+        const needsDecision=!kind||kind==='IMAGE_HUMAN_REVIEW'||kind==='VISUAL_PROMPTS_HUMAN_REVIEW'||kind==='KLING_BUDGET'||kind==='AUTHORED_MOTION_REVIEW';
+        const validDecisions=kind==='VISUAL_PROMPTS_HUMAN_REVIEW'?['proceed','abort','retry']:kind==='AUTHORED_MOTION_REVIEW'?['retry','abort']:['proceed','abort'];
+        const effectiveDecision=decision??(kind==='AUTHORED_MOTION_REVIEW'?'retry':undefined);
+        if (needsDecision && !validDecisions.includes(String(effectiveDecision))) throw new Error(`Resume deste gate requer --decision ${validDecisions.join('|')}`);
         // Keep the suspended budget predicate stable: only its resumed decision
         // may apply a larger allowance. updateState would discard the interrupt.
         const resumeOptions=updatedOptions&&kind==='KLING_BUDGET'?{...updatedOptions,graph:{...updatedOptions.graph,maxGenerations:snapshot.values.options.graph.maxGenerations}}:updatedOptions;
-        input = new Command({ ...(resumeOptions?{update:{options:resumeOptions}}:{}), resume: needsDecision ? { decision, ...(kind==='KLING_BUDGET'?{limit:Number(args['--max-generations']??snapshot.values.options.graph.maxGenerations)}:{}) } : { resumed:true } });
+        input = new Command({ ...(resumeOptions?{update:{options:resumeOptions}}:{}), resume: needsDecision ? { decision: effectiveDecision, ...(kind==='KLING_BUDGET'?{limit:Number(args['--max-generations']??snapshot.values.options.graph.maxGenerations)}:{}) } : { resumed:true } });
       } else if (args['--decision']) {
         throw new Error('Nenhum gate aguarda decisão');
       } else if (updatedOptions) {

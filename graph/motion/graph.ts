@@ -71,7 +71,8 @@ export function createMotionGraph(overrides: Partial<MotionDependencies> = {}) {
     }))
     .addNode('author', guard(async work => {
       const source = await call(deps, work, 'author') as SourcePackage; validateSource(source);
-      if ((work.design as { technique: string }).technique === '3d' && !source.files.some(f => /ThreeCanvas/.test(f.content) && /<mesh[\s>]/.test(f.content))) throw new Error('3D design must implement actual ThreeCanvas mesh geometry');
+      const allSource = source.files.map(f => f.content).join('\n');
+      if ((work.design as { technique: string }).technique === '3d' && (!/ThreeCanvas/.test(allSource) || !/<mesh[\s>]/.test(allSource))) throw new Error('3D design must implement actual ThreeCanvas mesh geometry');
       const sourceDir = path.join(work.directory, `revision-${work.revision}`, 'source');
       for (const file of source.files) { const destination = within(sourceDir, file.path); fs.mkdirSync(path.dirname(destination), { recursive: true }); fs.writeFileSync(destination, file.content); }
       atomicJson(path.join(work.directory, `revision-${work.revision}`, 'source-manifest.json'), { entrypoint: source.entrypoint, files: source.files.map(f => ({ path: f.path, sha256: sha256(f.content) })), inputHash: work.inputHash });
