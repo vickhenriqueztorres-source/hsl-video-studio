@@ -7,6 +7,8 @@ import type { StorageEntry } from './storage/model';
 import type { ImageGenerationIssue } from './lib/codexImages';
 import type { MediaPlan, MediaPolicy } from './lib/mediaPlan';
 import type { KlingAuthorization, KlingBudget } from './lib/firefly/ledger';
+import type { ChannelId, RunChannelSnapshot, RunContract } from '../../channels/types';
+import { resolveRunChannelSnapshot } from '../../channels/registry';
 export const STATE_VERSION = 2;
 export type MediaMode = 'legacy' | 'real';
 export interface GraphOptions {
@@ -19,7 +21,7 @@ export interface GraphOptions {
   video: { takeSeconds: 5; splitOver: 5.5 };
   storageMode:'off'|'drive'; prune:'dry-run'|'apply'; keepLocalDeliverables:number;
 }
-export type Options = MasterPipelineOptions & { graph: GraphOptions };
+export type Options = MasterPipelineOptions & { channel?: ChannelId; graph: GraphOptions };
 export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string; provider?: 'firefly-kling'|'local-ffmpeg'|'remotion-authored'|'none'; sha256?: string; recipeHash?: string }
 export interface AuthoredMotionSceneBrief { beatId:string; visualObjective:string; causalRelations:string[]; factualConstraints:string[]; require3d:boolean }
 export interface AuthoredMotionPlan { schema:'hsl.authored-motion-plan/v1'; inputHash:string; scenes:AuthoredMotionSceneBrief[] }
@@ -72,6 +74,9 @@ const keyedMotionArtifacts = () => Annotation<AuthoredMotionArtifact[]>({
 });
 export const ProductionState = Annotation.Root({
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => STATE_VERSION }),
+  channelId: Annotation<ChannelId>({ reducer: (_, b) => b, default: () => 'hsl' }),
+  channelSnapshot: nullable<RunChannelSnapshot>(),
+  runContract: nullable<RunContract>(),
   episodeId: Annotation<string>(), topicInput: Annotation<EpisodeTopicInput>(), options: Annotation<Options>(),
   scenePlan: nullable<HslLongFormProjectPlan>(), scenePlanPath: nullable<string>(),
   motionPlan: nullable<AuthoredMotionPlan>(), motionArtifacts: keyedMotionArtifacts(),
@@ -110,18 +115,49 @@ export const ProductionState = Annotation.Root({
 });
 export type State = typeof ProductionState.State;
 export type Update = typeof ProductionState.Update;
-export function threadId(episodeId: string) {
+export function threadId(episodeId: string, channelId?: string) {
   if (!/^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(episodeId)) throw new Error('episodeId inválido');
-  return `${episodeId.replace(/\//g, '__')}@v${STATE_VERSION}`;
+  const clean = episodeId.replace(/\//g, '__');
+  const ch = channelId || (clean.startsWith('BRECHA_') ? 'brecha' : 'hsl');
+  if (ch !== 'hsl') {
+    return `${ch}__${clean}@v${STATE_VERSION}`;
+  }
+  return `${clean}@v${STATE_VERSION}`;
 }
-export function initialState(options: MasterPipelineOptions & { graph?: Partial<Omit<GraphOptions, 'gates'>> & { gates?: Partial<GraphOptions['gates']> } } = {}): Update {
+export function initialState(options: MasterPipelineOptions & { channel?: ChannelId; graph?: Partial<Omit<GraphOptions, 'gates'>> & { gates?: Partial<GraphOptions['gates']> } } = {}): Update {
+  const channelId: ChannelId = (options.channel || (options.episodeId?.startsWith('BRECHA_') ? 'brecha' : 'hsl')) as ChannelId;
+  const channelSnapshot = resolveRunChannelSnapshot(channelId);
+
+  const defaultTopic = channelId === 'brecha'
+    ? 'Roubaram o celular. O banco foi aberto 8 minutos depois'
+    : 'THE HIDDEN SYSTEM THAT KEEPS PLANES FLYING';
+  const defaultEntity = channelId === 'brecha'
+    ? 'Engenharia Social e Fraude de Dispositivo Móvel'
+    : 'Airport Jet Fuel Logistics';
+  const defaultMechanism = channelId === 'brecha'
+    ? 'Troca de chip, reset de senha e evasão de autenticação em dois fatores'
+    : 'Pipeline to Hydrant Manifold High-Pressure Injection';
+  const defaultConstraint = channelId === 'brecha'
+    ? 'Janela de reação da vítima antes do bloqueio da linha telefônica'
+    : 'Hydrant Pressure Collapse at Node D (72 Units/min)';
+  const defaultConsequence = channelId === 'brecha'
+    ? 'Transferências via Pix e empréstimos contratados em contas intermediárias'
+    : '56 Delayed Flights and $2.7M Cascading Economic Loss';
+  const defaultThesis = channelId === 'brecha'
+    ? 'Toda fraude começa por uma brecha: IA representa, evidência confirma.'
+    : 'The visible product is a flight; the hidden product is synchronized fuel logistics.';
+
   const topicInput: EpisodeTopicInput = {
-    episodeId: options.episodeId || 'HSL_EPISODE_001', topic: options.topic || 'THE HIDDEN SYSTEM THAT KEEPS PLANES FLYING', targetMinutes: options.targetMinutes || 10,
-    entity: options.entity || 'Airport Jet Fuel Logistics', mechanism: options.mechanism || 'Pipeline to Hydrant Manifold High-Pressure Injection',
-    constraint: options.constraint || 'Hydrant Pressure Collapse at Node D (72 Units/min)', consequence: options.consequence || '56 Delayed Flights and $2.7M Cascading Economic Loss',
-    thesis: options.thesis || 'The visible product is a flight; the hidden product is synchronized fuel logistics.',
+    episodeId: options.episodeId || (channelId === 'brecha' ? 'BRECHA_EPISODE_001' : 'HSL_EPISODE_001'),
+    topic: options.topic || defaultTopic,
+    targetMinutes: options.targetMinutes || 10,
+    entity: options.entity || defaultEntity,
+    mechanism: options.mechanism || defaultMechanism,
+    constraint: options.constraint || defaultConstraint,
+    consequence: options.consequence || defaultConsequence,
+    thesis: options.thesis || defaultThesis,
   };
-  threadId(topicInput.episodeId);
+  threadId(topicInput.episodeId, channelId);
   const graph = { assetConcurrency: 1, renderConcurrency: 1, offline: false, mediaMode: 'real', testRender: false,
     maxGenerations: 0, promptReviewThreshold: 75, promptReviewMaxIterations: 6, imageReviewThreshold:75, storageMode:'off',prune:'dry-run',keepLocalDeliverables:1,...options.graph,
     motionMode: options.graph?.motionMode ?? 'legacy', motionMaxScenes: options.graph?.motionMaxScenes ?? 3, motionRequire3d: options.graph?.motionRequire3d ?? true,
@@ -142,5 +178,13 @@ export function initialState(options: MasterPipelineOptions & { graph?: Partial<
   if(!['off','drive'].includes(graph.storageMode))throw new Error('storageMode deve ser off|drive');
   if(!['dry-run','apply'].includes(graph.prune))throw new Error('prune deve ser dry-run|apply');
   if(!Number.isSafeInteger(graph.keepLocalDeliverables)||graph.keepLocalDeliverables<0)throw new Error('keepLocalDeliverables deve ser inteiro não negativo');
-  return { stateVersion: STATE_VERSION, episodeId: topicInput.episodeId, topicInput, options: { ...options, graph }, productionStatus: 'RUNNING' };
+  return {
+    stateVersion: STATE_VERSION,
+    channelId,
+    channelSnapshot,
+    episodeId: topicInput.episodeId,
+    topicInput,
+    options: { ...options, channel: channelId, graph },
+    productionStatus: 'RUNNING'
+  };
 }
