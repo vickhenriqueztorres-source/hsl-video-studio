@@ -203,6 +203,12 @@ const MediaBeatLayer: React.FC<{
             background: 'radial-gradient(circle at center, rgba(13,14,21,0.05) 0%, rgba(13,14,21,0.50) 100%)'
           }} />}
         </AbsoluteFill>
+      ) : isBrecha && (beat.telemetryLabel === 'EVIDÊNCIA DOCUMENTAL' || beat.telemetryLabel?.includes('EVIDÊNCIA')) ? (
+        /* 📜 MODO EVIDÊNCIA: DOCUMENTO OFICIAL AUDITADO EM TELA CHEIA */
+        <EvidenceFrame
+          durationInFrames={durationInFrames}
+          sourceId={beat.evidenceRefs?.[0] || 'SRC_BCB_MED_2024'}
+        />
       ) : (
         /* 🖼️ IMAGEM 35MM / FRAME SVG DE ALTA DEFINIÇÃO COM KEN BURNS */
         <AbsoluteFill style={{transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`}}>
@@ -213,6 +219,9 @@ const MediaBeatLayer: React.FC<{
           <AbsoluteFill style={{
             background: 'radial-gradient(circle at center, rgba(13,14,21,0.08) 0%, rgba(13,14,21,0.60) 100%)'
           }} />
+          {isBrecha && beat.telemetryLabel === 'MOMENTO DA BRECHA' && (
+            <MomentOfBreach durationInFrames={durationInFrames} />
+          )}
         </AbsoluteFill>
       )}
 
@@ -315,7 +324,7 @@ const MediaBeatLayer: React.FC<{
   );
 };
 
-import { ChannelShell } from './channel';
+import { ChannelShell, EvidenceFrame, MomentOfBreach } from './channel';
 
 export const HslLongFormComposition: React.FC<HslLongFormCompositionProps | any> = (props) => {
   // Prioriza props passados diretamente pela CLI (--props=scene-plan.json) onde beats está no topo
