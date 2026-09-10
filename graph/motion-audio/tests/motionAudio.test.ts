@@ -122,6 +122,14 @@ async function main(): Promise<void> {
 
   await expectCode(() => prepareMotionNarration({
     script: SCRIPT,
+    sourceAudioPath: 'source.mp3',
+    targetDurationSeconds: 1.2, // 2.4s / 1.2s = factor 2.0 (excessive speedup)
+    intervals: [{intervalId: 'beat-1', startMs: 0, endMs: 1200}],
+    phrases: []
+  }, dependencies()), 'MOTION_AUDIO_TEMPO_EXCESSIVE');
+
+  await expectCode(() => prepareMotionNarration({
+    script: SCRIPT,
     sourceAudioPath: 'source.mp3', synchronizedAudioPath: 'locked.wav', targetDurationSeconds: 2,
     intervals: [{intervalId: 'beat-1', startMs: 0, endMs: 1100}],
     phrases: [{phraseId: 'too-late', intervalId: 'beat-1', startWord: 1, endWord: 5}]

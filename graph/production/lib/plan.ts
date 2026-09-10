@@ -28,6 +28,10 @@ function evenlySelect<T>(items: readonly T[], count: number): T[] {
   return selected;
 }
 
+export function countWords(script: string): number {
+  return script.trim().split(/\s+/).filter(Boolean).length;
+}
+
 /**
  * The legacy scene director owns a canonical ten-minute storyboard. It updates
  * the plan header for shorter requests but retains all canonical beats. The
@@ -48,7 +52,13 @@ export function normalizePlanDuration(plan: HslLongFormProjectPlan, targetMinute
   const activeCounts = allocate(targetBeatCount, activeActs.map(x => x.beats.length), 1);
   const counts = beatsByAct.map(() => 0); activeActs.forEach((x, index) => { counts[x.index] = activeCounts[index]; });
   const selected = beatsByAct.flatMap((beats, index) => evenlySelect(beats, Math.min(counts[index], beats.length)));
-  const frameAllocations = allocate(targetFrames, selected.map(beat => beat.durationFrames), 1);
+
+  // Weight beat durations by their voiceover word count so longer scripts get more screen time
+  const weights = selected.map(beat => {
+    const words = countWords(beat.voiceoverScript || '');
+    return words > 0 ? words : Math.max(1, Math.round(beat.durationFrames / FPS));
+  });
+  const frameAllocations = allocate(targetFrames, weights, 1);
 
   const beats: HslSceneBeat[] = selected.map((beat, index) => {
     const beatId = `SCENE_${String(index + 1).padStart(3, '0')}`;
@@ -68,4 +78,48 @@ export function normalizePlanDuration(plan: HslLongFormProjectPlan, targetMinute
     return { ...act, beatsCount: actBeats.length, durationSeconds: actBeats.reduce((n, beat) => n + beat.durationSeconds, 0) };
   });
   return { ...plan, targetMinutes, totalDurationSeconds: targetFrames / FPS, totalFrames: targetFrames, totalBeatsCount: beats.length, acts, beats };
+}
+
+/**
+ * Calibrates an existing scene plan to the physical duration of the recorded narration.
+ * Distributes frames across beats proportionally to their script word count, ensuring
+ * that the visual timeline perfectly tracks natural, unhurried human speech (1.0x speed).
+ */
+export function calibratePlanToNarration(
+  plan: HslLongFormProjectPlan,
+  narrationDurationSeconds: number
+): HslLongFormProjectPlan {
+  const targetFrames = Math.round(narrationDurationSeconds * FPS);
+  if (!targetFrames || !plan.beats.length) return plan;
+
+  const weights = plan.beats.map(beat => Math.max(1, countWords(beat.voiceoverScript || '')));
+  const minFramesPerBeat = Math.min(60, Math.floor(targetFrames / (plan.beats.length * 2)));
+  const frameAllocations = allocate(targetFrames, weights, Math.max(1, minFramesPerBeat));
+
+  const beats: HslSceneBeat[] = plan.beats.map((beat, index) => {
+    const durationFrames = frameAllocations[index];
+    return {
+      ...beat,
+      durationFrames,
+      durationSeconds: durationFrames / FPS,
+    };
+  });
+
+  const acts = plan.acts.map(act => {
+    const actBeats = beats.filter(beat => beat.actNumber === act.actNumber);
+    return {
+      ...act,
+      beatsCount: actBeats.length,
+      durationSeconds: actBeats.reduce((n, beat) => n + beat.durationSeconds, 0)
+    };
+  });
+
+  return {
+    ...plan,
+    totalFrames: targetFrames,
+    totalDurationSeconds: targetFrames / FPS,
+    targetMinutes: Number((targetFrames / FPS / 60).toFixed(2)),
+    acts,
+    beats
+  };
 }

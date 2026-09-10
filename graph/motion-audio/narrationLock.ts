@@ -15,7 +15,9 @@ export const DEFAULT_MOTION_AUDIO_POLICY: MotionAudioPolicy = Object.freeze({
   durationToleranceMs: 34,
   intervalToleranceMs: 34,
   cueToleranceMs: 50,
-  minimumWordConfidence: 0.5
+  minimumWordConfidence: 0.5,
+  minTempoFactor: 0.82,
+  maxTempoFactor: 1.22
 });
 
 export interface PrepareMotionNarrationInput {
@@ -75,6 +77,15 @@ export async function prepareMotionNarration(
   if (input.targetDurationSeconds !== undefined) {
     const driftMs = Math.abs(sourceProbe.durationSeconds - input.targetDurationSeconds) * 1000;
     if (driftMs > policy.durationToleranceMs) {
+      const factor = sourceProbe.durationSeconds / input.targetDurationSeconds;
+      const minFactor = policy.minTempoFactor ?? 0.82;
+      const maxFactor = policy.maxTempoFactor ?? 1.22;
+      if (factor < minFactor || factor > maxFactor) {
+        fail(
+          'MOTION_AUDIO_TEMPO_EXCESSIVE',
+          `factor:${factor.toFixed(4)} outside natural speech window [${minFactor.toFixed(2)} - ${maxFactor.toFixed(2)}] (source:${sourceProbe.durationSeconds.toFixed(1)}s, target:${input.targetDurationSeconds.toFixed(1)}s)`
+        );
+      }
       if (!dependencies.synchronizer || !input.synchronizedAudioPath) {
         fail('MOTION_AUDIO_SYNC_REQUIRED', `${driftMs.toFixed(3)}ms`);
       }

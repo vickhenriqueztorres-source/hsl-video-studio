@@ -290,22 +290,42 @@ export class BrechaSceneDirectorAgent {
 
     const uniqueBeats = ensureUniqueBrechaScripts(allBeats);
 
+    // Brand Bible: Narração a 150-165 WPM -> ~0.40s por palavra + 0.5s de margem de respiração
+    const calibratedBeats = uniqueBeats.map(b => {
+      const words = b.voiceoverScript ? b.voiceoverScript.trim().split(/\s+/).filter(Boolean).length : 0;
+      const minDuration = Math.max(3.0, Number((words * 0.40 + 0.5).toFixed(1)));
+      const finalSec = Math.max(b.durationSeconds, minDuration);
+      return {
+        ...b,
+        durationSeconds: finalSec,
+        durationFrames: secondsToFrames(finalSec)
+      };
+    });
+
+    const finalTotalSeconds = calibratedBeats.reduce((sum, b) => sum + b.durationSeconds, 0);
+    const finalTotalFrames = secondsToFrames(finalTotalSeconds);
+
+    const updatedActs = actConfigs.map(a => {
+      const actBeats = calibratedBeats.filter(b => b.actNumber === a.actNumber);
+      return {
+        actNumber: a.actNumber,
+        title: a.title,
+        durationSeconds: actBeats.reduce((sum, b) => sum + b.durationSeconds, 0),
+        beatsCount: actBeats.length
+      };
+    });
+
     return {
       episodeId: input.episodeId,
       episodeTitle: input.topic,
       subtitle: input.entity,
-      totalDurationSeconds,
-      totalFrames,
-      totalBeatsCount: uniqueBeats.length,
-      targetMinutes,
+      totalDurationSeconds: finalTotalSeconds,
+      totalFrames: finalTotalFrames,
+      totalBeatsCount: calibratedBeats.length,
+      targetMinutes: Number((finalTotalSeconds / 60).toFixed(2)),
       thesis: input.thesis,
-      acts: actConfigs.map(a => ({
-        actNumber: a.actNumber,
-        title: a.title,
-        durationSeconds: a.targetDurationSeconds,
-        beatsCount: a.targetBeatsCount
-      })),
-      beats: uniqueBeats
+      acts: updatedActs,
+      beats: calibratedBeats
     };
   }
 }

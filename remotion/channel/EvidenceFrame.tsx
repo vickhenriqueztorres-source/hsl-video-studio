@@ -2,11 +2,11 @@ import React from 'react';
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 
 export interface EvidenceFrameProps {
-  sourceId: string;
-  documentTitle: string;
-  publisher: string;
+  sourceId?: string;
+  documentTitle?: string;
+  publisher?: string;
   dateStr?: string;
-  excerptText: string;
+  excerptText?: string;
   highlightedStat?: string;
   durationInFrames: number;
 }

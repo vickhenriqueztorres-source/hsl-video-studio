@@ -37,6 +37,12 @@ export interface VisualPolicy {
   readonly textures: readonly string[];
   readonly cameraLanguage: string;
   readonly reconstructionLabelRequired: boolean;
+  readonly characterPolicy?: {
+    readonly presence: string;
+    readonly dominance: string;
+    readonly faceFraming: string;
+    readonly handsAndGestures: string;
+  };
 }
 
 export interface NarrationPolicy {

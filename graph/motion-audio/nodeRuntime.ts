@@ -225,6 +225,9 @@ export function createNodeMotionAudioDependencies(options: NodeMotionAudioOption
         const extension = path.extname(input.outputPath) || '.wav';
         const temporary = path.join(outputDirectory, `.${path.basename(input.outputPath, extension)}.${randomUUID()}${extension}`);
         const factor = source.durationSeconds / input.targetDurationSeconds;
+        if (factor < 0.82 || factor > 1.22) {
+          fail('MOTION_AUDIO_TEMPO_EXCESSIVE', `factor:${factor.toFixed(4)} outside natural speech bounds [0.82 - 1.22]`);
+        }
         const codec = /\.wav$/i.test(extension)
           ? ['-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le']
           : ['-ar', '48000', '-ac', '2', '-c:a', 'libmp3lame', '-b:a', '192k'];

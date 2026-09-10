@@ -71,6 +71,8 @@ export interface MotionAudioPolicy {
   readonly intervalToleranceMs: number;
   readonly cueToleranceMs: number;
   readonly minimumWordConfidence: number;
+  readonly minTempoFactor?: number;
+  readonly maxTempoFactor?: number;
 }
 
 export interface AlignedWord {

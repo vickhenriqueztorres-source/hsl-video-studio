@@ -2,7 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 
-export type HslThumbnailVariantType = 'A_FACE_EVIDENCE' | 'B_BEFORE_AFTER' | 'C_HERO_OBJECT';
+export type HslThumbnailVariantType =
+  | 'A_FACE_EVIDENCE'
+  | 'B_BEFORE_AFTER'
+  | 'C_HERO_OBJECT'
+  | 'A_DECISAO'
+  | 'B_MECANISMO'
+  | 'C_CONSEQUENCIA';
 
 export interface HslThumbnailSpec {
   readonly variantId: 'A' | 'B' | 'C';

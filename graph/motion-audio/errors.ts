@@ -16,7 +16,8 @@ export type MotionAudioErrorCode =
   | 'MOTION_AUDIO_CUE_HASH_MISMATCH'
   | 'MOTION_AUDIO_CUE_OUTSIDE_INTERVAL'
   | 'MOTION_AUDIO_CUE_ALIGNMENT_MISMATCH'
-  | 'MOTION_AUDIO_RECEIPT_STALE';
+  | 'MOTION_AUDIO_RECEIPT_STALE'
+  | 'MOTION_AUDIO_TEMPO_EXCESSIVE';
 
 export class MotionAudioError extends Error {
   constructor(

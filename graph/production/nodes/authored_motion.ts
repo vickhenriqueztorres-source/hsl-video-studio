@@ -18,6 +18,7 @@ import {copyFile, type Context, type NodeFn, paths, readJson, writeJson} from '.
 import {fileContentHash} from '../lib/renderIdentity';
 import {assertMediaCoverage} from '../lib/mediaCoverage';
 import {narrationText} from './narration';
+import {calibratePlanToNarration} from '../lib/plan';
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -63,7 +64,17 @@ export const narrationLock=(c:Context):NodeFn=>async s=>{
   if(validCachedLock(c,s,cached,script)){
     return{narrationLock:{audioPath:cached!.lock.lockedPath,audioSha256:cached!.lock.lockedAudioSha256,durationSeconds:cached!.lock.durationSeconds,alignmentPath:alignmentFile(c,s),alignmentSha256:fileContentHash(alignmentFile(c,s))},__status:'skipped'};
   }
-  const targetDurationSeconds=s.scenePlan.totalFrames/FPS;
+  let activePlan = s.scenePlan;
+  const audioDuration = s.narration.durationSeconds;
+  const currentPlanDuration = activePlan.totalFrames / FPS;
+
+  // Option A (Pacing Master): Calibrate scene plan and beat allocations to actual natural narration duration
+  if (Math.abs(audioDuration - currentPlanDuration) > 0.05) {
+    activePlan = calibratePlanToNarration(activePlan, audioDuration);
+    writeJson(paths(c, s).plan, activePlan);
+  }
+
+  const targetDurationSeconds = activePlan.totalFrames / FPS;
   const sourcePath=path.join(paths(c,s).run,'audio','narration-pre-motion.wav');
   const lockedPath=path.join(paths(c,s).run,'audio','narration-motion-locked.wav');
   copyFile(s.narration.path,sourcePath);
@@ -82,7 +93,11 @@ export const narrationLock=(c:Context):NodeFn=>async s=>{
     const narrationReceipt=readJson<Record<string,unknown>>(paths(c,s).narrationReceipt);
     if(narrationReceipt)writeJson(paths(c,s).narrationReceipt,{...narrationReceipt,masterSha256:receipt.lock.lockedAudioSha256,motionLockedAt:new Date().toISOString(),motionLockReceipt:receiptPath});
   }
-  return{narration:{...s.narration,path:paths(c,s).narration,durationSeconds:receipt.lock.durationSeconds},narrationLock:{audioPath:paths(c,s).narration,audioSha256:fileContentHash(paths(c,s).narration),durationSeconds:receipt.lock.durationSeconds,alignmentPath:alignmentFile(c,s),alignmentSha256:fileContentHash(alignmentFile(c,s))}};
+  return{
+    scenePlan: activePlan,
+    narration:{...s.narration,path:paths(c,s).narration,durationSeconds:receipt.lock.durationSeconds},
+    narrationLock:{audioPath:paths(c,s).narration,audioSha256:fileContentHash(paths(c,s).narration),durationSeconds:receipt.lock.durationSeconds,alignmentPath:alignmentFile(c,s),alignmentSha256:fileContentHash(alignmentFile(c,s))}
+  };
 };
 
 function sceneTiming(s:State,beatId:string){
