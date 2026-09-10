@@ -37,38 +37,38 @@ export class BrechaPackagingEngine {
     const thumbnails: HslThumbnailSpec[] = [
       {
         variantId: 'A',
-        variantType: 'A_FACE_EVIDENCE',
-        roleName: 'DOCUMENTAL_EVIDENCIA',
+        variantType: 'A_DECISAO',
+        roleName: 'DECISAO_SEGUNDO_CRITICO',
         headlineText: '8 MINUTOS',
-        focalSubject: 'Tela do banco com transferência em andamento sob luz realista',
-        visualComposition: 'Primeiro plano dramático, paleta carvão e coral alaranjado',
-        lookDirection: 'Centro, close-up macro',
+        focalSubject: 'Objeto familiar no instante crítico da decisão (segundo antes do clique ou transferência)',
+        visualComposition: 'Primeiro plano fotográfico 35mm, fenda vertical assimétrica coral (20-35% do frame), paleta carvão e osso',
+        lookDirection: 'Centro, close-up documental',
         colorAccent: '#FF5A47',
-        imagePrompt: 'Documentary style close-up of smartphone screen displaying banking transfer alert, dark moody room, subtle neon accents in coral and teal, Nordic cinematic lighting 35mm.',
+        imagePrompt: 'Documentary style close-up of smartphone on realistic Brazilian desk, subtle asymmetric vertical fissure glowing coral, cinematic Nordic lighting 35mm, no text.',
         outputImagePath: `runs/${input.episodeId}/packaging/thumbnail_A.png`
       },
       {
         variantId: 'B',
-        variantType: 'B_BEFORE_AFTER',
-        roleName: 'ANOMALIA_VETOR',
-        headlineText: 'CONTA ZERADA',
-        focalSubject: 'Notificação de saldo antes e depois do ataque',
-        visualComposition: 'Composição dividida com contraste térmico',
-        lookDirection: 'Horizontal',
+        variantType: 'B_MECANISMO',
+        roleName: 'MECANISMO_SISTEMA_OCULTO',
+        headlineText: '', // Brand Bible: preferencialmente zero palavras
+        focalSubject: 'A tela aberta revelando o sistema invisível por trás da fenda assimétrica',
+        visualComposition: 'Divisão assimétrica entre superfície cotidiana e fluxo de sistema em verde-azulado e coral',
+        lookDirection: 'Horizontal / 2.5D',
         colorAccent: '#4F9B96',
-        imagePrompt: 'Split cinematic screen showing phone in dashboard mount and subsequent bank liquidation alert, cold tones, high detail realism.',
+        imagePrompt: 'Cinematic split composition showing everyday mobile device transitioning into technical system flow through asymmetric fissure, dark charcoal #0D0D0F palette, teal and coral accents.',
         outputImagePath: `runs/${input.episodeId}/packaging/thumbnail_B.png`
       },
       {
         variantId: 'C',
-        variantType: 'C_HERO_OBJECT',
-        roleName: 'MECANICA_FORENSE',
-        headlineText: 'A BRECHA',
-        focalSubject: 'Chip SIM removido ao lado de smartphone desmontado',
-        visualComposition: 'Fotografia macro forense com iluminação cirúrgica',
+        variantType: 'C_CONSEQUENCIA',
+        roleName: 'CONSEQUENCIA_EM_ABERTO',
+        headlineText: 'CONTA ZERADA',
+        focalSubject: 'Dinheiro, identidade ou acesso desaparecendo com callout de evidência',
+        visualComposition: 'Fotografia macro forense com callout de evidência documental real em coral',
         lookDirection: 'Top-down isometric',
-        colorAccent: '#BCD5C2',
-        imagePrompt: 'Forensic macro photography of SIM card removal tool, exposed microchip, dark charcoal textured surface, minimalist clean typography.',
+        colorAccent: '#FF5A47',
+        imagePrompt: 'Forensic macro photography of real banking transfer confirmation and SIM card, dark textured charcoal surface, coral callout on critical vulnerability point, 35mm realism.',
         outputImagePath: `runs/${input.episodeId}/packaging/thumbnail_C.png`
       }
     ];
@@ -147,30 +147,21 @@ export class BrechaPackagingEngine {
         filename: 'thumbnail_variant_A_face.png',
         frameName: 'SCENE_001.png',
         accent: '#FF5A47',
-        badge: 'BRECHA // INVESTIGAÇÃO FORENSE',
-        line1: '8 MINUTOS',
-        line2: 'A FALSA CENTRAL',
-        telemetry: 'CHAMADA ATIVA // ORIGEM DIVERGENTE // ANOMALIA'
+        shortWord: '8 MINUTOS', // Hipótese 1: Decisão (O segundo antes do clique/transferência)
       },
       {
         id: 'B',
         filename: 'thumbnail_variant_B_split.png',
         frameName: 'SCENE_004.png',
         accent: '#4F9B96',
-        badge: 'ENGENHARIA SOCIAL // FALSA CONFIANÇA',
-        line1: 'SENHA E CHAVE',
-        line2: 'NÃO IMPEDEM',
-        telemetry: 'CONFIRMAÇÃO INDEPENDENTE // PROTOCOLO SUSPENSO'
+        shortWord: '', // Hipótese 2: Mecanismo (Zero palavras - mistério e revelação visual)
       },
       {
         id: 'C',
         filename: 'thumbnail_variant_C_object.png',
         frameName: 'SCENE_007.png',
-        accent: '#BCD5C2',
-        badge: 'AUTENTICAÇÃO // VETOR DE ATAQUE',
-        line1: 'A BRECHA',
-        line2: 'OCULTA',
-        telemetry: 'DISPOSITIVO AUTORIZADO // IDENTIDADE NÃO VERIFICADA'
+        accent: '#FF5A47',
+        shortWord: 'CONTA ZERADA', // Hipótese 3: Consequência em aberto
       }
     ];
 
@@ -182,49 +173,37 @@ export class BrechaPackagingEngine {
         imageElement = `<image href="data:image/png;base64,${imgData}" x="0" y="0" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"/>`;
       }
 
+      // Brand Bible Seção 15: Objeto familiar + comportamento impossível + consequência em aberto
+      // Zero a 3 palavras; SEM logo do canal; SEM moldura fixa; Fenda assimétrica sutil (20-35%)
       const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <defs>
     <linearGradient id="vignette" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#080B10" stop-opacity="0.95"/>
-      <stop offset="45%" stop-color="#080B10" stop-opacity="0.75"/>
-      <stop offset="70%" stop-color="#080B10" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#080B10" stop-opacity="0.05"/>
+      <stop offset="0%" stop-color="#0D0D0F" stop-opacity="0.92"/>
+      <stop offset="35%" stop-color="#0D0D0F" stop-opacity="0.60"/>
+      <stop offset="70%" stop-color="#0D0D0F" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#0D0D0F" stop-opacity="0.40"/>
     </linearGradient>
+    <filter id="fendaGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#FF5A47" flood-opacity="0.6"/>
+    </filter>
     <style>
-      .impact { font-family: Impact, 'Arial Black', sans-serif; font-weight: 900; }
-      .mono { font-family: Consolas, 'Courier New', monospace; font-weight: 700; }
+      .titleFont { font-family: 'Archivo', 'Source Sans 3', sans-serif; font-weight: 900; }
     </style>
   </defs>
-  <rect width="1920" height="1080" fill="#080B10"/>
+  <rect width="1920" height="1080" fill="#0D0D0F"/>
   ${imageElement}
   <rect width="1920" height="1080" fill="url(#vignette)"/>
-  <!-- Corner Reticles -->
-  <text x="50" y="65" class="mono" font-size="24" fill="${v.accent}">+</text>
-  <text x="1870" y="65" class="mono" font-size="24" fill="${v.accent}" text-anchor="end">+</text>
-  <text x="50" y="1035" class="mono" font-size="24" fill="${v.accent}">+</text>
-  <text x="1870" y="1035" class="mono" font-size="24" fill="${v.accent}" text-anchor="end">+</text>
-  <!-- Category Badge -->
-  <g transform="translate(80 220)">
-    <rect width="520" height="46" rx="4" fill="rgba(8,11,16,0.92)" stroke="${v.accent}" stroke-width="2"/>
-    <text x="20" y="30" class="mono" font-size="20" fill="${v.accent}">${v.badge}</text>
+
+  <!-- A Fenda: Abertura vertical assimétrica canônica que revela a camada oculta -->
+  <path d="M 1240 0 L 1260 380 L 1235 720 L 1255 1080" stroke="${v.accent}" stroke-width="4" fill="none" opacity="0.85" filter="url(#fendaGlow)"/>
+
+  <!-- Tipografia de Impacto Minimalista (0 a 3 palavras - Archivo SemiExpanded ExtraBold) -->
+  ${v.shortWord ? `
+  <g transform="translate(100 920)">
+    <text x="0" y="0" class="titleFont" font-size="140" fill="#E8E2D7" letter-spacing="-3" style="text-shadow: 0 10px 40px rgba(0,0,0,0.95);">${v.shortWord}</text>
   </g>
-  <!-- Giant Headline -->
-  <g transform="translate(80 410)">
-    <rect x="-10" y="-130" width="750" height="145" rx="6" fill="rgba(8,11,16,0.75)"/>
-    <text x="10" y="-15" class="impact" font-size="140" fill="#FFFFFF">${v.line1}</text>
-  </g>
-  <g transform="translate(80 570)">
-    <rect x="-10" y="-130" width="750" height="145" rx="6" fill="rgba(8,11,16,0.75)"/>
-    <text x="10" y="-15" class="impact" font-size="140" fill="${v.accent}">${v.line2}</text>
-  </g>
-  <!-- Telemetry Bar -->
-  <g transform="translate(80 710)">
-    <rect width="680" height="60" rx="4" fill="rgba(8,11,16,0.92)" stroke="#222B38" stroke-width="2"/>
-    <text x="25" y="38" class="mono" font-size="20" fill="${v.accent}">${v.telemetry}</text>
-  </g>
-  <!-- BRECHA Branding -->
-  <text x="1840" y="1030" class="mono" font-size="22" fill="#F0F4F8" text-anchor="end" opacity="0.75">CANAL BRECHA // INVESTIGAÇÃO FORENSE</text>
+  ` : ''}
 </svg>`;
 
       try {

@@ -111,11 +111,13 @@ const MediaBeatLayer: React.FC<{
   durationInFrames: number;
   index: number;
   episodeId: string;
+  channelId?: 'hsl' | 'brecha';
   subtitle?: string;
   assetBaseUrl?: string;
-}> = ({beat, durationInFrames, index, episodeId, subtitle, assetBaseUrl}) => {
+}> = ({beat, durationInFrames, index, episodeId, channelId = 'hsl', subtitle, assetBaseUrl}) => {
   const frame = useCurrentFrame();
 
+  const isBrecha = channelId === 'brecha' || episodeId.startsWith('BRECHA_');
   const isGridEpisode = episodeId.toLowerCase().includes('grid') ||
     episodeId.toLowerCase().includes('frequency') ||
     episodeId.toLowerCase().includes('hertz') ||
@@ -123,7 +125,11 @@ const MediaBeatLayer: React.FC<{
     (subtitle && subtitle.toLowerCase().includes('hz'));
   const isWallStreetLatencyEpisode = isWallStreetLatencyPlan(episodeId, subtitle);
   const isAuthoredMotion = beat.mediaProvider === 'remotion-authored';
-  const accentColor = beat.actNumber >= 4 && beat.actNumber <= 5 ? '#FF2E00' : '#FFE500';
+
+  // 🎨 PALETA MULTICANAL: BRECHA usa Coral (#FF5A47) e Teal (#4F9B96); HSL usa Acid Yellow (#FFE500) e Hyper Orange (#FF2E00)
+  const accentColor = isBrecha
+    ? (beat.actNumber === 2 ? '#4F9B96' : '#FF5A47')
+    : (beat.actNumber >= 4 && beat.actNumber <= 5 ? '#FF2E00' : '#FFE500');
 
   // 🎥 DYNAMIC CAMERA MATRIX BASEADA NO CAMERAMOVEMENT
   let scale = 1.0;
@@ -219,26 +225,32 @@ const MediaBeatLayer: React.FC<{
         />
       )}
 
-      {/* 🎯 CORNER HUD RETICLES (Estética Apple / Vox Technical) */}
-      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
-      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
-      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, left: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
-      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, right: 30, color: 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {/* 🎯 CORNER HUD RETICLES (Estética Apple / Vox Technical / Brecha Forensic) */}
+      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, left: 30, color: isBrecha ? 'rgba(255,90,71,0.4)' : 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', top: 30, right: 30, color: isBrecha ? 'rgba(255,90,71,0.4)' : 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, left: 30, color: isBrecha ? 'rgba(255,90,71,0.4)' : 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
+      {!isAuthoredMotion && <div style={{position: 'absolute', bottom: 30, right: 30, color: isBrecha ? 'rgba(255,90,71,0.4)' : 'rgba(255,229,0,0.4)', fontFamily: 'monospace', fontSize: 16}}>+</div>}
 
-      {/* 📐 UNIVERSAL TOP HUD HEADER (Adaptativo a qualquer tema) */}
+      {/* 📐 UNIVERSAL TOP HUD HEADER (Adaptativo a qualquer tema / canal) */}
       {!isAuthoredMotion && <HslUniversalHeader
+        channelId={isBrecha ? 'brecha' : 'hsl'}
         episodeSubtitle={subtitle || (
-          (episodeId.toLowerCase().includes('megaship') || episodeId.toLowerCase().includes('ship') || episodeId.toLowerCase().includes('suez') || episodeId.toLowerCase().includes('240000'))
+          isBrecha
+            ? 'CANAL BRECHA // INVESTIGAÇÃO FORENSE'
+            : (episodeId.toLowerCase().includes('megaship') || episodeId.toLowerCase().includes('ship') || episodeId.toLowerCase().includes('suez') || episodeId.toLowerCase().includes('240000'))
             ? 'THE 240,000-TON MONSTER THAT NEEDS 5 KM TO BRAKE // MEGASHIP HYDRODYNAMICS'
             : (episodeId.toLowerCase().includes('kessler') || episodeId.toLowerCase().includes('debris'))
             ? 'THE 28,000 KM/H PAINT FLECK // SATELLITE CASCADE'
             : 'HIDDEN SYSTEMS LAB // TECHNICAL DOCUMENTARY'
         )}
-        stageTitle={`ACT 0${beat.actNumber} // ${beat.stage}`}
+        stageTitle={isBrecha
+          ? `ATO 0${beat.actNumber} // ${(beat.actTitle || beat.stage || '').replace(/^ACT_\d+_/, '').replace(/_/g, ' ')}`
+          : `ACT 0${beat.actNumber} // ${beat.stage}`
+        }
         accentColor={accentColor}
       />}
 
-      {/* ⚡ TIPOGRAFIA MONUMENTAL VOX / HSL (Exibida em cenas fotorrealistas sem texto embutido) */}
+      {/* ⚡ TIPOGRAFIA MONUMENTAL VOX / HSL / BRECHA (Exibida em cenas fotorrealistas sem texto embutido) */}
       {!isAuthoredMotion && !beat.infographicArchetype && beat.visualMode !== 'motion_image_diagram' && beat.graphicHeadline && (
         <div style={{
           position: 'absolute',
@@ -253,11 +265,11 @@ const MediaBeatLayer: React.FC<{
         }}>
           {primaryWord && (
             <div style={{
-              fontFamily: 'Impact, Inter, -apple-system, Arial Black, sans-serif',
+              fontFamily: isBrecha ? '"Archivo", Impact, Inter, sans-serif' : 'Impact, Inter, -apple-system, Arial Black, sans-serif',
               fontWeight: 900,
               fontSize: 96,
               lineHeight: 0.9,
-              color: '#F4F4F0',
+              color: isBrecha ? '#E8E2D7' : '#F4F4F0',
               textTransform: 'uppercase',
               letterSpacing: -2,
               textShadow: '0 8px 32px rgba(0,0,0,0.95)'
@@ -267,11 +279,11 @@ const MediaBeatLayer: React.FC<{
           )}
           {secondaryWord && (
             <div style={{
-              fontFamily: 'Impact, Inter, -apple-system, Arial Black, sans-serif',
+              fontFamily: isBrecha ? '"Archivo", Impact, Inter, sans-serif' : 'Impact, Inter, -apple-system, Arial Black, sans-serif',
               fontWeight: 900,
               fontSize: 96,
               lineHeight: 0.9,
-              color: beat.actNumber === 5 ? '#FF2E00' : '#FFE500',
+              color: isBrecha ? accentColor : (beat.actNumber === 5 ? '#FF2E00' : '#FFE500'),
               textTransform: 'uppercase',
               letterSpacing: -2,
               textShadow: '0 8px 32px rgba(0,0,0,0.95)'
@@ -283,13 +295,13 @@ const MediaBeatLayer: React.FC<{
             <div style={{
               marginTop: 16,
               padding: '8px 16px',
-              backgroundColor: 'rgba(7,8,11,0.90)',
-              borderLeft: `4px solid ${beat.actNumber === 5 ? '#FF2E00' : '#FFE500'}`,
+              backgroundColor: isBrecha ? 'rgba(13,13,15,0.92)' : 'rgba(7,8,11,0.90)',
+              borderLeft: `4px solid ${isBrecha ? accentColor : (beat.actNumber === 5 ? '#FF2E00' : '#FFE500')}`,
               borderRadius: 4,
-              fontFamily: '"JetBrains Mono", Consolas, monospace',
+              fontFamily: isBrecha ? '"IBM Plex Mono", Consolas, monospace' : '"JetBrains Mono", Consolas, monospace',
               fontSize: 20,
               fontWeight: 700,
-              color: beat.actNumber === 5 ? '#FF2E00' : '#FFE500',
+              color: isBrecha ? (accentColor === '#4F9B96' ? '#BCD5C2' : accentColor) : (beat.actNumber === 5 ? '#FF2E00' : '#FFE500'),
               letterSpacing: 2,
               textTransform: 'uppercase',
               boxShadow: '0 4px 20px rgba(0,0,0,0.8)'
@@ -362,7 +374,8 @@ export const HslLongFormComposition: React.FC<HslLongFormCompositionProps | any>
                 durationInFrames={beat.durationFrames}
                 index={idx}
                 episodeId={plan.episodeId}
-                subtitle={plan.episodeTitle || (isBrecha ? 'INVESTIGAÇÃO DE SEGURANÇA DIGITAL' : 'AIRPORT JET FUEL LOGISTICS // 150 PSI MAIN')}
+                channelId={channelId}
+                subtitle={plan.subtitle || plan.episodeTitle || (isBrecha ? 'CANAL BRECHA // INVESTIGAÇÃO FORENSE' : 'AIRPORT JET FUEL LOGISTICS // 150 PSI MAIN')}
                 assetBaseUrl={plan.assetBaseUrl}
               />
             </ChannelShell>

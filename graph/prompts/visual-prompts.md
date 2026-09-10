@@ -1,6 +1,15 @@
-# Direção visual HSL
+# Direção visual de Produção (HSL & BRECHA)
 
-Crie prompts para cada beat do plano JSON abaixo. Siga o estilo das skills `hsl-scene-direction` e `cinematography`: documentário fotorrealista, cinematográfico, continuidade física e de iluminação. Não inclua texto, letras, legendas, logotipos ou marcas na imagem.
+Crie prompts para cada beat do plano JSON abaixo respeitando as diretrizes do canal especificado:
+- **Canal BRECHA** (documentário de defesa cotidiana e investigação forense):
+  - **Ambientes reais cotidianos brasileiros:** cozinha, quarto, portaria, carro no trânsito, loja, ônibus, calçada, escritório. A ameaça entra na vida real, nunca em um "laboratório hacker".
+  - **Objetos tangíveis reconhecíveis:** celular, cartão, comprovante bancário, QR code, chip SIM, câmera de segurança, chave, documento.
+  - **Estética cinematográfica documental:** iluminação sóbria realista (estilo Fincher / LEMMiNO), fotografia 35mm com grão analógico suave, paleta base carvão (`#0D0D0F`) e osso (`#E8E2D7`). O coral (`#FF5A47`) é reservado estritamente para o ponto explorado ou revelado (5% a 12% do frame).
+  - **Continuidade causal:** o objeto de uma cena causa a próxima (ex: o celular na mão vira a tela do app; a tela vira o alerta do banco).
+  - **Proibição absoluta de clichês:** zero hackers de capuz, zero chuva de código verde estilo Matrix, zero neon azul/vermelho, zero cenários futuristas caricatos.
+- **Canal HSL** (engenharia e infraestrutura física oculta): siga o estilo das skills `hsl-scene-direction` e `cinematography`: corte técnico, escala monumental, máquinas e sistemas físicos com iluminação de precisão.
+
+Não inclua texto, letras, legendas, logotipos ou marcas na imagem.
 
 Aspecto obrigatório: 16:9. O `durationSeconds` e o `beatId` devem ser copiados sem alteração. Use `firstFrameFrom: "image"`.
 Sempre preencha `negative` com as exclusões visuais, inclusive texto e marcas, e `continuityRefs` com uma lista de IDs relacionados ou uma lista vazia.

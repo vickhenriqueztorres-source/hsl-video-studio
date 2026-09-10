@@ -71,14 +71,16 @@ export const brechaProfile: ChannelProfile = {
   },
   packaging: {
     thumbnailVariants: [
-      { id: 'variant_a_objeto', name: 'Objeto / Gesto Cotidiano', concept: 'Celular, cartão ou documento brasileiro com fenda sutil' },
-      { id: 'variant_b_fenda', name: 'Fenda Dividida (Antes/Depois)', concept: 'Divisão assimétrica entre superfície visível e mecanismo escondido' },
-      { id: 'variant_c_evidencia', name: 'Evidência / Documento Real', concept: 'Comprovante, boletim ou extrato com callout coral' }
+      { id: 'variant_a_decisao', name: 'Decisão', concept: 'O segundo antes do clique ou transferência bancária com fenda coral sutil' },
+      { id: 'variant_b_mecanismo', name: 'Mecanismo', concept: 'A tela aberta revelando o sistema oculto e fluxo invisível por trás da fenda' },
+      { id: 'variant_c_consequencia', name: 'Consequência', concept: 'Dinheiro, identidade ou acesso desaparecendo com callout de evidência' }
     ],
     titleGuidelines: [
       'Roubaram o celular. O banco foi aberto 8 minutos depois',
       'A ligação era perfeita — até este detalhe',
-      'A voz era da filha dela. A filha nunca ligou.'
+      'A voz era da filha dela. A filha nunca ligou.',
+      'O golpe que começa quando você recebe dinheiro',
+      'Eles sabiam seu nome, banco e saldo'
     ],
     chapterMarkerPrefix: 'Ato'
   },

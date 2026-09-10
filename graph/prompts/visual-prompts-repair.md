@@ -1,4 +1,4 @@
-# Reparo dirigido de prompts visuais HSL
+# Reparo dirigido de prompts visuais (HSL & BRECHA)
 
 Corrija exclusivamente os beats listados em `affectedBeatIds`. Retorne exatamente um item para cada ID listado, sem incluir nenhum outro beat. Copie `beatId` e `durationSeconds` do plano afetado e use `firstFrameFrom: "image"`.
 

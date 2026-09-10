@@ -26,6 +26,7 @@ import {
 import { nextEpisodeId, reserveTheme, suggestThemes } from '../../console/themeRegistry';
 import type { HslSceneBeat } from '../../../hsl/core/types';
 import type { ComplianceRuleResult } from '../../../spec/hsl-compliance-checker';
+import { BRECHA_HEADER_PALETTE, HSL_HEADER_PALETTE } from '../../../remotion/motion/HslUniversalHeader';
 
 test('I01: Channel unknown rejects without silent fallback', () => {
   assert.equal(isKnownChannel('hsl'), true);
@@ -370,4 +371,35 @@ test('I14: Audio bed per-run directory isolation', () => {
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+test('I15: Remotion component tree visual isolation (Zero HSL leaks in BRECHA)', () => {
+  // 1. Palette isolation verification
+  assert.equal(BRECHA_HEADER_PALETTE.coral, '#FF5A47');
+  assert.equal(BRECHA_HEADER_PALETTE.teal, '#4F9B96');
+  assert.equal(BRECHA_HEADER_PALETTE.charcoal, '#0D0D0F');
+  assert.equal(BRECHA_HEADER_PALETTE.bone, '#E8E2D7');
+  assert.notEqual(BRECHA_HEADER_PALETTE.coral, HSL_HEADER_PALETTE.acidYellow);
+  assert.equal(HSL_HEADER_PALETTE.acidYellow, '#FFE500');
+
+  // 2. Universal Header contract verification
+  const headerPath = path.resolve(__dirname, '../../../remotion/motion/HslUniversalHeader.tsx');
+  const headerContent = fs.readFileSync(headerPath, 'utf8');
+  assert.ok(headerContent.includes("badgeText = isBrecha ? 'BRECHA' : 'HSL DOCS'"));
+  assert.ok(headerContent.includes("channelId = 'hsl'"));
+  assert.ok(!headerContent.includes('>HSL DOCS</div>')); // Must not have static unconditioned badge
+
+  // 3. Long Form Composition contract verification
+  const compPath = path.resolve(__dirname, '../../../remotion/HslLongFormComposition.tsx');
+  const compContent = fs.readFileSync(compPath, 'utf8');
+  assert.ok(compContent.includes("channelId={channelId}"));
+  assert.ok(compContent.includes("beat.actNumber === 2 ? '#4F9B96' : '#FF5A47'"));
+  assert.ok(compContent.includes("isBrecha ? 'rgba(255,90,71,0.4)' : 'rgba(255,229,0,0.4)'"));
+  assert.ok(compContent.includes("ATO 0"));
+
+  // 4. Visual prompts multi-channel awareness
+  const promptPath = path.resolve(__dirname, '../../prompts/visual-prompts.md');
+  const promptContent = fs.readFileSync(promptPath, 'utf8');
+  assert.ok(promptContent.includes('Canal BRECHA'));
+  assert.ok(promptContent.includes('Canal HSL'));
 });
