@@ -9,8 +9,10 @@ export const ElevenLabsConfig = {
     process.env.ELEVENLABS_BACKUP_KEY_2,
     process.env.ELEVENLABS_BACKUP_KEY_3
   ].filter(Boolean) as string[],
-  voiceId: process.env.HSL_ELEVENLABS_VOICE_ID || 'iP95p4xoKVk53GoZ742B', // Chris
+  voiceId: process.env.HSL_ELEVENLABS_VOICE_ID || 'iP95p4xoKVk53GoZ742B', // Chris (HSL)
   voiceName: process.env.HSL_ELEVENLABS_VOICE_NAME || 'Chris',
+  brechaVoiceId: process.env.BRECHA_ELEVENLABS_VOICE_ID || '2CECaLAGTS5NRGxgbcxr', // Davi Andrei (BRECHA)
+  brechaVoiceName: process.env.BRECHA_ELEVENLABS_VOICE_NAME || 'Davi Andrei',
   modelId: process.env.HSL_ELEVENLABS_MODEL || 'eleven_multilingual_v2',
   voiceSettings: {
     stability: Number(process.env.HSL_ELEVENLABS_STABILITY || 0.45),

@@ -63,9 +63,9 @@ export const brechaProfile: ChannelProfile = {
   },
   narration: {
     locale: 'pt-BR',
-    tone: 'calma, proxima, precisa, investigativa sem paranoia ou moralismo',
+    tone: 'conversacional, natural, jovem e direta, como alguém explicando uma vulnerabilidade cotidiana para um amigo',
     pacing: 'natural brasileiro, pausas nas revelacoes',
-    defaultVoiceId: 'pNInz6obpgDQGcFmaJgB', // Adam / Português Documentário Natural
+    defaultVoiceId: '2CECaLAGTS5NRGxgbcxr', // Davi Andrei - Conversacional Jovem Brasileiro
     defaultModelId: 'eleven_multilingual_v2',
     currencyRules: 'spoken_words'
   },
