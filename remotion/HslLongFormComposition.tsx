@@ -303,6 +303,8 @@ const MediaBeatLayer: React.FC<{
   );
 };
 
+import { ChannelShell } from './channel';
+
 export const HslLongFormComposition: React.FC<HslLongFormCompositionProps | any> = (props) => {
   // Prioriza props passados diretamente pela CLI (--props=scene-plan.json) onde beats está no topo
   let effectivePlan = (props?.beats && props.beats.length > 0)
@@ -334,26 +336,36 @@ export const HslLongFormComposition: React.FC<HslLongFormCompositionProps | any>
   }
 
   const plan = effectivePlan;
+  const channelId: 'hsl' | 'brecha' = plan.episodeId?.startsWith('BRECHA_') ? 'brecha' : 'hsl';
+  const isBrecha = channelId === 'brecha';
 
   let accumulatedFrame = 0;
 
   return (
-    <AbsoluteFill style={{backgroundColor: '#07080B', color: '#E8ECF2'}}>
-      {/* 🎬 DYNAMIC BEATS SEQUENCE (96+ BEATS OF VALIDATED MEDIA) */}
+    <AbsoluteFill style={{backgroundColor: isBrecha ? '#0D0D0F' : '#07080B', color: isBrecha ? '#E8E2D7' : '#E8ECF2'}}>
+      {/* 🎬 DYNAMIC BEATS SEQUENCE (VALIDATED MEDIA) */}
       {plan.beats.map((beat: HslSceneBeat, idx: number) => {
         const fromFrame = accumulatedFrame;
         accumulatedFrame += beat.durationFrames;
 
         return (
           <Sequence key={beat.beatId} from={fromFrame} durationInFrames={beat.durationFrames}>
-            <MediaBeatLayer
-              beat={beat}
+            <ChannelShell
+              channelId={channelId}
+              isReconstruction={beat.isReconstruction}
+              evidenceRefs={beat.evidenceRefs}
+              telemetryLabel={beat.telemetryLabel}
               durationInFrames={beat.durationFrames}
-              index={idx}
-              episodeId={plan.episodeId}
-              subtitle={plan.episodeTitle || 'AIRPORT JET FUEL LOGISTICS // 150 PSI MAIN'}
-              assetBaseUrl={plan.assetBaseUrl}
-            />
+            >
+              <MediaBeatLayer
+                beat={beat}
+                durationInFrames={beat.durationFrames}
+                index={idx}
+                episodeId={plan.episodeId}
+                subtitle={plan.episodeTitle || (isBrecha ? 'INVESTIGAÇÃO DE SEGURANÇA DIGITAL' : 'AIRPORT JET FUEL LOGISTICS // 150 PSI MAIN')}
+                assetBaseUrl={plan.assetBaseUrl}
+              />
+            </ChannelShell>
           </Sequence>
         );
       })}

@@ -21,12 +21,12 @@ function digestText(value: string): string { return createHash('sha256').update(
 function digestFile(file: string): string { return createHash('sha256').update(fs.readFileSync(file)).digest('hex'); }
 function removeIfExists(file: string) { try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {} }
 
-export function narrationText(scripts: readonly string[]): string {
+export function narrationText(scripts: readonly string[], locale: string = 'en-US'): string {
   if (!scripts.length) throw new Error('NARRATION_SCRIPT_EMPTY');
   const cleaned = scripts.map(script => script.replace(/\s+/g, ' ').trim());
   if (cleaned.some(script => /\bSCENE[_\s-]*\d+\b/i.test(script))) throw new Error('NARRATION_SCRIPT_CONTAINS_INTERNAL_SCENE_ID');
-  if (cleaned.some(script => /maps another layer/i.test(script))) throw new Error('NARRATION_SCRIPT_GENERIC_PLACEHOLDER');
-  const canonical = cleaned.map(script => script.toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
+  if (locale === 'en-US' && cleaned.some(script => /maps another layer/i.test(script))) throw new Error('NARRATION_SCRIPT_GENERIC_PLACEHOLDER');
+  const canonical = cleaned.map(script => script.toLocaleLowerCase(locale).replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
   if (new Set(canonical).size !== canonical.length) throw new Error('NARRATION_SCRIPT_DUPLICATE_BEATS');
   const words = canonical.map(script => new Set(script.split(' ').filter(word => word.length > 2)));
   for (let index = 1; index < words.length; index++) {
@@ -40,9 +40,11 @@ export function narrationText(scripts: readonly string[]): string {
 
 export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_NARRATION', async () => {
   const p = paths(c, s);
+  const ch = s.channelSnapshot?.channelId ?? s.channelId ?? (s.episodeId.startsWith('BRECHA_') ? 'brecha' : 'hsl');
+  const locale = s.channelSnapshot?.profile.narration.locale ?? (ch === 'brecha' ? 'pt-BR' : 'en-US');
   // G0-02: Garantir versão canônica única de roteiro entre síntese, lock e motion
   const narrativePlan = s.scenePlan ?? readJson<HslLongFormProjectPlan>(p.plan);
-  const text = narrationText(narrativePlan?.beats.map(beat => beat.voiceoverScript) ?? []);
+  const text = narrationText(narrativePlan?.beats.map(beat => beat.voiceoverScript) ?? [], locale);
   const scriptSha256 = digestText(text);
   const receipt = readJson<NarrationReceipt>(p.narrationReceipt);
   let cache = false;
@@ -63,7 +65,13 @@ export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_
     const providerReceiptPath = `${stagedSource}.provider.json`;
     fs.mkdirSync(audioDir, { recursive: true });
     try {
-      await c.deps.narrate({ text, outputPath: stagedSource });
+      await c.deps.narrate({
+        text,
+        outputPath: stagedSource,
+        voiceId: s.channelSnapshot?.profile.narration.defaultVoiceId,
+        modelId: s.channelSnapshot?.profile.narration.defaultModelId,
+        locale
+      });
       if (!validMedia(c, stagedSource, 'audio')) throw new Error('NARRATION_SOURCE_INVALID_MEDIA');
       c.deps.levelNarration(stagedSource, stagedMaster);
       if (!validMedia(c, stagedMaster, 'audio')) throw new Error('NARRATION_MASTER_INVALID_MEDIA');

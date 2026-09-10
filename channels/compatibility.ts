@@ -8,16 +8,19 @@ import { createChannelSnapshot, verifySnapshotIntegrity } from './snapshot';
  * Verifica se um diretório de execução pertence a uma run histórica do canal HSL criada antes da introdução de multicanais.
  * Regra estrita: Não assume HSL para qualquer estado desconhecido; exige evidência física de HSL_EPISODE ou manifest HSL.
  */
-export function isHistoricalHslRun(episodeId: string, runDir: string): boolean {
-  if (episodeId.startsWith('HSL_EPISODE_')) return true;
-  const manifestPath = path.join(runDir, 'run-manifest.json');
-  if (fs.existsSync(manifestPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      if (data && (data.episodeId?.startsWith('HSL_') || data.stages?.STAGE_01_SCENE_PLAN)) {
-        return true;
-      }
-    } catch {}
+export function isHistoricalHslRun(episodeIdOrState: string | { episodeId?: string }, runDir: string = ''): boolean {
+  const episodeId = typeof episodeIdOrState === 'string' ? episodeIdOrState : (episodeIdOrState?.episodeId ?? '');
+  if (episodeId.startsWith('HSL_EPISODE_') || episodeId.startsWith('HSL_')) return true;
+  if (runDir) {
+    const manifestPath = path.join(runDir, 'run-manifest.json');
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        if (data && (data.episodeId?.startsWith('HSL_') || data.stages?.STAGE_01_SCENE_PLAN)) {
+          return true;
+        }
+      } catch {}
+    }
   }
   return false;
 }
@@ -25,7 +28,7 @@ export function isHistoricalHslRun(episodeId: string, runDir: string): boolean {
 /**
  * Cria snapshot HSL compatível para runs históricas que não tinham `run-channel.json`.
  */
-export function createHistoricalHslSnapshot(): RunChannelSnapshot {
+export function createHistoricalHslSnapshot(_episodeId?: string): RunChannelSnapshot {
   return createChannelSnapshot(hslProfile, '2026-09-01T00:00:00.000Z');
 }
 

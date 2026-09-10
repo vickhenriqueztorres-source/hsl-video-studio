@@ -6,6 +6,8 @@ import { createRenderIdentity, finalIdentity, cachedRender, identityHash, fileCo
 import { renderDurationSeconds } from '../lib/remotion';
 import {assertMediaCoverage} from '../lib/mediaCoverage';
 import type { HslLongFormProjectPlan } from '../../../hsl/core/types';
+import { BrechaComplianceChecker } from '../../../channels/brecha/compliance';
+
 export const compliance = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_11_PRD_COMPLIANCE', async () => {
   assertMediaCoverage(c,s);
   const p = paths(c, s), file = path.join(p.audit, 'compliance.json');
@@ -26,14 +28,24 @@ export const compliance = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_11
   // revised voiceover is stored alongside the run and must be what narrative
   // compliance evaluates, without changing Firefly authorization lineage.
   const narrativePlan = (s.scenePlanPath ? readJson<HslLongFormProjectPlan>(s.scenePlanPath) : undefined) ?? s.scenePlan;
-  const baseReport = skip ? cached : c.deps.compliance(s.episodeId, {
-    targetSeconds: renderDurationSeconds(s),
-    plan: narrativePlan ?? undefined,
-    mediaPlan: s.mediaPlan ?? undefined,
-    sfxTrackPath: sfxPath,
-    sfxQaPath: sfxQaPath,
-    expectedMasterPath: p.final
-  });
+  const isBrecha = (s.channelId === 'brecha') || (s.channelSnapshot?.channelId === 'brecha') || s.episodeId.startsWith('BRECHA_');
+  const baseReport = skip ? cached : (isBrecha
+    ? BrechaComplianceChecker.checkCompliance(s.episodeId, {
+        targetSeconds: renderDurationSeconds(s),
+        plan: narrativePlan ?? undefined,
+        mediaPlan: s.mediaPlan ?? undefined,
+        sfxTrackPath: sfxPath,
+        sfxQaPath: sfxQaPath,
+        expectedMasterPath: p.final
+      }, c.root)
+    : c.deps.compliance(s.episodeId, {
+        targetSeconds: renderDurationSeconds(s),
+        plan: narrativePlan ?? undefined,
+        mediaPlan: s.mediaPlan ?? undefined,
+        sfxTrackPath: sfxPath,
+        sfxQaPath: sfxQaPath,
+        expectedMasterPath: p.final
+      }));
   const mediaRule={ruleId:'RULE_MEDIA_PROVIDER_COVERAGE',name:'Provedor e cobertura de mídia',prdClause:'Perfil de mídia escolhido',
     expected:`${s.mediaPlan!.policy}: ${s.mediaPlan!.fireflyBeatIds.length} cenas Firefly verificadas`,
     measured:`${s.mediaPlan!.fireflyBeatIds.length} cenas com recibos, hashes, duração e cópias verificadas; render ${identity.hash}`,passed:true};

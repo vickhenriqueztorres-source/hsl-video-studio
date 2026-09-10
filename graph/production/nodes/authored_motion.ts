@@ -111,11 +111,21 @@ export const motionDispatch=(c:Context):NodeFn=>async s=>{
     return{motionIssue:{beatId:beat.beatId,status:'review_required' as const,reason:`MOTION_ALIGNMENT_OUTSIDE_BEAT:${localStart}:${localEnd}/${beat.durationFrames}`,receiptPath:lockReceiptFile(c,s)}};
   }
   const cleanScripts=scripts(s);
+  const ch = s.channelSnapshot?.channelId ?? s.channelId ?? (s.episodeId.startsWith('BRECHA_') ? 'brecha' : 'hsl');
+  const isBrecha = ch === 'brecha';
+  const channelPalette = isBrecha
+    ? { background: '#0D0D0F', foreground: '#E8E2D7', yellow: '#FF5A47', red: '#FF5A47', accent: '#4F9B96', mint: '#BCD5C2' }
+    : { background: '#07080B', foreground: '#E8ECF2', yellow: '#FFE500', red: '#FF2E00' };
+  const channelStyle = isBrecha
+    ? 'investigative digital security and fraud documentary; forensic isometric diagrams; sober Nordic/Fincher lighting; labelled reconstructions'
+    : 'technical documentary; original explanatory motion';
+
   const input:MotionSceneInput={
     repoRoot:c.root,outputDir:motionRoot(c,s),episodeId:s.episodeId,beatId:beat.beatId,sourceBeatId:beat.sourceBeatId,
     script:cleanScripts[index],previousScript:cleanScripts[index-1],nextScript:cleanScripts[index+1],
-    claimRefs:[],visualObjective:brief.visualObjective,causalRelations:brief.causalRelations,factualConstraints:brief.factualConstraints,
-    identity:{channel:'HSL',palette:{background:'#07080B',foreground:'#E8ECF2',yellow:'#FFE500',red:'#FF2E00'},style:'technical documentary; original explanatory motion'},
+    claimRefs:beat.evidenceRefs ? [...beat.evidenceRefs] : [],
+    visualObjective:brief.visualObjective,causalRelations:brief.causalRelations,factualConstraints:brief.factualConstraints,
+    identity:{channel:ch.toUpperCase(),palette:channelPalette,style:channelStyle},
     timing:{fps:FPS,width:WIDTH,height:HEIGHT,durationInFrames:beat.durationFrames,startFrame},
     audio:{path:s.narrationLock.audioPath,sha256:fileContentHash(s.narrationLock.audioPath)},
     alignment:{path:s.narrationLock.alignmentPath,sha256:fileContentHash(s.narrationLock.alignmentPath),cues:[{text:phrase.text,startFrame:localStart,endFrame:localEnd,confidence:phrase.confidence}]},

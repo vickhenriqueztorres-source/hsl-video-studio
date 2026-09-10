@@ -12,6 +12,7 @@ export interface NarrationGenerateOptions {
   readonly modelId?: string;
   readonly stability?: number;
   readonly similarityBoost?: number;
+  readonly locale?: string;
 }
 
 type NarrationProvider = 'elevenlabs' | 'edge-tts' | 'mixed';
@@ -59,7 +60,7 @@ export class ElevenLabsNarrationAdapter {
     try { if (fs.existsSync(destPath)) fs.unlinkSync(destPath); } catch {}
     try { if (fs.existsSync(receiptPath(destPath))) fs.unlinkSync(receiptPath(destPath)); } catch {}
 
-    if (options.text.length > 3500) {
+    if (options.text.length > 2500) {
       console.log(`[ElevenLabsNarration] Texto longo (${options.text.length} caracteres); sintetizando em blocos.`);
       return this.generateChunkedSpeech(options.text, destPath, targetVoiceId, targetModelId, options);
     }
@@ -89,8 +90,9 @@ export class ElevenLabsNarrationAdapter {
     }
 
     try {
-      this.generateEdgeSpeech(options.text, destPath);
-      writeReceipt(destPath, options.text, 'edge-tts', 'en-US-ChristopherNeural', 'edge-tts');
+      const edgeVoice = options.locale === 'pt-BR' ? 'pt-BR-AntonioNeural' : 'en-US-ChristopherNeural';
+      this.generateEdgeSpeech(options.text, destPath, options.locale);
+      writeReceipt(destPath, options.text, 'edge-tts', edgeVoice, 'edge-tts');
       console.log(`[EdgeTTS] Narração gerada: ${destPath}`);
       return destPath;
     } catch (error) {
@@ -98,11 +100,12 @@ export class ElevenLabsNarrationAdapter {
     }
   }
 
-  private generateEdgeSpeech(text: string, destPath: string) {
+  private generateEdgeSpeech(text: string, destPath: string, locale?: string) {
     const tempTextPath = path.resolve(path.dirname(destPath), `.edge-tts-${randomUUID()}.txt`);
     fs.writeFileSync(tempTextPath, text, 'utf8');
+    const edgeVoice = locale === 'pt-BR' ? 'pt-BR-AntonioNeural' : 'en-US-ChristopherNeural';
     try {
-      const result = spawnSync('python', ['-m', 'edge_tts', '--voice', 'en-US-ChristopherNeural', '--file', tempTextPath, '--write-media', destPath], {encoding: 'utf8'});
+      const result = spawnSync('python', ['-m', 'edge_tts', '--voice', edgeVoice, '--file', tempTextPath, '--write-media', destPath], {encoding: 'utf8'});
       if (result.status !== 0 || !fs.existsSync(destPath) || fs.statSync(destPath).size <= 1000) throw new Error(result.stderr || result.stdout || `exit ${result.status}`);
     } finally { try { fs.unlinkSync(tempTextPath); } catch {} }
   }
@@ -121,16 +124,17 @@ export class ElevenLabsNarrationAdapter {
     fs.mkdirSync(tmpDir, {recursive: true});
     const files: string[] = [];
     const providers = new Set<NarrationProvider>();
+    const edgeVoice = options.locale === 'pt-BR' ? 'pt-BR-AntonioNeural' : 'en-US-ChristopherNeural';
     try {
       for (let index = 0; index < chunks.length; index++) {
         const chunkFile = path.join(tmpDir, `chunk_${String(index).padStart(3, '0')}.mp3`);
-        await this.generateSpeech({text: chunks[index], outputPath: chunkFile, voiceId, modelId, stability: options.stability, similarityBoost: options.similarityBoost});
+        await this.generateSpeech({text: chunks[index], outputPath: chunkFile, voiceId, modelId, stability: options.stability, similarityBoost: options.similarityBoost, locale: options.locale});
         const receipt = readReceipt(chunkFile);
         if (!receipt) throw new Error(`NARRATION_CHUNK_RECEIPT_MISSING:${index}`);
         if (receipt.provider === 'edge-tts') {
           try { if (fs.existsSync(finalDest)) fs.unlinkSync(finalDest); } catch {}
-          this.generateEdgeSpeech(fullText, finalDest);
-          writeReceipt(finalDest, fullText, 'edge-tts', 'en-US-ChristopherNeural', 'edge-tts');
+          this.generateEdgeSpeech(fullText, finalDest, options.locale);
+          writeReceipt(finalDest, fullText, 'edge-tts', edgeVoice, 'edge-tts');
           return finalDest;
         }
         providers.add(receipt.provider); files.push(chunkFile);
@@ -141,7 +145,7 @@ export class ElevenLabsNarrationAdapter {
       const result = spawnSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c:a', 'libmp3lame', '-b:a', '192k', '-ar', '48000', '-ac', '1', finalDest], {encoding: 'utf8'});
       if (result.status !== 0 || !fs.existsSync(finalDest) || fs.statSync(finalDest).size <= 1000) throw new Error(`NARRATION_CHUNK_CONCAT_FAILED:${result.stderr || result.stdout}`);
       const provider: NarrationProvider = providers.size === 1 ? [...providers][0] : 'mixed';
-      writeReceipt(finalDest, fullText, provider, provider === 'edge-tts' ? 'en-US-ChristopherNeural' : voiceId, provider === 'edge-tts' ? 'edge-tts' : modelId);
+      writeReceipt(finalDest, fullText, provider, provider === 'edge-tts' ? edgeVoice : voiceId, provider === 'edge-tts' ? 'edge-tts' : modelId);
       return finalDest;
     } finally { try { fs.rmSync(tmpDir, {recursive: true, force: true}); } catch {} }
   }

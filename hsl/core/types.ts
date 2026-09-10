@@ -106,6 +106,8 @@ export interface HslSceneBeat {
   readonly graphicHeadline?: string;
   readonly telemetryLabel?: string;
   readonly promptSubject?: string;
+  readonly isReconstruction?: boolean;
+  readonly evidenceRefs?: readonly string[];
 }
 
 export interface HslLongFormProjectPlan {
