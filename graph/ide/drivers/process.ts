@@ -29,18 +29,38 @@ function desktopCodex(env:NodeJS.ProcessEnv):CliCommand|undefined {
 }
 
 function installedAntigravity(name:string,env:NodeJS.ProcessEnv):CliCommand|undefined {
-  if(process.platform!=='win32'||!env.LOCALAPPDATA)return;
-  const candidates=name==='agy'
-    ? [path.join(env.LOCALAPPDATA,'agy','bin','agy.exe')]
-    : [path.join(env.LOCALAPPDATA,'agy','bin','antigravity.exe'),path.join(env.LOCALAPPDATA,'Antigravity','bin','antigravity.exe')];
+  if(process.platform!=='win32')return;
+  const local=env.LOCALAPPDATA??process.env.LOCALAPPDATA;
+  const user=env.USERPROFILE??process.env.USERPROFILE;
+  const candidates:string[]=[];
+  if(local){
+    candidates.push(path.join(local,'agy','bin',name==='agy'?'agy.exe':'antigravity.exe'));
+    candidates.push(path.join(local,'Antigravity','bin',name==='agy'?'agy.exe':'antigravity.exe'));
+    candidates.push(path.join(local,'agy','bin','agy.exe'));
+  }
+  if(user){
+    candidates.push(path.join(user,'AntigravityProfiles','work','AppData','Local','agy','bin','agy.exe'));
+    candidates.push(path.join(user,'AntigravityProfiles','work','.gemini','antigravity','bin','agy.exe'));
+    candidates.push(path.join(user,'.gemini','antigravity','bin','agy.exe'));
+    candidates.push(path.join(user,'AppData','Local','agy','bin','agy.exe'));
+  }
   for(const candidate of candidates){const found=executableAt(candidate,name);if(found)return found;}
   return undefined;
 }
 
 export function findCli(name: string, env:NodeJS.ProcessEnv=process.env): CliCommand | undefined {
   const suffixes = process.platform === 'win32' ? ['.exe', '.cmd', '.ps1', ''] : [''];
-  for (const entry of (env.PATH ?? '').split(path.delimiter)) {
-    if (!entry) continue;
+  const rawPath = env.PATH ?? env.Path ?? process.env.PATH ?? process.env.Path ?? '';
+  const entries = rawPath.split(path.delimiter).filter(Boolean);
+  if (process.platform === 'win32') {
+    const appData = env.APPDATA ?? process.env.APPDATA;
+    const localAppData = env.LOCALAPPDATA ?? process.env.LOCALAPPDATA;
+    const userProfile = env.USERPROFILE ?? process.env.USERPROFILE;
+    if (appData) entries.push(path.join(appData, 'npm'));
+    if (localAppData) entries.push(path.join(localAppData, 'npm'));
+    if (userProfile) entries.push(path.join(userProfile, 'AppData', 'Roaming', 'npm'));
+  }
+  for (const entry of entries) {
     const directory = entry.replace(/^"|"$/g, '');
     for (const suffix of suffixes) {
       const candidate = path.join(directory, name + suffix);
@@ -63,6 +83,6 @@ export function unavailableReason(result: ProcessResult): string | undefined {
   const text = result.stderr + '\n' + result.stdout;
   if (/Error loading config\.toml/i.test(text)) return 'Configuracao local incompativel com a versao do Codex; consulte run.log. Nenhuma configuracao global foi alterada.';
   if (/usage limit|quota exceeded|insufficient.quota|rate.limit|credits? exhausted|reached your.*limit/i.test(text)) return 'CLI sem cota disponivel; consulte run.log.';
-  if (/not authenticated|unauthorized|authentication (failed|required)|not logged in|please (log|sign) in|login required|401 Unauthorized|missing.*api.key/i.test(text)) return 'CLI sem autenticacao disponivel; consulte run.log.';
+  if (/not authenticated|unauthorized|authentication (failed|required)|not logged in|please (log|sign) in|login required|401 Unauthorized|token_revoked|refresh_token_invalidated|missing.*api.key/i.test(text)) return 'CLI sem autenticacao disponivel; consulte run.log.';
   return undefined;
 }

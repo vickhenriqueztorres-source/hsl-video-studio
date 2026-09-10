@@ -21,6 +21,12 @@ export function assertMediaCoverage(c:Context,s:State,scope:'all'|'external'='al
       const artifact=s.motionArtifacts.find(item=>item.beatId===beat.beatId);
       if(!artifact||!artifact.approved||!artifact.verified||!artifact.rendered||artifact.videoPath!==v.path||artifact.sha256!==hashFile(v.path)||!fs.existsSync(artifact.receiptPath)||artifact.durationInFrames!==beat.durationFrames)throw new Error(`MOTION_PROVENANCE_INVALID:${beat.beatId}`);
       const pub=path.join(c.root,'public','runs',s.episodeId,'motion',beat.beatId+'.mp4');
+      if(!fs.existsSync(pub)||hashFile(pub)!==artifact.sha256){
+        if(fs.existsSync(v.path)&&hashFile(v.path)===artifact.sha256){
+          fs.mkdirSync(path.dirname(pub),{recursive:true});
+          fs.copyFileSync(v.path,pub);
+        }
+      }
       if(!fs.existsSync(pub)||hashFile(pub)!==artifact.sha256)throw new Error(`MOTION_PUBLIC_COPY_INVALID:${beat.beatId}`);
       continue;
     }
@@ -42,6 +48,12 @@ export function assertMediaCoverage(c:Context,s:State,scope:'all'|'external'='al
       else if(record)throw new Error(`MEDIA_REPAIR_PROVENANCE_INVALID:${beat.beatId}`);
     }
     const pub=path.join(c.root,'public','runs',s.episodeId,'videos',beat.beatId+'.mp4');
+    if(!fs.existsSync(pub)||hashFile(pub)!==receipt.sha256){
+      if(fs.existsSync(v.path)&&hashFile(v.path)===receipt.sha256){
+        fs.mkdirSync(path.dirname(pub),{recursive:true});
+        fs.copyFileSync(v.path,pub);
+      }
+    }
     if(!fs.existsSync(pub)||hashFile(pub)!==receipt.sha256)throw new Error(`MEDIA_PUBLIC_COPY_INVALID:${beat.beatId}`);
   }}finally{ledger?.close();}
 }

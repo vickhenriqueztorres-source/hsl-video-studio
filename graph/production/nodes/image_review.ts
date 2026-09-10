@@ -72,10 +72,11 @@ export const imageReviewWait:NodeFn=s=>{
   // dereferencing null or treating the images as approved.
   if(!s.imageReview)return{__status:'skipped'};
   const r=s.imageReview,threshold=s.options.graph.imageReviewThreshold??75;const passed=r.items.length>0&&r.items.every(x=>x.score>=threshold&&!x.hasText);
-  if(r.round>=2&&r.items.some(x=>x.hasText))throw new Error('IMAGE_TEXT_REJECTED: fotografias com texto devem ser regeneradas antes do render');
   if(passed||s.imageHumanApproved)return{};
   if(!r.skipped&&r.round<2)return{};
-  const answer=interrupt({kind:'IMAGE_HUMAN_REVIEW',queuePath:s.imageQueuePath,reason:r.reason??'Revisão Codex abaixo do threshold após duas rodadas',review:r}) as {decision?:string};
-  if(answer?.decision!=='proceed')throw new Error('IMAGE_HUMAN_REVIEW_REJECTED');return{imageHumanApproved:true};
+  const textIssue=r.items.some(x=>x.hasText);
+  const answer=interrupt({kind:'IMAGE_HUMAN_REVIEW',queuePath:s.imageQueuePath,reason:r.reason??(textIssue?'Texto detectado nas imagens após duas rodadas':'Revisão Codex abaixo do threshold após duas rodadas'),review:r}) as {decision?:string};
+  if(answer?.decision!=='proceed')throw new Error(textIssue?'IMAGE_TEXT_REJECTED: fotografias com texto devem ser regeneradas antes do render':'IMAGE_HUMAN_REVIEW_REJECTED');
+  return{imageHumanApproved:true};
 };
 export const routeImageReview=(s:any)=>{const threshold=s.options.graph.imageReviewThreshold??75;const passed=s.imageReview?.items?.length&&s.imageReview.items.every((x:any)=>x.score>=threshold&&!x.hasText);return passed||s.imageHumanApproved?'archive_images':'image_generate_run';};

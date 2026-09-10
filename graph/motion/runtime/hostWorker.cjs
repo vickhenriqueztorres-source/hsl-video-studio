@@ -88,5 +88,8 @@ async function main() {
     isolation: 'host-process',
   };
   fs.writeFileSync(path.join(outputDir, 'result.json'), JSON.stringify(metadata));
+  if (fs.existsSync(bundleDir)) {
+    try { fs.rmSync(bundleDir, { recursive: true, force: true }); } catch {}
+  }
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });

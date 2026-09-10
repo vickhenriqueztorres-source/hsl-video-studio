@@ -1,10 +1,10 @@
 {
-  "episodeId": "HSL_EPISODE_016",
-  "timestamp": "2026-09-09T20:35:54.204Z",
+  "episodeId": "BRECHA_EPISODE_003",
+  "timestamp": "2026-09-10T14:07:18.727Z",
   "gatekeeperStatus": "PASSED",
   "autoRecovered": false,
-  "totalBeats": 58,
-  "validBeats": 58,
+  "totalBeats": 8,
+  "validBeats": 8,
   "failedBeats": 0,
   "narrationDurationSeconds": 599.981708,
   "errors": []

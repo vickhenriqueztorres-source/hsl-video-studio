@@ -170,12 +170,13 @@ async function newEpisode(rl:readline.Interface, args:string[]=[]){
   line(`${M}Episódio: ${episodeId}${X}`);
   line(`${WHITE}Nome: ${idea.title}${X}`);
   const minutes = minutesArg ?? ((await rl.question('  Duração em minutos [10]: ')).trim() || '10');
-  console.log(`\n  ${WHITE}[1]${X} Planejar roteiro e prompts ${M}(recomendado, sem Kling)${X}\n  ${WHITE}[2]${X} Teste completo de 2 cenas (teto 3 Kling)\n  ${WHITE}[3]${X} Produção completa`);
+  console.log(`\n  ${WHITE}[1]${X} Planejar roteiro e prompts ${M}(recomendado, sem Kling)${X}\n  ${WHITE}[2]${X} Teste completo de 2 cenas (teto 3 Kling)\n  ${WHITE}[3]${X} Produção completa 100% autoral ${M}(Stills 16:9 + Motion Squad Remotion 2D/3D + Áudio, sem Kling)${X}\n  ${WHITE}[4]${X} Produção completa Híbrida Firefly/Kling`);
   const mode = modeArg ?? ((await rl.question('  Modo [1]: ')).trim() || '1');let extra:string[]=[];
   let paid=false;
   if(mode==='1')extra=['--until','visual_prompts_review_wait','--max-generations','0'];
   else if(mode==='2'){const ok=modeArg?'TESTAR':(await rl.question('  O teste pode consumir até 3 gerações Kling. Digite TESTAR: ')).trim();if(ok!=='TESTAR'){line('Cancelado.');return;}extra=['--beats','2','--test-render','--max-generations','3'];paid=true;}
-  else if(mode==='3'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--max-generations','0'];}
+  else if(mode==='3'){line(`${M}Produção completa 100% autoral selecionada: quadros 16:9 + squad de motion Remotion 2D/3D + pós-produção.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--media-policy','stills','--max-generations','0'];}
+  else if(mode==='4'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--media-policy','firefly-hybrid','--max-generations','0'];}
   else{line('Modo inválido.');return;}
   const authored = authoredArg ?? ((await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s');
   if(authored)extra.push('--motion-mode','authored','--motion-scenes','3','--motion-require-3d');
@@ -206,8 +207,10 @@ async function resumeEpisode(rl:readline.Interface,provided?:string,extraArgs:st
     line(`${AMBER}Cota do Codex detectada no gate de revisão; revalidando o inventário físico e reabrindo apenas o lote pendente para rotação automática de provedor.${X}`);
   }
   let decisionArg: string | undefined = undefined;
+  let mediaPolicyArg: string | undefined = undefined;
   for (let i = 0; i < extraArgs.length; i++) {
     if (extraArgs[i] === '--decision' && extraArgs[i+1]) decisionArg = extraArgs[++i].toLowerCase();
+    else if (extraArgs[i] === '--media-policy' && extraArgs[i+1]) mediaPolicyArg = extraArgs[++i].toLowerCase();
     else if (['a', 'aprovar', 'proceed'].includes(extraArgs[i].toLowerCase())) decisionArg = 'a';
     else if (['r', 'retry'].includes(extraArgs[i].toLowerCase())) decisionArg = 'r';
     else if (['x', 'abort'].includes(extraArgs[i].toLowerCase())) decisionArg = 'x';
@@ -227,6 +230,22 @@ async function resumeEpisode(rl:readline.Interface,provided?:string,extraArgs:st
       if(decision==='v'||!decision)return;
       if(!['r','x'].includes(decision)){line('Opção inválida.');return;}
       args.push('--decision',decision==='r'?'retry':'abort');
+    }else if(interrupt.kind==='FIREFLY_LOGIN'){
+      line(`${AMBER}Sessão do Adobe Firefly não autenticada no perfil configurado.${X}`);
+      line(`  ${WHITE}[1]${X} Continuar no modo Stills + Motion Squad (dispensa Kling/Firefly; usa quadros 16:9 + Remotion 2D/3D)`);
+      line(`  ${WHITE}[2]${X} Abrir Chrome para login no Adobe Firefly e tentar novamente`);
+      line(`  ${WHITE}[v]${X} Voltar`);
+      const choice = mediaPolicyArg === 'stills' ? '1' : (decisionArg === 'a' || decisionArg === 'proceed' ? '1' : ((await rl.question('  Opção [1]: ')).trim() || '1'));
+      if(choice==='1'){
+        line(`${M}Migrando produção para política 'stills' (reaproveita 100% dos quadros fotográficos gerados)...${X}`);
+        const ch = (data as any).channelSnapshot?.channelId ?? (episode.startsWith('BRECHA_') ? 'brecha' : 'hsl');
+        args=['run','--channel',ch,'--episode',episode,'--from','media_plan_prepare','--media-policy','stills','--storage',storage.mode,'--prune','dry-run'];
+        paid=false;
+      }else if(choice==='2'){
+        await runTs('graph/production/lib/firefly/session.ts',['--open-login'],[0]);
+      }else{
+        return;
+      }
     }else{
       const needsDecision=!interrupt.kind||interrupt.kind==='IMAGE_HUMAN_REVIEW'||interrupt.kind==='VISUAL_PROMPTS_HUMAN_REVIEW';
       if(needsDecision){
@@ -238,6 +257,8 @@ async function resumeEpisode(rl:readline.Interface,provided?:string,extraArgs:st
         if(decision==='r')args.push('--prompt-review-attempts',String(Math.min(12,Number(interrupt.iterations??4)+2)));
       }
     }
+  } else if (mediaPolicyArg && args[0] === 'resume') {
+    args.push('--media-policy', mediaPolicyArg);
   }
   await graph(args,paid);
 }

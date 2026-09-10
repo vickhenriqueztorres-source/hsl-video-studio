@@ -147,14 +147,16 @@ export async function prepareAndRunIdeTaskWithFailover(task:IdeTask,context:Runn
     const env={...process.env,CODEX_HOME:profile.home};
     if(!(await checkCodexAccount(context.repoRoot??REPO_ROOT,env)).authenticated)continue;
     attempted.push(profile.id);
-    const candidate=await prepareAndRunIdeTask({...task,codexHome:profile.home,node:`${task.node}-codex-${profile.id}`,attempt:1},context);last=candidate;
-    if(!isQuotaFailure(candidate.headlessResult))return candidate;
+    const candidate=await prepareAndRunIdeTask({...task,codexHome:profile.home,node:`${task.node}-codex-${profile.id}`,attempt:1},context);
+    last=candidate;
+    if(candidate.headlessResult?.ok)return candidate;
     const next=profiles[profiles.indexOf(profile)+1];if(next)preferCodexProfile(next.id);
   }
   const fallbackTask:IdeTask={...task,provider:'antigravity',node:`${task.node}-antigravity`,attempt:1,maxAttempts:1};
   const fallback=await prepareAndRunIdeTask(fallbackTask,context);
   if(fallback.headlessResult&&!fallback.headlessResult.ok){
-    const quota=attempted.length?'Codex esgotou a cota nos perfis tentados; ':'Codex não possui conta autenticada; ';
+    const lastReason=last?.headlessResult?.reason??'indisponível ou não autenticado';
+    const quota=attempted.length?`Codex falhou (${lastReason}); `:'Codex não possui conta autenticada; ';
     const visualAction=task.imageFiles?.length&&/não aceita imagens anexadas|nao encontrado|indisponivel/i.test(fallback.headlessResult.reason??'')
       ? ' Cadastre e autentique uma conta reserva Codex para concluir a revisão visual headless.' : '';
     const fallbackReason=(fallback.headlessResult.reason??'indisponível').replace(/[.!?]+$/,'');

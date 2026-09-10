@@ -3,8 +3,11 @@ export const PHOTOGRAPHIC_CONTRACT_VERSION = 'photographic-v1';
 export const PHOTOGRAPHIC_CONSTRAINTS = 'Photorealistic cinematic 35mm documentary photography, physical materials and natural lighting, 16:9. NO TEXT, NO NUMBERS, NO HUD, NO GRAPHICS, NO LOGOS, NO LABELS, NO WATERMARKS, NO TYPOGRAPHY. Overlays are added separately in the composition.';
 
 function positiveClauses(prompt: string): string[] {
-  return prompt.split(/[,;\n]/).map(clause => clause.trim())
-    .filter(clause => clause && !/^(?:no|without|exclude|avoid|sem|não|nao)\b/i.test(clause));
+  const stripped = prompt
+    .replace(/\b(?:without|with no|devoid of|free of|free from|excluding|sem|desprovido de|livre de)\s+[^,;.\n]+/gi, '')
+    .replace(/\b(?:no|nenhum|nenhuma)\s+[^,;.\n]*(?:text|words|letters|typography|tipografia|hud|labels|logos)\b/gi, '');
+  return stripped.split(/[,;\n]/).map(clause => clause.trim())
+    .filter(clause => clause && !/^(?:no|without|with no|exclude|avoid|sem|não|nao)\b/i.test(clause));
 }
 const graphicDirective = /\b(?:typograph\w*|tipograf\w*|infographics?|HUD|(?:text|title|headline|caption)\s+(?:card|overlay)|(?:readable|written|rendered|displayed|visible)\s+(?:text|words|letters)|(?:add|include|write|show|render)\s+(?:the\s+)?(?:text|words|letters|labels|logos))\b/i;
 

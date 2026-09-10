@@ -1,8 +1,8 @@
-﻿@echo off
+@echo off
 chcp 65001 > nul
 echo ===================================================
 echo   LOGIN NO CHATGPT - CONTA 2
 echo ===================================================
 cd /d "C:\Users\brend\OneDrive\Desktop\PROJETO 30K ATE 27\02 - O OUTRO LADO\AUTOMACAO - O OUTRO LADO\chatgpt-image-bot"
-python -m src.main --setup-login --account 2
+python -u -m src.main --setup-login --account 2
 pause

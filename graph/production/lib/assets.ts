@@ -56,11 +56,39 @@ export function prunePublicRuns(root: string, episodeId: string) {
 export function syncCurrentRunAssets(root: string, episodeId: string) {
   const src = assertWithin(root, path.join(root, 'runs', episodeId));
   if (!fs.existsSync(src)) return;
-  const destinations = ['public/runs', 'public/public/runs'];
-  if (fs.existsSync(path.join(root, 'build/public'))) destinations.push('build/public/runs', 'build/public/public/runs');
+  const destinations = ['public/runs'];
+  if (fs.existsSync(path.join(root, 'build/public'))) destinations.push('build/public/runs');
+  const subdirs = ['frames', 'videos', 'audio'];
   for (const destination of destinations) {
     const dest = assertWithin(root, path.join(root, destination, episodeId));
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.cpSync(src, dest, { recursive: true, force: true });
+    fs.mkdirSync(dest, { recursive: true });
+    for (const sub of subdirs) {
+      const srcSub = path.join(src, sub);
+      if (fs.existsSync(srcSub)) {
+        const destSub = path.join(dest, sub);
+        fs.mkdirSync(destSub, { recursive: true });
+        for (const file of fs.readdirSync(srcSub)) {
+          const srcFile = path.join(srcSub, file);
+          try {
+            if (fs.statSync(srcFile).isFile()) {
+              fs.copyFileSync(srcFile, path.join(destSub, file));
+            }
+          } catch {}
+        }
+      }
+    }
+    const srcMotion = path.join(src, 'motion');
+    if (fs.existsSync(srcMotion)) {
+      const destMotion = path.join(dest, 'motion');
+      fs.mkdirSync(destMotion, { recursive: true });
+      for (const file of fs.readdirSync(srcMotion)) {
+        const srcFile = path.join(srcMotion, file);
+        try {
+          if (fs.statSync(srcFile).isFile()) {
+            fs.copyFileSync(srcFile, path.join(destMotion, file));
+          }
+        } catch {}
+      }
+    }
   }
 }

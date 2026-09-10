@@ -22,8 +22,10 @@ export async function codexCommand(root: string, args: string[], options: {
 }
 export async function checkCodexAccount(root: string,env:NodeJS.ProcessEnv=process.env) {
   const r = await codexCommand(root, ['login', 'status'], {timeoutMs: 30_000,env});
-  const authenticated = r.exitCode === 0 && /logged in using chatgpt/i.test(r.stdout + r.stderr);
-  return {authenticated, ...(!authenticated ? {reason: r.errorCode === 'ENOENT' ? 'Codex CLI não instalado' : 'Entre com sua conta ChatGPT usando npm run hsl:codex:login'} : {})};
+  const text = r.stdout + r.stderr;
+  const revoked = /token_revoked|refresh_token_invalidated|invalidated oauth token/i.test(text);
+  const authenticated = r.exitCode === 0 && !revoked && /logged in using chatgpt/i.test(text);
+  return {authenticated, ...(!authenticated ? {reason: r.errorCode === 'ENOENT' ? 'Codex CLI não instalado' : revoked ? 'Sessão Codex revogada; refaça o login com npm run hsl:codex:login' : 'Entre com sua conta ChatGPT usando npm run hsl:codex:login'} : {})};
 }
 export async function checkCodexAccounts(root:string){
   const profiles=listCodexProfiles(),checks=[] as {profile:CodexProfile;authenticated:boolean;reason?:string}[];

@@ -100,6 +100,7 @@ export async function runAntigravity(prepared: PreparedTask): Promise<DriverResu
   if (useStdin) args.push('--input-format', 'stream-json');
   if (flags.includes('--mode')) args.push('--mode', stdoutMode ? 'plan' : 'accept-edits');
   if (flags.includes('--disable-slash-commands')) args.push('--disable-slash-commands');
+  if (flags.includes('--dangerously-skip-permissions')) args.push('--dangerously-skip-permissions');
   if (flags.includes('--print-timeout')) args.push('--print-timeout', `${Math.ceil(prepared.timeoutMs / 1000)}s`);
   fs.appendFileSync(prepared.logPath, `[transport] ${useStdin ? 'stdin-stream-json' : longPrompt ? 'prompt-file-reference' : 'argv'} promptChars=${prompt.length}\n`);
   const result = useStdin ? await spawnTool(cli.command, [...cli.prefix, ...args], {
