@@ -52,8 +52,26 @@ export async function generateCodexImages(root: string, queuePath: string): Prom
         item.status = 'done'; item.generatedBy = 'codex-imagegen'; write(queuePath, queue); continue;
       }
       const imagePrompt = fs.readFileSync(item.promptPath, 'utf8');
-      const key = hash(imagePrompt + '\n' + (item.lastError ?? '')).slice(0, 20);
-      const dir = path.join(path.dirname(item.outputPath), '.codex', key);
+      const cleanError = (item.lastError && !['arquivo ausente', 'worker ainda não concluiu a imagem'].includes(item.lastError) && !item.lastError.startsWith('PATH_CONFINEMENT')) ? item.lastError : '';
+      const key = hash(imagePrompt + (cleanError ? '\n' + cleanError : '\n')).slice(0, 20);
+      const baseDir = path.join(path.dirname(item.outputPath), '.codex');
+      let dir = path.join(baseDir, key);
+      if (!fs.existsSync(path.join(dir, 'result.json')) && fs.existsSync(baseDir)) {
+        const entries = fs.readdirSync(baseDir, {withFileTypes: true}).filter(d => d.isDirectory());
+        for (const entry of entries) {
+          const candDir = path.join(baseDir, entry.name);
+          const candResult = path.join(candDir, 'result.json');
+          if (fs.existsSync(candResult)) {
+            try {
+              const parsed = JSON.parse(fs.readFileSync(candResult, 'utf8'));
+              if (parsed.status === 'generated' && parsed.sourcePath && fs.existsSync(parsed.sourcePath)) {
+                dir = candDir;
+                break;
+              }
+            } catch {}
+          }
+        }
+      }
       fs.mkdirSync(dir, {recursive: true});
       const resultPath = path.join(dir, 'result.json'), schemaPath = path.join(dir, 'schema.json');
       const receiptPath = path.join(dir, 'receipt.json');
@@ -69,7 +87,7 @@ This is native image generation in Codex CLI, NOT the Python image_gen.py/API fa
 Do not edit project code or prompts. Do not execute QUEUE.json resumeCommand or run the pipeline. The parent LangGraph owns validation, queue updates and resume.
 Use the following visual brief. Instructions about saving embedded in the brief are advisory: let image_gen save normally, then return its actual absolute source file path. The parent copies it to the episode.
 <visual_brief>\n${imagePrompt}\n</visual_brief>
-${item.lastError ? `Previous validation/review feedback: ${item.lastError}` : ''}
+${cleanError ? `Previous validation/review feedback: ${cleanError}` : ''}
 Use 16:9, photorealistic cinematic style, no text or watermark.
 This is a NEW image, not an edit: omit num_last_images_to_include and referenced_image_paths entirely. Do not send zero, null or an empty list for reference parameters. Follow the available native tool schema.
 Produce at most ONE successful native image generation. Only if the tool explicitly rejects the arguments before generation starts (for example, an invalid num_last_images_to_include value), correct the arguments and retry ONCE with the same native tool. This is argument correction, not a fallback.
@@ -121,8 +139,35 @@ Return the JSON schema result with the existing absolute generated file path. Do
         return {kind: 'CODEX_IMAGE_UNAVAILABLE', reason: item.lastError!};
       }
       const source = path.resolve(result.sourcePath);
-      const generatedRoot = path.join(successfulCodexHome ?? process.env.CODEX_HOME ?? path.join(os.homedir(), '.codex'), 'generated_images');
-      try {assertWithin(generatedRoot, source);} catch {assertWithin(root, source);}
+      const candidateRoots = [
+        path.join(successfulCodexHome ?? process.env.CODEX_HOME ?? path.join(os.homedir(), '.codex'), 'generated_images'),
+        path.join(os.homedir(), '.codex', 'generated_images'),
+        process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.codex', 'generated_images') : '',
+        (process.env.HOMEDRIVE && process.env.HOMEPATH) ? path.join(process.env.HOMEDRIVE, process.env.HOMEPATH, '.codex', 'generated_images') : '',
+        root
+      ].filter(Boolean);
+      let allowed = false;
+      for (const candidate of candidateRoots) {
+        try {
+          assertWithin(candidate, source);
+          allowed = true;
+          break;
+        } catch {}
+      }
+      if (!allowed) {
+        const parts = source.split(path.sep);
+        const codexIdx = parts.lastIndexOf('.codex');
+        if (codexIdx >= 0 && parts[codexIdx + 1] === 'generated_images') {
+          const codexGenRoot = parts.slice(0, codexIdx + 2).join(path.sep);
+          if (fs.existsSync(codexGenRoot)) {
+            assertWithin(codexGenRoot, source);
+            allowed = true;
+          }
+        }
+      }
+      if (!allowed) {
+        throw new Error(`PATH_CONFINEMENT: ${source} outside allowed Codex generated_images roots or ${root}`);
+      }
       if (!fs.existsSync(source) || fs.statSync(source).mtimeMs < startedAt - 2000) throw new Error('CODEX_IMAGE_SOURCE_NOT_FRESH');
       if (fs.existsSync(item.outputPath)) fs.copyFileSync(item.outputPath, path.join(dir, 'previous.png'));
       fs.copyFileSync(source, item.outputPath);
