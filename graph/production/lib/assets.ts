@@ -28,7 +28,13 @@ export function cleanRemotionTemp(root: string, maxAgeMs = 60000) {
   for (const entry of fs.readdirSync(temp)) {
     if (!entry.includes('remotion')) continue;
     const full = assertWithin(temp, path.join(temp, entry));
-    try { if (Date.now() - fs.statSync(full).mtimeMs > maxAgeMs) fs.rmSync(full, { recursive: true, force: true }); } catch (e) {
+    try {
+      const stat = fs.statSync(full);
+      // ISO-03: Proteger temporários de workers ativos; só remove arquivos com idade expirada
+      if (Date.now() - stat.mtimeMs > Math.max(maxAgeMs, 30000)) {
+        fs.rmSync(full, { recursive: true, force: true });
+      }
+    } catch (e) {
       // Windows can hold browser files open. Same best-effort cleanup as master.
       if (!(e instanceof Error) || !('code' in e) || !['EBUSY', 'EPERM', 'EACCES', 'ENOENT'].includes(String(e.code))) throw e;
     }
@@ -36,9 +42,15 @@ export function cleanRemotionTemp(root: string, maxAgeMs = 60000) {
 }
 export function prunePublicRuns(root: string, episodeId: string) {
   assertRepoRoot(root);
-  const folder = assertWithin(root, path.join(root, 'public', 'runs'));
-  if (fs.existsSync(folder)) for (const entry of fs.readdirSync(folder)) {
-    if (entry !== episodeId) removeWithin(root, path.join(folder, entry));
+  // ISO-01: Proibir exclusão em massa de outros episódios/canais.
+  // Limpeza restrita estritamente a temporários residuais da própria execução solicitante.
+  const episodeFolder = path.join(root, 'public', 'runs', episodeId);
+  if (fs.existsSync(episodeFolder)) {
+    for (const entry of fs.readdirSync(episodeFolder)) {
+      if (entry.endsWith('.tmp') || entry.endsWith('.part') || entry.startsWith('.temp')) {
+        try { fs.rmSync(path.join(episodeFolder, entry), { recursive: true, force: true }); } catch {}
+      }
+    }
   }
 }
 export function syncCurrentRunAssets(root: string, episodeId: string) {

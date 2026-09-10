@@ -50,6 +50,7 @@ export interface RunManifestData {
     videoVisualPath?: string;
     masterVideoPath?: string;
     masterVideoDurationSeconds?: number;
+    sfxTrackPath?: string;
     thumbnails: string[];
     publicationPackagePath?: string;
   };

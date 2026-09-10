@@ -40,10 +40,8 @@ export function narrationText(scripts: readonly string[]): string {
 
 export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_NARRATION', async () => {
   const p = paths(c, s);
-  // The visual/media plan remains immutable after paid provider dispatches.
-  // A narration-only revision lives in scene-plan.json and is allowed to
-  // change without rewriting Firefly authorization lineage.
-  const narrativePlan = readJson<HslLongFormProjectPlan>(p.plan) ?? s.scenePlan;
+  // G0-02: Garantir versão canônica única de roteiro entre síntese, lock e motion
+  const narrativePlan = s.scenePlan ?? readJson<HslLongFormProjectPlan>(p.plan);
   const text = narrationText(narrativePlan?.beats.map(beat => beat.voiceoverScript) ?? []);
   const scriptSha256 = digestText(text);
   const receipt = readJson<NarrationReceipt>(p.narrationReceipt);
