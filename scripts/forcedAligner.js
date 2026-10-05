@@ -9,9 +9,10 @@ function normalizeWord(value) {
 
 function tokenizeScript(script) {
   const words = [];
+  const sanitized = (script || '').replace(/<[^>]+>/gu, match => ' '.repeat(match.length));
   const matcher = /[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu;
   let match;
-  while ((match = matcher.exec(script)) !== null) {
+  while ((match = matcher.exec(sanitized)) !== null) {
     words.push({
       index: words.length,
       text: match[0],

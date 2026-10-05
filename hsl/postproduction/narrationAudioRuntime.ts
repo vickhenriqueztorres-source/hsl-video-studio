@@ -22,7 +22,7 @@ export interface HslNarrationAudioQa {
 }
 
 function runFfmpeg(args: readonly string[], errorCode: string) {
-  const result = spawnSync('ffmpeg', [...args], {encoding: 'utf8', maxBuffer: 1024 * 1024 * 20});
+  const result = spawnSync('ffmpeg', ['-nostdin', ...args], {encoding: 'utf8', maxBuffer: 1024 * 1024 * 20});
   if (result.status !== 0) {
     const processError = result.error ? `\n${result.error.name}: ${result.error.message}` : '';
     throw new Error(`${errorCode}:${result.stdout || ''}\n${result.stderr || ''}${processError}`);

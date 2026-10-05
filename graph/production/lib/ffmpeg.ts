@@ -29,7 +29,7 @@ export function createFfmpeg(root: string) {
       if (!fs.existsSync(narrationPath)) throw new Error(`FFMPEG_NARRATION_REQUIRED: ${narrationPath}`);
       if (!fs.existsSync(musicPath)) throw new Error(`FFMPEG_MUSIC_REQUIRED: ${musicPath}`);
       if (!fs.existsSync(sfxPath)) throw new Error(`FFMPEG_SFX_REQUIRED: ${sfxPath}`);
-      const args = ['-y','-hide_banner','-loglevel','error','-i',visualPath,'-stream_loop','-1','-i',musicPath,'-i',narrationPath,'-i',sfxPath,'-filter_complex','[1:a]volume=0.04[bg];[2:a]asplit=2[voice][side];[bg][side]sidechaincompress=threshold=0.125:ratio=8:attack=20:release=500[ducked];[3:a]volume=0.70[sfx];[ducked][voice][sfx]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[aout]','-map','0:v:0','-map','[aout]','-c:v','copy','-c:a','aac','-b:a',bitrate,'-ar','48000','-ac','2','-shortest',outPath];
+      const args = ['-y','-hide_banner','-loglevel','error','-i',visualPath,'-stream_loop','-1','-i',musicPath,'-i',narrationPath,'-i',sfxPath,'-filter_complex','[1:a]volume=0.04[bg];[2:a]asplit=2[voice][side];[bg][side]sidechaincompress=threshold=0.125:ratio=8:attack=20:release=500[ducked];[3:a]volume=0.20[sfx];[ducked][voice][sfx]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[aout]','-map','0:v:0','-map','[aout]','-c:v','copy','-c:a','aac','-b:a',bitrate,'-ar','48000','-ac','2','-shortest',outPath];
       return requireSuccess(await run(args),'FFMPEG_MUX_SFX_FATAL');
     },
   };

@@ -7,6 +7,7 @@ import {assertMediaPlan} from './mediaPlan';
 import {hashFile,KlingLedger} from './firefly/ledger';
 import {takeRecipe} from './firefly/recipe';
 import {repairReceiptPath,resolveFireflyArtifact} from './firefly/repair';
+import {validateFootageArtifact} from '../../footage/acquire';
 
 /** Physical files and provider evidence must agree with the required beat set. */
 export function assertMediaCoverage(c:Context,s:State,scope:'all'|'external'='all'):void {
@@ -28,6 +29,17 @@ export function assertMediaCoverage(c:Context,s:State,scope:'all'|'external'='al
         }
       }
       if(!fs.existsSync(pub)||hashFile(pub)!==artifact.sha256)throw new Error(`MOTION_PUBLIC_COPY_INVALID:${beat.beatId}`);
+      continue;
+    }
+    if(v.provider==='licensed-footage'){
+      const artifact=(s.footageArtifacts??[]).find(item=>item.beatId===beat.beatId);
+      if(!artifact||artifact.videoPath!==v.path||artifact.videoSha256!==hashFile(v.path))throw new Error(`FOOTAGE_PROVENANCE_INVALID:${beat.beatId}`);
+      validateFootageArtifact(c.root,artifact,{inspect:c.deps.inspect});
+      const pub=path.join(c.root,'public','runs',s.episodeId,'videos',beat.beatId+'.mp4');
+      if(!fs.existsSync(pub)||hashFile(pub)!==artifact.videoSha256){
+        fs.mkdirSync(path.dirname(pub),{recursive:true});fs.copyFileSync(v.path,pub);
+      }
+      if(hashFile(pub)!==artifact.videoSha256)throw new Error(`FOOTAGE_PUBLIC_COPY_INVALID:${beat.beatId}`);
       continue;
     }
     if(v.provider!=='firefly-kling')continue;

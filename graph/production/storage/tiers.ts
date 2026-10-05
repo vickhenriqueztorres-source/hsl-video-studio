@@ -14,6 +14,7 @@ export function classifyStatePath(root:string,state:State,file:string,hint?:Stor
     path.join(root,'runs',ep,'storage-index.json'),path.join(root,'runs',ep,'checkpoints','langgraph-checkpoints.sqlite')].filter(Boolean).map(x=>path.resolve(x!)));
   if(saves.has(absolute))return{path:absolute,tier:'save',category:'saves'};
   if(rel.startsWith(`runs/${ep}/firefly/`)&&(/\.json$/i.test(rel)||/ledger\.sqlite(?:-wal|-shm)?$/i.test(rel)||rel.includes('/qa/')))return{path:absolute,tier:'save',category:'saves'};
+  if(rel.startsWith(`runs/${ep}/footage/`)&&/\.json$/i.test(rel))return{path:absolute,tier:'save',category:'saves'};
   if(/\/(media-plan|media-scene-plan)\.json$|\.provenance\.json$|render-media-manifest\.json$/i.test(rel))return{path:absolute,tier:'save',category:'saves'};
   const deliverables=new Set([state.finalVideo?.outPath,state.finalVideo?.deliveryPath,state.finalVideo?.runPath,
     path.join(root,'runs',ep,'run-manifest.json'),path.join(root,'runs',ep,'graph','compliance.json'),
@@ -27,7 +28,7 @@ function categoryFor(rel:string){if(rel.includes('/images/')||rel.includes('/fra
 export function classifyHeuristic(root:string,file:string):StorageCandidate{
   const absolute=assertWithin(root,file),rel=relativeStoragePath(root,absolute);
   if(rel.startsWith('assets/audio-library/'))return{path:absolute,tier:'library',category:'library'};
-  if(/\/firefly\/.*\.json$|\/firefly\/.*\/qa\/|\/firefly\/ledger\.sqlite(?:-wal|-shm)?$|\/(media-plan|media-scene-plan)\.json$|\.provenance\.json$|render-media-manifest\.json$/i.test(rel))return{path:absolute,tier:'save',category:'saves'};
+  if(/\/(firefly|footage)\/.*\.json$|\/firefly\/.*\/qa\/|\/firefly\/ledger\.sqlite(?:-wal|-shm)?$|\/(media-plan|media-scene-plan)\.json$|\.provenance\.json$|render-media-manifest\.json$/i.test(rel))return{path:absolute,tier:'save',category:'saves'};
   if(rel.startsWith('build/')||/^out\/(temp_|concat_)/i.test(rel)||rel.startsWith('public/runs/'))return{path:absolute,tier:'transient',category:'transient'};
   if(/(^|\/)scene-plan\.json$|(^|\/)visual-prompts\.json$|(^|\/)audio-plan(?:-\d+beats)?\.json$|(^|\/)QUEUE\.json$|(^|\/)storage-index\.json$/i.test(rel))return{path:absolute,tier:'save',category:'saves'};
   if(rel.startsWith('deliveries/')||/(^|\/)run-manifest\.json$|(^|\/)compliance\.json$|(^|\/)publication-package\.json$|(^|\/)YOUTUBE_PUBLICATION_PACKAGE\.md$|(^|\/)thumbnails\//i.test(rel))return{path:absolute,tier:'deliverable',category:'deliverables'};

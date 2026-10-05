@@ -29,8 +29,8 @@ export async function executeProduction(graph: ProductionGraph, root: string, ep
   const saved=await graph.getState(config);
   const starting=(input&&typeof input==='object'&&'episodeId' in input)?input as Partial<State>:saved.values;
   config.recursionLimit=Math.max(512, executionStepBudget(starting));
-  const beforeMediaPlan=new Set(['scene_plan','env_check','codex_auth_prepare','codex_auth_wait','motion_plan','media_plan_prepare']);
-  if(saved.next.length&&!saved.values.mediaPlan&&saved.next.some(n=>!beforeMediaPlan.has(n)))throw new Error('MEDIA_CHECKPOINT_MIGRATION_REQUIRED: run --from media_plan_prepare');
+  const beforeMediaPlan=new Set(NODE_ORDER.slice(0, NODE_ORDER.indexOf('media_plan_prepare') + 1));
+  if(saved.next.length&&!saved.values.mediaPlan&&saved.next.some(n=>!beforeMediaPlan.has(n as NodeName)))throw new Error('MEDIA_CHECKPOINT_MIGRATION_REQUIRED: run --from media_plan_prepare');
   const folder = path.join(root, 'runs', episodeId, 'graph'); fs.mkdirSync(folder, { recursive: true });
   const executionFile=path.join(folder,'execution.json');
   writeJson(executionFile,{pid:process.pid,startedAt:new Date().toISOString(),active:true});
@@ -56,7 +56,10 @@ export function counts(items: { status: string; beatId?: string; index?: number 
   return Object.fromEntries(['ok', 'skipped', 'failed'].map(status => [status, [...latest.values()].filter(x => x.status === status).length]));
 }
 const outputFields: Partial<Record<NodeName, (keyof State)[]>> = {
-  motion_plan:['motionPlan'],narration_lock:['narrationLock','narration'],motion_dispatch:['motionArtifacts','motionIssue','videos'],motion_review_wait:['motionIssue'],
+  motion_plan:['motionPlan'],footage_plan:['footageBriefs'],
+  footage_acquire:['footageArtifacts','footageFailures','footageCandidatesPath','footageManifestPath'],
+  footage_review:['footageReviews'],footage_resolve:['videos'],
+  narration_lock:['narrationLock','narration'],motion_dispatch:['motionArtifacts','motionIssue','videos'],motion_review_wait:['motionIssue'],
   media_plan_prepare:['mediaPlan','klingBudget'],kling_budget_wait:['klingAuthorization'],firefly_recovery_wait:['fireflyIssue'],
   codex_auth_prepare:['codexAuth'],image_generate_run:['imageGenerationIssue','imageGenerationRetry'],
   env_check:['environment'],visual_prompts_prepare:['visualPrompts','visualPromptsPath'],visual_prompts_review_prepare:['promptReview'],image_generate_prepare:['imageSpecs','imageQueuePath'],image_generate_wait:['frames','imageValidationRounds'],
@@ -80,7 +83,7 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
   const patch: Record<string, unknown> = { productionStatus: 'RUNNING', errors: new Overwrite([]), timings: new Overwrite([]) };
   if(index>NODE_ORDER.indexOf('media_plan_validate'))assertMediaPlan({...snapshot.values,...(graphOptions?{options:{...snapshot.values.options,graph:{...snapshot.values.options.graph,...graphOptions}}}:{})});
   if(graphOptions)patch.options={...snapshot.values.options,graph:{...snapshot.values.options.graph,...graphOptions}};
-  const arrays=new Set(['frames','videos','motionArtifacts','renderChunks','storageIndex','videoTakes','visualPrompts','imageSpecs','sfxResolved','sfxUnresolved']);
+  const arrays=new Set(['frames','videos','motionArtifacts','renderChunks','storageIndex','videoTakes','visualPrompts','imageSpecs','sfxResolved','sfxUnresolved','footageBriefs','footageArtifacts','footageFailures','footageReviews']);
   const numbers=new Set(['generationCount','imageValidationRounds','imageReviewRounds']);
   for (const n of NODE_ORDER.slice(first)) for (const field of outputFields[n] ?? []) patch[field] = ['frames','videos','motionArtifacts','renderChunks','storageIndex'].includes(field)?new Overwrite([]):arrays.has(field)?[]:numbers.has(field)?0:null;
   if (index <= NODE_ORDER.indexOf('visual_prompts_prepare')) {
@@ -101,7 +104,8 @@ export async function rewind(graph: ProductionGraph, root: string, episodeId: st
   // Artifact validation remains active: --from resets checkpoints, not media.
   // Explicit branch entry points; list adjacency is not a DAG predecessor.
   const branchPredecessors:Partial<Record<NodeName,string>>={
-    media_plan_prepare:'scene_plan',
+    footage_plan:'motion_plan',
+    media_plan_prepare:'footage_resolve',
     visual_prompts_prepare:'archive_scene_plan',
     fan_out_frames:'archive_scene_plan',
     firefly_guide:'join_frames',

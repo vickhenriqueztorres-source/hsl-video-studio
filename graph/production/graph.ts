@@ -28,6 +28,7 @@ import { compliance } from './nodes/compliance';
 import { gatePublishWait } from './nodes/gate_publish_wait';
 import { finalize } from './nodes/finalize';
 import { envCheck } from './nodes/env_check';
+import { footagePlan, footageAcquire, footageReview, footageResolve } from './nodes/footage';
 import { visualPromptsPrepare, visualPromptsWait, visualPromptsReviewPrepare, visualPromptsReviewWait, routePromptReview } from './nodes/visual_prompts';
 import { imageGeneratePrepare, imageGenerateRun, imageGenerateWait } from './nodes/image_generate';
 import { imageReviewPrepare, imageReviewWait, routeImageReview } from './nodes/image_review';
@@ -40,7 +41,7 @@ import { selectScenePlan, selectImages, selectFirefly, selectMotion, selectAudio
 // LangGraph 1.4 rejects node names that collide with state channels. Public CLI
 // aliases retain the specification's names; only these four IDs need a suffix.
 export const NODE_ALIASES: Record<string, string> = { narration: 'narration_stage', gatekeeper: 'gatekeeper_stage', packaging: 'packaging_stage', compliance: 'compliance_stage' };
-export const NODE_ORDER = ['scene_plan','env_check','codex_auth_prepare','codex_auth_wait','motion_plan','media_plan_prepare','media_plan_validate','drive_auth_wait','archive_scene_plan','visual_prompts_prepare','visual_prompts_wait','visual_prompts_review_prepare','visual_prompts_review_wait','image_generate_prepare','image_generate_run','image_generate_wait','image_review_prepare','image_review_wait','archive_images','fan_out_frames','image_frames','join_frames','firefly_guide','kling_budget_wait','firefly_session_prepare','firefly_session_wait','firefly_dispatch','firefly_intake_wait','firefly_recovery_wait','firefly_finalize','archive_firefly','fan_out_videos','firefly_videos','join_videos','narration_stage','narration_lock','motion_dispatch','motion_review_wait','motion_join','archive_motion','sound_design','sfx_render','archive_audio','gatekeeper_stage','gate_render_wait','render_prepare','fan_out_render','render_chunk','stitch','pre_mux_gate','mux','packaging_stage','compliance_stage','gate_publish_wait','finalize','archive_compliance','prune_verified'] as const;
+export const NODE_ORDER = ['scene_plan','env_check','codex_auth_prepare','codex_auth_wait','motion_plan','footage_plan','footage_acquire','footage_review','footage_resolve','media_plan_prepare','media_plan_validate','drive_auth_wait','archive_scene_plan','visual_prompts_prepare','visual_prompts_wait','visual_prompts_review_prepare','visual_prompts_review_wait','image_generate_prepare','image_generate_run','image_generate_wait','image_review_prepare','image_review_wait','archive_images','fan_out_frames','image_frames','join_frames','firefly_guide','kling_budget_wait','firefly_session_prepare','firefly_session_wait','firefly_dispatch','firefly_intake_wait','firefly_recovery_wait','firefly_finalize','archive_firefly','fan_out_videos','firefly_videos','join_videos','narration_stage','narration_lock','motion_dispatch','motion_review_wait','motion_join','archive_motion','sound_design','sfx_render','archive_audio','gatekeeper_stage','gate_render_wait','render_prepare','fan_out_render','render_chunk','stitch','pre_mux_gate','mux','packaging_stage','compliance_stage','gate_publish_wait','finalize','archive_compliance','prune_verified'] as const;
 export type NodeName = typeof NODE_ORDER[number];
 export interface ProductionGraphOptions { interruptAfter?: NodeName[] }
 export function createProductionGraph(checkpointer?: BaseCheckpointSaver, overrides: Partial<Dependencies> = {}, root = REPO_ROOT, options: ProductionGraphOptions = {}) {
@@ -51,6 +52,10 @@ export function createProductionGraph(checkpointer?: BaseCheckpointSaver, overri
   preparation
     .addNode('scene_plan', timed(c, 'scene_plan', scenePlan(c)))
     .addNode('motion_plan',timed(c,'motion_plan',motionPlan(c)))
+    .addNode('footage_plan',timed(c,'footage_plan',footagePlan(c)))
+    .addNode('footage_acquire',timed(c,'footage_acquire',footageAcquire(c)))
+    .addNode('footage_review',timed(c,'footage_review',footageReview(c)))
+    .addNode('footage_resolve',timed(c,'footage_resolve',footageResolve(c)))
     .addNode('media_plan_prepare', timed(c, 'media_plan_prepare', mediaPlanPrepare(c)))
     .addNode('media_plan_validate', timed(c, 'media_plan_validate', mediaPlanValidate(c)))
     .addNode('env_check',timed(c,'env_check',envCheck(c)))
@@ -111,7 +116,7 @@ export function createProductionGraph(checkpointer?: BaseCheckpointSaver, overri
     .addNode('finalize', timed(c, 'finalize', finalize(c)))
     .addNode('prune_verified',timed(c,'prune_verified',pruneVerified(c)));
   return production
-    .addEdge(START,'scene_plan').addEdge('scene_plan','env_check').addEdge('env_check','codex_auth_prepare').addEdge('codex_auth_prepare','codex_auth_wait').addConditionalEdges('codex_auth_wait',s=>s.codexAuth?.authenticated?'motion_plan':'codex_auth_prepare',['motion_plan','codex_auth_prepare']).addEdge('motion_plan','media_plan_prepare').addEdge('media_plan_prepare','media_plan_validate').addEdge('media_plan_validate','drive_auth_wait').addEdge('drive_auth_wait','archive_scene_plan')
+    .addEdge(START,'scene_plan').addEdge('scene_plan','env_check').addEdge('env_check','codex_auth_prepare').addEdge('codex_auth_prepare','codex_auth_wait').addConditionalEdges('codex_auth_wait',s=>s.codexAuth?.authenticated?'motion_plan':'codex_auth_prepare',['motion_plan','codex_auth_prepare']).addEdge('motion_plan','footage_plan').addEdge('footage_plan','footage_acquire').addEdge('footage_acquire','footage_review').addEdge('footage_review','footage_resolve').addEdge('footage_resolve','media_plan_prepare').addEdge('media_plan_prepare','media_plan_validate').addEdge('media_plan_validate','drive_auth_wait').addEdge('drive_auth_wait','archive_scene_plan')
     .addConditionalEdges('archive_scene_plan',s=>s.options.graph.mediaMode==='legacy'?'fan_out_frames':'visual_prompts_prepare',['fan_out_frames','visual_prompts_prepare'])
     .addEdge('visual_prompts_prepare','visual_prompts_wait').addEdge('visual_prompts_wait','visual_prompts_review_prepare').addEdge('visual_prompts_review_prepare','visual_prompts_review_wait')
     .addConditionalEdges('visual_prompts_review_wait',routePromptReview,['visual_prompts_prepare','image_generate_prepare','archive_images'])

@@ -9,11 +9,14 @@ import {HslImageFrameEngine} from '../hsl/core/hslImageFrameEngine';
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hsl-photo-contract-'));
 const physical = formatCinematic35mmPrompt('Cinematic 35mm pop-documentary shot, macro view of liquid cooling pipes between GPU racks, monumental off-white typography overlays, Arri Alexa LF 8k');
 assert.match(physical, /liquid cooling pipes between GPU racks/i);
-assert.match(physical, /NO TEXT/);
+assert.match(physical, /NO ISOLATED GRAPHIC TITLE CARDS/);
 assert.doesNotMatch(physical, /typography overlays/i);
 assertPhotographicPrompt(physical);
 assert.throws(() => formatCinematic35mmPrompt('monumental typography card: HIDDEN SYSTEMS RULE THE WORLD, Apple Keynote documentary aesthetic, Arri Alexa LF 8k'), /PHOTOGRAPHIC_SUBJECT_REQUIRED/);
 assert.throws(() => assertPhotographicPrompt('Typography title card saying THERMAL CRISIS'), /PHOTOGRAPHIC_PROMPT_REQUIRED/);
+// Contextual in-scene text on devices and screens must be permitted:
+const inSceneTextPrompt = 'Plano detalhe da tela do smartphone exibindo notificação: "Pix recebido: R$ 5.000,00"';
+assertPhotographicPrompt(inSceneTextPrompt);
 
 const bot = path.join(root, 'empty-bot');
 fs.mkdirSync(bot, {recursive: true});

@@ -57,6 +57,24 @@ Para limitar um teste à etapa Firefly, preservando o checkpoint seguinte:
 npm run hsl:master:graph:resume -- --episode HSL_EPISODE_005 --until firefly_finalize
 ```
 
+### Filmagens reais licenciadas
+
+O grafo busca vídeos em Pexels, Pixabay, Wikimedia Commons, NASA Images e
+Internet Archive, remove o áudio original, conforma os trechos para 1920x1080/30 fps e mantém
+recibos de origem, licença e hashes. Commons e NASA não exigem chave; para
+ampliar os resultados, configure `PEXELS_API_KEY` e `PIXABAY_API_KEY` no `.env`.
+O recurso fica desligado por padrão. Para ativar:
+
+```powershell
+npx ts-node -T graph/production/cli.ts run --episode HSL_EPISODE_005 --from footage_plan --footage-mode auto --footage-share 0.15
+```
+
+`--footage-mode suggest` grava apenas os briefs de busca. `auto` consulta todas
+as fontes disponíveis e integra
+os trechos aprovados; quando não houver resultado ou chave, o plano conserva o
+provedor original do beat. `--footage-share` aceita de 0 a 0.5 e limita a fração
+máxima da timeline destinada a material real.
+
 Uma pausa solicitada por `--until` retorna código 3. Gates pendentes retornam 2;
 consulte a mensagem antes de retomar. Digite no terminal apenas os comandos dos
 blocos acima, sem copiar saídas de logs ou explicações como comandos.

@@ -57,4 +57,11 @@ test_opt.png
 __pycache__/
 *.pyc
 
+# Local scratch and extracted test files
+scratch/
+scratch_*.py
+temp/
+extracted_*.json
+
+
 

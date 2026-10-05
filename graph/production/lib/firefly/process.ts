@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnTool, requireSuccess, ToolResult } from '../../../lib/proc';
+import { saveSession, restoreSession } from '../../../../scripts/fireflySessionStore';
 
 export interface FireflyEnvironment { agentDir: string; profileDir: string; python: string }
 export function fireflyEnvironment(env = process.env): FireflyEnvironment {
@@ -165,12 +166,20 @@ export async function probeSession(e: FireflyEnvironment, runtime: string, logPa
   await assertAgentProtocol(e,logPath);
   return withProfileLock(e, async assertOwnership => {
     fs.mkdirSync(path.join(runtime, 'data'), { recursive: true });
-    const result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--probe-session'], { cwd: e.agentDir, env: agentEnv(e), timeoutMs: 180_000, logPath });
+    let result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--probe-session'], { cwd: e.agentDir, env: agentEnv(e), timeoutMs: 180_000, logPath });
     assertOwnership();
-    if (result.timedOut || result.errorCode || ![0, 3].includes(result.exitCode ?? -1)) {
+    if (result.exitCode !== 0 && restoreSession(e.profileDir)) {
+      result = await spawnTool(e.python, [path.join(e.agentDir, 'main.py'), '--root', runtime, '--probe-session'], { cwd: e.agentDir, env: agentEnv(e), timeoutMs: 180_000, logPath });
+      assertOwnership();
+    }
+    if (result.timedOut || result.errorCode || ![0, 1, 3].includes(result.exitCode ?? -1)) {
       throw new Error(`FIREFLY_SESSION_PROBE_FAILED:exit=${result.exitCode ?? result.errorCode ?? 'unknown'};timeout=${result.timedOut};log=${logPath}`);
     }
-    return result.exitCode === 0;
+    const ok = result.exitCode === 0;
+    if (ok) {
+      try { saveSession(e.profileDir); } catch {}
+    }
+    return ok;
   }, logPath);
 }
 export async function openLoginChrome(e: FireflyEnvironment, logPath: string): Promise<ToolResult> {

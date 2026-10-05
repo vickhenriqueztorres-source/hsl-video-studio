@@ -7,26 +7,34 @@ import { threadId, type AssetResult, type ImageQueue } from '../state';
 import { validateImage } from '../lib/imageQueue';
 import {assertPhotographicPrompt, PHOTOGRAPHIC_CONSTRAINTS} from '../../../hsl/startframe/photographicPrompt';
 
-function specs(c:Context,s:any){return s.visualPrompts.map((p:any)=>{const dir=path.join(paths(c,s).run,'images',p.beatId);return{beatId:p.beatId,promptPath:path.join(dir,'prompt.md'),expectedPath:path.join(dir,`${p.beatId}.png`),prompt:p};});}
+function specs(c:Context,s:any){
+  const file = path.join(paths(c,s).run,'visual-prompts.json');
+  const onDisk = fs.existsSync(file) ? readJson<{beats: any[]}>(file)?.beats : undefined;
+  const list = onDisk?.length ? onDisk : s.visualPrompts;
+  return list.map((p:any)=>{const dir=path.join(paths(c,s).run,'images',p.beatId);return{beatId:p.beatId,promptPath:path.join(dir,'prompt.md'),expectedPath:path.join(dir,`${p.beatId}.png`),prompt:p};});
+}
 function queueFile(c:Context,s:any){return path.join(paths(c,s).run,'images','QUEUE.json');}
 
 export const imageGeneratePrepare=(c:Context):NodeFn=>s=>{
   if(s.options.graph.mediaMode==='legacy')return{__status:'skipped'};
+  const file = path.join(paths(c,s).run,'visual-prompts.json');
+  const onDisk = fs.existsSync(file) ? readJson<{beats: any[]}>(file)?.beats : undefined;
+  const list = onDisk?.length ? onDisk : s.visualPrompts;
   const all=specs(c,s),queuePath=queueFile(c,s),previous=readJson<ImageQueue>(queuePath);
   for(const x of all){
     assertPhotographicPrompt(x.prompt.imagePrompt);
     fs.mkdirSync(path.dirname(x.promptPath),{recursive:true});
-    const content=`${x.prompt.imagePrompt}\n\n${PHOTOGRAPHIC_CONSTRAINTS}\nNegativo: ${x.prompt.negative||'texto, letras, logotipos, marcas, artefatos'}\nAspecto: 16:9\nResolução mínima: 1920x1080\nSem texto na imagem.\nSalvar exatamente em: ${x.expectedPath}\n`;
+    const content=`${x.prompt.imagePrompt}\n\n${PHOTOGRAPHIC_CONSTRAINTS}\nNegativo: ${x.prompt.negative||'marcas d\'água, legendas flutuantes, texto borrado, artefatos, renderização 3D plástica'}\nAspecto: 16:9\nResolução mínima: 1920x1080\nSalvar exatamente em: ${x.expectedPath}\n`;
     if(!fs.existsSync(x.promptPath)||fs.readFileSync(x.promptPath,'utf8')!==content)fs.writeFileSync(x.promptPath,content);
     x.promptHash=createHash('sha256').update(content).digest('hex');
     writeJson(path.join(path.dirname(x.promptPath),'spec.json'),{width:1920,height:1080,aspect:'16:9',expectedPath:x.expectedPath});
   }
   const old=new Map(previous?.items.map(x=>[x.beatId,x])??[]);
-  const queue:ImageQueue={episodeId:s.episodeId,threadId:threadId(s.episodeId),generator:'codex-imagegen',spec:{aspect:'16:9',minWidth:1920,format:'png',noText:true},
+  const queue:ImageQueue={episodeId:s.episodeId,threadId:threadId(s.episodeId),generator:'codex-imagegen',spec:{aspect:'16:9',minWidth:1920,format:'png',noText:false},
     items:all.map((x:any)=>{const p=old.get(x.beatId),same=p?.promptHash===x.promptHash;return{beatId:x.beatId,promptPath:x.promptPath,outputPath:x.expectedPath,promptHash:x.promptHash,status:same?(p?.status??'pending'):'pending',attempts:same?(p?.attempts??0):0,...(same&&p?.lastError?{lastError:p.lastError}:!same&&fs.existsSync(x.expectedPath)?{lastError:'prompt changed; regenerate'}:{}),...(same&&p?.generatedBy?{generatedBy:p.generatedBy}:{})};}),
     resumeCommand:`npm run hsl:matrix -- continuar ${s.episodeId}`};
   writeJson(queuePath,queue);
-  return{imageSpecs:all.map((x:any)=>({beatId:x.beatId,promptPath:x.promptPath,expectedPath:x.expectedPath})),imageQueuePath:queuePath};
+  return{visualPrompts:list,imageSpecs:all.map((x:any)=>({beatId:x.beatId,promptPath:x.promptPath,expectedPath:x.expectedPath})),imageQueuePath:queuePath};
 };
 
 export const imageGenerateRun=(c:Context):NodeFn=>async s=>{
@@ -50,8 +58,9 @@ export const imageGenerateWait=(c:Context):NodeFn=>s=>{
     for(const item of queue.items){const v=validateImage(item.outputPath);if(!v.ok||item.status!=='done'){item.status='pending';item.lastError=item.lastError||v.error||'worker ainda não concluiu a imagem';bad.push({beatId:item.beatId,error:item.lastError});continue;}item.status='done';item.lastError=undefined;item.generatedBy=item.generatedBy||'codex-imagegen';frames.push({beatId:item.beatId,path:item.outputPath,status:'ok',attempts:item.attempts});}
     writeJson(queuePath,queue);
     if(!bad.length){for(const f of frames){copyFile(f.path,path.join(paths(c,s).run,'frames',`${f.beatId}.png`));copyFile(f.path,path.join(c.root,'public','runs',s.episodeId,'frames',`${f.beatId}.png`));}return{frames,imageValidationRounds:round-1,imageGenerationRetry:false};}
-    if(round===3)throw new Error(`IMAGE_QUEUE_MAX_ROUNDS:${JSON.stringify(bad)}`);
-    interrupt({kind:s.imageGenerationIssue?.kind??'IMAGE_GENERATION_RECOVERY',queuePath,pendingCount:bad.length,
+    const isQuota = bad.some(b => /quota|resource_exhausted|rate limit|usage limit|429/i.test(b.error)) || /quota|resource_exhausted|rate limit|usage limit|429/i.test(s.imageGenerationIssue?.reason ?? '');
+    if(round>=3 && !isQuota)throw new Error(`IMAGE_QUEUE_MAX_ROUNDS:${JSON.stringify(bad)}`);
+    interrupt({kind:s.imageGenerationIssue?.kind??(isQuota?'CODEX_IMAGE_UNAVAILABLE':'IMAGE_GENERATION_RECOVERY'),queuePath,pendingCount:bad.length,
       reason:s.imageGenerationIssue?.reason??bad,command:s.imageGenerationIssue?.kind==='CODEX_AUTH'?'npm run hsl:codex:login':undefined,round});
-    return{imageGenerationRetry:true,imageValidationRounds:round};
+    return{imageGenerationRetry:true,imageValidationRounds:isQuota?0:round};
 };

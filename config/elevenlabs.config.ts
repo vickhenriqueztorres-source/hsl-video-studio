@@ -11,8 +11,8 @@ export const ElevenLabsConfig = {
   ].filter(Boolean) as string[],
   voiceId: process.env.HSL_ELEVENLABS_VOICE_ID || 'iP95p4xoKVk53GoZ742B', // Chris (HSL)
   voiceName: process.env.HSL_ELEVENLABS_VOICE_NAME || 'Chris',
-  brechaVoiceId: process.env.BRECHA_ELEVENLABS_VOICE_ID || '2CECaLAGTS5NRGxgbcxr', // Davi Andrei (BRECHA)
-  brechaVoiceName: process.env.BRECHA_ELEVENLABS_VOICE_NAME || 'Davi Andrei',
+  brechaVoiceId: process.env.BRECHA_ELEVENLABS_VOICE_ID || 'nPczCjzI2devNBz1zQrb', // Brian (BRECHA)
+  brechaVoiceName: process.env.BRECHA_ELEVENLABS_VOICE_NAME || 'Brian',
   modelId: process.env.HSL_ELEVENLABS_MODEL || 'eleven_multilingual_v2',
   voiceSettings: {
     stability: Number(process.env.HSL_ELEVENLABS_STABILITY || 0.45),

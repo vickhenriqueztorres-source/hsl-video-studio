@@ -27,6 +27,7 @@ import { nextEpisodeId, reserveTheme, suggestThemes } from '../../console/themeR
 import type { HslSceneBeat } from '../../../hsl/core/types';
 import type { ComplianceRuleResult } from '../../../spec/hsl-compliance-checker';
 import { BRECHA_HEADER_PALETTE, HSL_HEADER_PALETTE } from '../../../remotion/motion/HslUniversalHeader';
+import { sourceHash, resolveChannelContext } from '../nodes/visual_prompts';
 
 test('I01: Channel unknown rejects without silent fallback', () => {
   assert.equal(isKnownChannel('hsl'), true);
@@ -483,4 +484,63 @@ test('I16: Brand Bible visual mode and scene distribution fidelity (Zero foreign
   assert.ok(brechaVisual.includes('characterPolicy'), 'visual.md must document characterPolicy');
   assert.ok(promptContent.includes('characterPolicy'), 'visual-prompts.md must document characterPolicy');
 });
+
+test('I17: Visual prompts diegetic text channel language isolation (HSL English vs BRECHA Portuguese)', () => {
+  // 1. visual-prompts.md contract: explicit channel-isolated diegetic text rules
+  const promptPath = path.resolve(__dirname, '../../prompts/visual-prompts.md');
+  const promptContent = fs.readFileSync(promptPath, 'utf8');
+
+  assert.ok(promptContent.includes('Canal HSL (Hidden Systems Lab)'), 'Must define explicit rules for HSL');
+  assert.ok(promptContent.includes('INGLÊS TÉCNICO'), 'HSL must mandate technical English');
+  assert.ok(promptContent.includes('PORTUGUÊS BRASILEIRO'), 'BRECHA must mandate Brazilian Portuguese');
+  assert.ok(promptContent.includes('{{channelContext}}'), 'visual-prompts.md must accept channelContext');
+
+  // Verify Exemplo 4 (HSL) contains English quoted text and NO Portuguese text
+  assert.ok(promptContent.includes('SYSTEM PRESSURE // 180 BAR - NOMINAL RANGE 0-250 BAR - STATUS: OPTIMAL'));
+  assert.ok(!promptContent.includes('PRESSÃO BAR - ESCALA 0 A 250'), 'HSL example must not have Portuguese text');
+
+  // Verify Exemplo 5 (HSL Cold Chain) exists with English text
+  assert.ok(promptContent.includes('Exemplo 5: Monitor de Cadeia Fria'));
+  assert.ok(promptContent.includes('COLD CHAIN TELEMETRY // TEMP: +2.8°C'));
+
+  // 2. visual-prompts-repair.md contract
+  const repairPath = path.resolve(__dirname, '../../prompts/visual-prompts-repair.md');
+  const repairContent = fs.readFileSync(repairPath, 'utf8');
+  assert.ok(repairContent.includes('INGLÊS TÉCNICO'), 'Repair template must require technical English for HSL');
+  assert.ok(repairContent.includes('PORTUGUÊS BRASILEIRO'), 'Repair template must require Brazilian Portuguese for BRECHA');
+  assert.ok(repairContent.includes('{{channelContext}}'), 'Repair template must accept channelContext');
+
+  // 3. visual-prompts-review.md contract
+  const reviewPath = path.resolve(__dirname, '../../prompts/visual-prompts-review.md');
+  const reviewContent = fs.readFileSync(reviewPath, 'utf8');
+  assert.ok(reviewContent.includes('LANGUAGE_MISMATCH_HSL_REQUIRES_ENGLISH'), 'Review template must flag Portuguese in HSL');
+  assert.ok(reviewContent.includes('LANGUAGE_MISMATCH_BRECHA_REQUIRES_PORTUGUESE'), 'Review template must flag English in Brecha');
+  assert.ok(reviewContent.includes('{{channelContext}}'), 'Review template must accept channelContext');
+
+  // 4. sourceHash & resolveChannelContext isolation
+  const mockPlan = { beats: [{ beatId: 'SCENE_001', durationSeconds: 5.0, mediaProvider: 'ai-frame' }] } as any;
+  const mockTopic = { topic: 'Testing Latency Invariance', entity: 'Core System', mechanism: 'Feedback', constraint: 'Cap', consequence: 'Halt', thesis: 'Stability' } as any;
+
+  const hslState = { channelId: 'hsl' as const, episodeId: 'HSL_EPISODE_001', topicInput: mockTopic, scenePlan: mockPlan } as any;
+  const brechaState = { channelId: 'brecha' as const, episodeId: 'BRECHA_EPISODE_001', topicInput: mockTopic, scenePlan: mockPlan } as any;
+
+  const hslHash = sourceHash(hslState);
+  const brechaHash = sourceHash(brechaState);
+  assert.notEqual(hslHash, brechaHash, 'sourceHash must be strictly isolated between HSL and BRECHA');
+
+  const hslCtx = resolveChannelContext(hslState);
+  assert.equal(hslCtx.channelId, 'hsl');
+  assert.ok(hslCtx.channelContext.includes('STRICTLY ENGLISH'));
+  assert.ok(hslCtx.channelContext.includes('ZERO PORTUGUESE WORDS'));
+
+  const brechaCtx = resolveChannelContext(brechaState);
+  assert.equal(brechaCtx.channelId, 'brecha');
+  assert.ok(brechaCtx.channelContext.includes('PORTUGUÊS BRASILEIRO'));
+
+  // 5. Channel Profile contract
+  const hslProfilePath = path.resolve(__dirname, '../../../channels/hsl/profile.ts');
+  const hslProfileContent = fs.readFileSync(hslProfilePath, 'utf8');
+  assert.ok(hslProfileContent.includes('authentic technical text and values in English (never in Portuguese or other languages)'));
+});
+
 

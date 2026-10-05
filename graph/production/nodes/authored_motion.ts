@@ -13,11 +13,12 @@ import {
   type MotionNarrationReceipt,
   type PhraseRequest,
 } from '../../motion-audio';
-import type {AuthoredMotionArtifact, State} from '../state';
+import type {AuthoredMotionArtifact, AuthoredMotionPlan, State} from '../state';
 import type {HslLongFormProjectPlan} from '../../../hsl/core/types';
 import {copyFile, type Context, type NodeFn, paths, readJson, writeJson} from '../runtime';
 import {fileContentHash} from '../lib/renderIdentity';
 import {assertMediaCoverage} from '../lib/mediaCoverage';
+import {planMedia} from '../lib/mediaPlan';
 import {narrationText} from './narration';
 import {calibratePlanToNarration} from '../lib/plan';
 
@@ -114,9 +115,10 @@ function sceneTiming(s:State,beatId:string){
 /** Authors one missing scene per graph step, preserving a checkpoint between scenes. */
 export const motionDispatch=(c:Context):NodeFn=>async s=>{
   if(s.options.graph.motionMode!=='authored')return{motionIssue:null,__status:'skipped'};
-  if(!s.motionPlan||!s.scenePlan||!s.narrationLock)throw new Error('AUTHORED_MOTION_INPUTS_MISSING');
+  const activeMotionPlan = readJson<AuthoredMotionPlan>(path.join(paths(c,s).run,'motion','plan.json')) ?? s.motionPlan;
+  if(!activeMotionPlan||!s.scenePlan||!s.narrationLock)throw new Error('AUTHORED_MOTION_INPUTS_MISSING');
   const done=new Set(s.motionArtifacts.map(item=>item.beatId));
-  const brief=s.motionPlan.scenes.find(item=>!done.has(item.beatId));
+  const brief=activeMotionPlan.scenes.find(item=>!done.has(item.beatId));
   if(!brief)return{motionIssue:null,__status:'skipped'};
   const {beat,startFrame}=sceneTiming(s,brief.beatId),index=s.scenePlan.beats.findIndex(item=>item.beatId===beat.beatId);
   const lock=readJson<MotionNarrationReceipt>(lockReceiptFile(c,s));
@@ -141,12 +143,13 @@ export const motionDispatch=(c:Context):NodeFn=>async s=>{
     repoRoot:c.root,outputDir:motionRoot(c,s),episodeId:s.episodeId,beatId:beat.beatId,sourceBeatId:beat.sourceBeatId,
     script:cleanScripts[index],previousScript:cleanScripts[index-1],nextScript:cleanScripts[index+1],
     claimRefs:beat.evidenceRefs ? [...beat.evidenceRefs] : [],
-    visualObjective:brief.visualObjective,causalRelations:brief.causalRelations,factualConstraints:brief.factualConstraints,
+    visualObjective:brief.visualObjective,causalRelations:brief.causalRelations,
+    factualConstraints:brief.factualConstraints.map(c => c.replace(/duração de \d+ frames/gi, `duração de ${beat.durationFrames} frames`)),
     identity:{channel:ch.toUpperCase(),palette:channelPalette,style:channelStyle},
     timing:{fps:FPS,width:WIDTH,height:HEIGHT,durationInFrames:beat.durationFrames,startFrame},
     audio:{path:s.narrationLock.audioPath,sha256:fileContentHash(s.narrationLock.audioPath)},
     alignment:{path:s.narrationLock.alignmentPath,sha256:fileContentHash(s.narrationLock.alignmentPath),cues:[{text:phrase.text,startFrame:localStart,endFrame:localEnd,confidence:phrase.confidence}]},
-    maxRevisions:3,provider:'codex',require3d:brief.require3d,
+    maxRevisions:5,provider:'codex',require3d:brief.require3d,
   };
   const result=await executeMotionScene(input);
   if(result.status!=='approved')return{motionIssue:{beatId:result.beatId,status:result.status,reason:result.reason,receiptPath:result.receiptPath}};
@@ -180,6 +183,18 @@ export function routeMotionDispatch(s:State){
 export const motionJoin=(c:Context):NodeFn=>s=>{
   if(s.options.graph.motionMode!=='authored')return{__status:'skipped'};
   if(!s.motionPlan||s.motionArtifacts.length!==s.motionPlan.scenes.length)throw new Error('AUTHORED_MOTION_FAN_IN_INCOMPLETE');
+  if(s.scenePlan && s.mediaPlan){
+    const authored = new Set(s.mediaPlan.authoredBeatIds ?? s.mediaPlan.beats.filter(beat => beat.provider === 'remotion-authored').map(beat => beat.beatId));
+    const footage = new Set(s.mediaPlan.footageBeatIds ?? s.mediaPlan.beats.filter(beat => beat.provider === 'licensed-footage').map(beat => beat.beatId));
+    const expected = planMedia(s.scenePlan, s.mediaPlan.policy, authored, footage);
+    s.scenePlan = expected.scenePlan;
+    s.mediaPlan = expected.mediaPlan;
+  }
   assertMediaCoverage(c,s);
-  return{};
+  if(s.mediaPlan){
+    writeJson(path.join(paths(c,s).run,'media-plan.json'),s.mediaPlan);
+    writeJson(path.join(paths(c,s).run,'media-scene-plan.json'),s.scenePlan);
+    writeJson(path.join(paths(c,s).run,'scene-plan.json'),s.scenePlan);
+  }
+  return{...(s.mediaPlan?{mediaPlan:s.mediaPlan,scenePlan:s.scenePlan}:{})};
 };

@@ -47,8 +47,15 @@ export const compliance = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_11
         expectedMasterPath: p.final
       }));
   const mediaRule={ruleId:'RULE_MEDIA_PROVIDER_COVERAGE',name:'Provedor e cobertura de mídia',prdClause:'Perfil de mídia escolhido',
-    expected:`${s.mediaPlan!.policy}: ${s.mediaPlan!.fireflyBeatIds.length} cenas Firefly verificadas`,
-    measured:`${s.mediaPlan!.fireflyBeatIds.length} cenas com recibos, hashes, duração e cópias verificadas; render ${identity.hash}`,passed:true};
+    expected:`${s.mediaPlan!.policy}: mídia gerada, autoral e real verificadas conforme o plano`,
+    measured:`${s.mediaPlan!.fireflyBeatIds.length} Firefly e ${s.mediaPlan!.footageBeatIds?.length??0} filmagens reais com recibos, hashes, duração e cópias verificadas; render ${identity.hash}`,passed:true};
+  const footageCredits=path.join(p.run,'publication','footage-credits.md');
+  const footageCount=(s.footageArtifacts??[]).filter(item=>item.editorialStatus==='approved').length;
+  const footageRightsPass=!footageCount||fs.existsSync(footageCredits);
+  const footageRule={ruleId:'RULE_FOOTAGE_RIGHTS_AND_CREDITS',name:'Direitos e créditos de filmagens reais',prdClause:'Procedência de mídia de terceiros',
+    expected:'Todo trecho real possui recibo de direitos, origem, hash e crédito exportado',
+    measured:footageCount?`${footageCount} trecho(s); créditos em ${footageCredits}`:'Nenhuma filmagem externa usada',
+    passed:footageRightsPass,...(!footageRightsPass?{failureReason:'Arquivo de créditos das filmagens reais ausente'}:{})};
   let sfxPass = false;
   let sfxMeasured = 'Faixa SFX ausente';
   let sfxFailureReason: string | undefined;
@@ -77,7 +84,7 @@ export const compliance = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_11
     passed: sfxPass,
     failureReason: sfxFailureReason
   };
-  const extraRules = [mediaRule, sfxRule];
+  const extraRules = [mediaRule, footageRule, sfxRule];
   const extraIds = new Set(extraRules.map(r => r.ruleId));
   const filteredBaseResults = baseReport.results.filter(r => !extraIds.has(r.ruleId));
   const allResults = [...filteredBaseResults, ...extraRules];

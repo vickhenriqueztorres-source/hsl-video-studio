@@ -44,7 +44,7 @@ export const hslProfile: ChannelProfile = {
       dataMonospace: 'JetBrains Mono, monospace'
     },
     textures: ['technical_grid', 'blueprint_noise', 'metal_grain'],
-    cameraLanguage: 'clinical orthographic, controlled slow push-in, telemetry overlays',
+    cameraLanguage: 'clinical orthographic, controlled slow push-in, telemetry overlays; hyper-realism with active diegetic interfaces: telemetry dashboards, industrial SCADA readouts, gauges, control monitors, rack labels, shipping manifests, and physical equipment plates must strictly contain authentic technical text and values in English (never in Portuguese or other languages)',
     reconstructionLabelRequired: false
   },
   narration: {

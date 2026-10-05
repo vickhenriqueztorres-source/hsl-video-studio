@@ -12,9 +12,10 @@ export function normalizeScriptWord(value: string): string {
 
 export function tokenizeScriptWords(script: string): readonly ScriptWordSpan[] {
   const words: ScriptWordSpan[] = [];
+  const sanitized = (script || '').replace(/<[^>]+>/gu, match => ' '.repeat(match.length));
   const matcher = /\S+/g;
   let match: RegExpExecArray | null;
-  while ((match = matcher.exec(script)) !== null) {
+  while ((match = matcher.exec(sanitized)) !== null) {
     words.push({
       index: words.length,
       text: match[0],

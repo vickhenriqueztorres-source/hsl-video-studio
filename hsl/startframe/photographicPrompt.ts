@@ -1,6 +1,6 @@
-/** Graphics belong to the composition, never to the photographic source. */
-export const PHOTOGRAPHIC_CONTRACT_VERSION = 'photographic-v1';
-export const PHOTOGRAPHIC_CONSTRAINTS = 'Photorealistic cinematic 35mm documentary photography, physical materials and natural lighting, 16:9. NO TEXT, NO NUMBERS, NO HUD, NO GRAPHICS, NO LOGOS, NO LABELS, NO WATERMARKS, NO TYPOGRAPHY. Overlays are added separately in the composition.';
+/** Graphics belong to the composition, never to the photographic source. Contextual in-scene text on screens and physical objects is allowed and encouraged for realism. */
+export const PHOTOGRAPHIC_CONTRACT_VERSION = 'photographic-v2';
+export const PHOTOGRAPHIC_CONSTRAINTS = 'Photorealistic cinematic 35mm documentary photography, physical materials and natural lighting, 16:9. Contextual and authentic in-scene text, numbers, and UI on device displays, screens, receipts, and physical interfaces must be sharp, legible, and realistic. NO FLOATING HUD, NO ISOLATED GRAPHIC TITLE CARDS, NO WATERMARKS. Global editorial overlays are added separately in the composition.';
 
 function positiveClauses(prompt: string): string[] {
   const stripped = prompt
@@ -9,7 +9,7 @@ function positiveClauses(prompt: string): string[] {
   return stripped.split(/[,;\n]/).map(clause => clause.trim())
     .filter(clause => clause && !/^(?:no|without|with no|exclude|avoid|sem|não|nao)\b/i.test(clause));
 }
-const graphicDirective = /\b(?:typograph\w*|tipograf\w*|infographics?|HUD|(?:text|title|headline|caption)\s+(?:card|overlay)|(?:readable|written|rendered|displayed|visible)\s+(?:text|words|letters)|(?:add|include|write|show|render)\s+(?:the\s+)?(?:text|words|letters|labels|logos))\b/i;
+const graphicDirective = /\b(?:(?:typograph\w*|tipograf\w*)\s*(?:title\s+cards?|cards?|overlays?|slides?|titles?|infographics?|:)|cart[ãa]o\s+(?:de\s+)?(?:t[íi]tulo|tipogr[áa]fico)|(?:floating\s+)?HUD|infographics?|infogr[áa]ficos?|(?:title|headline|caption)\s+(?:cards?|overlays?)|title\s+cards?|graphic\s+titles?)\b/i;
 
 export function assertPhotographicPrompt(prompt: string): void {
   if (!prompt.trim() || positiveClauses(prompt).some(clause => graphicDirective.test(clause))) {

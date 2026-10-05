@@ -61,6 +61,9 @@ async function run() {
   console.log('[ElevenLabs] Testando narração documental em Português nas melhores vozes do Plano Grátis...');
   const textPT = 'Por trás de cada transação bancária instantânea, existe uma rede subterrânea de fibra ótica e servidores invisíveis controlando o fluxo do dinheiro.';
 
+  // 0. Igor Lucas - Médio-grave, dicção impecável, factual (Oficial Brecha)
+  await generateSamplePT('lgaImjfvt7dTTE8wzpdT', 'Igor Lucas (Factual / Pericial Forense)', textPT, 'sample_igor_lucas_documentario_ptbr.mp3');
+
   // 1. Brian - Deep, Resonant and Comforting (Ideal para Documentários Investigativos)
   await generateSamplePT('nPczCjzI2devNBz1zQrb', 'Brian (Grave / Documentário)', textPT, 'sample_brian_documentario_ptbr.mp3');
 

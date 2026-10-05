@@ -5,6 +5,7 @@ import type {SfxItem} from '../state';
 import type {AudioPlan} from '../../../sound-agent/types/audio-plan.types';
 import type {HslLongFormProjectPlan} from '../../../hsl/core/types';
 import type {SoundFxScene} from '../../../hsl/postproduction/soundFxRuntime';
+import {SceneAudioMixer} from '../../audio/sceneAudioMixer';
 interface SfxContext {episodeId: string; scenePlan: HslLongFormProjectPlan}
 export interface SfxResult {resolved: SfxItem[]; unresolved: SfxItem[]; planPath?: string; qaPath?: string; cached?: boolean}
 
@@ -41,6 +42,34 @@ export async function renderSfx(root: string, planPath: string, out: string, tot
   if (!context) throw new Error('SFX_SCENE_CONTEXT_REQUIRED');
   const audio = JSON.parse(fs.readFileSync(planPath, 'utf8')) as AudioPlan;
   if (!(audio.fps > 0) || Math.abs(context.scenePlan.totalDurationSeconds - totalSeconds) > 0.08) throw new Error('SFX_TIMELINE_INVALID');
+
+  // Se o AudioPlan possui layers com arquivos definidos (geradas pelo SoundDesignAgent),
+  // utiliza o SceneAudioMixer para renderizar a cama contínua de fundo e efeitos por cena:
+  const hasRichLayers = Array.isArray(audio.scenes) && audio.scenes.some((s: any) => Array.isArray(s.layers) && s.layers.some((l: any) => Boolean(l.file)));
+
+  if (hasRichLayers) {
+    const mixer = new SceneAudioMixer(root);
+    const mixed = mixer.mix(audio, out, totalSeconds);
+    return {
+      resolved: mixed.resolved.map(r => ({
+        id: r.id,
+        description: r.description,
+        sourcePath: r.sourcePath,
+        offsetSeconds: r.offsetSeconds,
+        targetDb: r.targetDb
+      })),
+      unresolved: mixed.unresolved.map(u => ({
+        id: u.id,
+        description: u.description,
+        offsetSeconds: u.offsetSeconds,
+        targetDb: u.targetDb,
+        reason: u.reason
+      })),
+      planPath: mixed.planPath,
+      qaPath: mixed.qaPath
+    };
+  }
+
   const {scenes, unresolved} = soundScenes(audio, context);
   fs.mkdirSync(path.dirname(out), {recursive: true});
   const input = path.join(path.dirname(out), 'soundfx-input.json'), result = path.join(path.dirname(out), 'soundfx-result.json');

@@ -47,7 +47,10 @@ export function validateSource(source: SourcePackage): void {
         }
       }
       if (ts.isImportEqualsDeclaration(node) || ts.isImportTypeNode(node) || ts.isElementAccessExpression(node) || ts.isComputedPropertyName(node) || node.kind === ts.SyntaxKind.ImportKeyword) throw new Error('Dynamic import/property access is outside the motion authoring policy');
-      if (ts.isIdentifier(node) && denied.has(node.text)) throw new Error(`Forbidden capability: ${node.text}`);
+      if (ts.isIdentifier(node) && denied.has(node.text)) {
+        const isJsxAttrName = ts.isJsxAttribute(node.parent) && node.parent.name === node;
+        if (!isJsxAttrName) throw new Error(`Forbidden capability: ${node.text}`);
+      }
       if (ts.isStringLiteralLike(node) && (/^(https?:|file:|data:|javascript:|\/\/)/i.test(node.text) || denied.has(node.text))) throw new Error('External URL or capability string forbidden');
       if (ts.isPropertyAccessExpression(node) && node.expression.getText(tree) === 'Math' && node.name.text === 'random') throw new Error('Use frame-driven deterministic values, not Math.random');
       ts.forEachChild(node, walk);

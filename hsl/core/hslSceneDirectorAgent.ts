@@ -25,6 +25,8 @@ import {
   getKesslerBeatData,
   getMegaShipHydrodynamicsBeatData,
   getTaipeiTmdBeatData,
+  getBlastFurnaceBeatData,
+  getDataCenterDieselBeatData,
   getUniversalTopicBeatData
 } from '../editorial/topicStoryboards';
 
@@ -113,46 +115,68 @@ export class HslSceneDirectorAgent {
         // ---------------------------------------------------------------------
         let narrativeRole: import('./types').HslNarrativeRole = 'CORE_THESIS';
 
-        const isGridTopic = input.topic.toLowerCase().includes('grid') ||
+        const isDataCenterDieselTopic = (
+          input.topic.toLowerCase().includes('diesel') ||
+          input.topic.toLowerCase().includes('black start') ||
+          (input.topic.toLowerCase().includes('data center') && input.topic.toLowerCase().includes('fuel')) ||
+          (input.topic.toLowerCase().includes('data center') && input.topic.toLowerCase().includes('power')) ||
+          (input.topic.toLowerCase().includes('ai') && input.topic.toLowerCase().includes('diesel')) ||
+          input.topic.toLowerCase().includes('1,000,000') ||
+          input.topic.toLowerCase().includes('1m gallon') ||
+          input.entity.toLowerCase().includes('diesel') ||
+          input.entity.toLowerCase().includes('black start') ||
+          input.episodeId.toLowerCase().includes('029') ||
+          input.episodeId.toLowerCase().includes('diesel')
+        );
+
+        const isBlastFurnaceTopic = !isDataCenterDieselTopic && (
+          input.topic.toLowerCase().includes('blast furnace') ||
+          input.topic.toLowerCase().includes('alto-forno') ||
+          input.topic.toLowerCase().includes('furnace') ||
+          input.topic.toLowerCase().includes('20-year flame') ||
+          input.entity.toLowerCase().includes('blast furnace') ||
+          input.entity.toLowerCase().includes('alto-forno') ||
+          input.episodeId.toLowerCase().includes('blast_furnace')
+        );
+
+        const isGridTopic = !isBlastFurnaceTopic && !isDataCenterDieselTopic && (
+          input.topic.toLowerCase().includes('grid') ||
           input.topic.toLowerCase().includes('hertz') ||
           input.topic.toLowerCase().includes('hz') ||
-          input.topic.toLowerCase().includes('frequency') ||
           input.topic.toLowerCase().includes('blackout') ||
-          input.topic.toLowerCase().includes('electricity') ||
-          input.topic.toLowerCase().includes('power') ||
-          input.topic.toLowerCase().includes('storage') ||
-          input.entity.toLowerCase().includes('grid') ||
-          input.entity.toLowerCase().includes('frequency') ||
-          input.entity.toLowerCase().includes('electricity') ||
+          (input.topic.toLowerCase().includes('frequency') && !input.topic.toLowerCase().includes('trading')) ||
+          (input.topic.toLowerCase().includes('power') && input.topic.toLowerCase().includes('grid')) ||
+          (input.entity.toLowerCase().includes('grid') && input.entity.toLowerCase().includes('frequency')) ||
           input.episodeId.toLowerCase().includes('grid') ||
-          input.episodeId.toLowerCase().includes('frequency');
+          input.episodeId.toLowerCase().includes('frequency')
+        );
 
-        const isSkyscraperTopic = input.topic.toLowerCase().includes('skyscraper') ||
-          input.topic.toLowerCase().includes('tower') ||
-          input.topic.toLowerCase().includes('psi') ||
-          input.topic.toLowerCase().includes('hydraulic') ||
-          input.topic.toLowerCase().includes('pressure') ||
+        const isSkyscraperTopic = !isBlastFurnaceTopic && (
+          input.topic.toLowerCase().includes('skyscraper') ||
+          (input.topic.toLowerCase().includes('tower') && input.topic.toLowerCase().includes('water')) ||
           input.topic.toLowerCase().includes('megatall') ||
-          input.entity.toLowerCase().includes('skyscraper') ||
-          input.entity.toLowerCase().includes('tower') ||
-          input.entity.toLowerCase().includes('hydraulic') ||
-          input.episodeId.toLowerCase().includes('skyscraper') ||
-          input.episodeId.toLowerCase().includes('tower');
+          (input.entity.toLowerCase().includes('skyscraper') && input.entity.toLowerCase().includes('hydraulic')) ||
+          input.episodeId.toLowerCase().includes('skyscraper')
+        );
 
-        const isFuelTopic = input.topic.toLowerCase().includes('fuel') ||
-          input.entity.toLowerCase().includes('fuel') ||
-          input.episodeId.toLowerCase().includes('fuel') ||
-          input.topic.toLowerCase().includes('airport');
+        const isFuelTopic = !isBlastFurnaceTopic && (
+          (input.topic.toLowerCase().includes('fuel') && input.topic.toLowerCase().includes('airport')) ||
+          input.topic.toLowerCase().includes('jet a-1') ||
+          input.entity.toLowerCase().includes('airport fuel') ||
+          input.episodeId.toLowerCase().includes('fuel')
+        );
 
-        const isAiCoolingTopic = input.topic.toLowerCase().includes('cooling') ||
-          input.topic.toLowerCase().includes('melt') ||
-          input.entity.toLowerCase().includes('cooling') ||
+        const isAiCoolingTopic = !isBlastFurnaceTopic && (
           input.episodeId.toLowerCase().includes('cooling') ||
-          input.topic.toLowerCase().includes('liquid') ||
+          (input.topic.toLowerCase().includes('ai') && input.topic.toLowerCase().includes('cooling')) ||
+          (input.topic.toLowerCase().includes('liquid') && input.topic.toLowerCase().includes('cluster')) ||
           input.topic.toLowerCase().includes('supercomputer') ||
-          input.topic.toLowerCase().includes('cluster');
+          input.entity.toLowerCase().includes('ai supercomputer') ||
+          input.entity.toLowerCase().includes('data center cooling')
+        );
 
-        const isKesslerTopic = input.topic.toLowerCase().includes('kessler') ||
+        const isKesslerTopic = !isBlastFurnaceTopic && (
+          input.topic.toLowerCase().includes('kessler') ||
           input.topic.toLowerCase().includes('debris') ||
           input.topic.toLowerCase().includes('satellite') ||
           input.topic.toLowerCase().includes('orbit') ||
@@ -163,9 +187,11 @@ export class HslSceneDirectorAgent {
           input.entity.toLowerCase().includes('debris') ||
           input.entity.toLowerCase().includes('orbit') ||
           input.episodeId.toLowerCase().includes('space') ||
-          input.episodeId.toLowerCase().includes('debris');
+          input.episodeId.toLowerCase().includes('debris')
+        );
 
-        const isWallStreetLatencyTopic = input.topic.toLowerCase().includes('wall street') ||
+        const isWallStreetLatencyTopic = !isBlastFurnaceTopic && (
+          input.topic.toLowerCase().includes('wall street') ||
           input.topic.toLowerCase().includes('high-frequency trading') ||
           input.topic.toLowerCase().includes('hft') ||
           input.topic.toLowerCase().includes('latency') ||
@@ -177,9 +203,11 @@ export class HslSceneDirectorAgent {
           input.entity.toLowerCase().includes('market') ||
           input.episodeId.toLowerCase().includes('wall_street') ||
           input.episodeId.toLowerCase().includes('latency') ||
-          input.episodeId.toLowerCase().includes('hft');
+          input.episodeId.toLowerCase().includes('hft')
+        );
 
-        const isTaipeiTmdTopic = input.topic.toLowerCase().includes('taipei') ||
+        const isTaipeiTmdTopic = !isBlastFurnaceTopic && (
+          input.topic.toLowerCase().includes('taipei') ||
           input.topic.toLowerCase().includes('tmd') ||
           input.topic.toLowerCase().includes('boliche') ||
           input.topic.toLowerCase().includes('660') ||
@@ -189,9 +217,11 @@ export class HslSceneDirectorAgent {
           input.entity.toLowerCase().includes('damper') ||
           input.entity.toLowerCase().includes('tmd') ||
           input.episodeId.toLowerCase().includes('taipei') ||
-          input.episodeId.toLowerCase().includes('tmd');
+          input.episodeId.toLowerCase().includes('tmd')
+        );
 
-        const isMegaShipTopic = input.topic.toLowerCase().includes('megaship') ||
+        const isMegaShipTopic = !isBlastFurnaceTopic && (
+          input.topic.toLowerCase().includes('megaship') ||
           input.topic.toLowerCase().includes('monstro') ||
           input.topic.toLowerCase().includes('240.000') ||
           input.topic.toLowerCase().includes('240,000') ||
@@ -205,9 +235,32 @@ export class HslSceneDirectorAgent {
           input.entity.toLowerCase().includes('container') ||
           input.episodeId.toLowerCase().includes('megaship') ||
           input.episodeId.toLowerCase().includes('ship') ||
-          input.episodeId.toLowerCase().includes('suez');
+          input.episodeId.toLowerCase().includes('suez')
+        );
 
-        if (isTaipeiTmdTopic) {
+        if (isDataCenterDieselTopic) {
+          const dieselData = getDataCenterDieselBeatData(act.actNumber, i, input);
+          narrativeRole = dieselData.narrativeRole;
+          visualMode = dieselData.visualMode;
+          infographicArchetype = dieselData.infographicArchetype;
+          graphicHeadline = dieselData.graphicHeadline;
+          telemetryLabel = dieselData.telemetryLabel;
+          voiceoverScript = dieselData.voiceoverScript;
+          promptSubject = dieselData.promptSubject;
+          motionIntent = dieselData.motionIntent;
+          motionReason = dieselData.motionReason;
+        } else if (isBlastFurnaceTopic) {
+          const bfData = getBlastFurnaceBeatData(act.actNumber, i, input);
+          narrativeRole = bfData.narrativeRole;
+          visualMode = bfData.visualMode;
+          infographicArchetype = bfData.infographicArchetype;
+          graphicHeadline = bfData.graphicHeadline;
+          telemetryLabel = bfData.telemetryLabel;
+          voiceoverScript = bfData.voiceoverScript;
+          promptSubject = bfData.promptSubject;
+          motionIntent = bfData.motionIntent;
+          motionReason = bfData.motionReason;
+        } else if (isTaipeiTmdTopic) {
           const tmdData = getTaipeiTmdBeatData(act.actNumber, i, input);
           narrativeRole = tmdData.narrativeRole;
           visualMode = tmdData.visualMode;

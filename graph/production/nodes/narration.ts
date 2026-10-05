@@ -26,7 +26,7 @@ export function narrationText(scripts: readonly string[], locale: string = 'en-U
   const cleaned = scripts.map(script => script.replace(/\s+/g, ' ').trim());
   if (cleaned.some(script => /\bSCENE[_\s-]*\d+\b/i.test(script))) throw new Error('NARRATION_SCRIPT_CONTAINS_INTERNAL_SCENE_ID');
   if (locale === 'en-US' && cleaned.some(script => /maps another layer/i.test(script))) throw new Error('NARRATION_SCRIPT_GENERIC_PLACEHOLDER');
-  const canonical = cleaned.map(script => script.toLocaleLowerCase(locale).replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
+  const canonical = cleaned.map(script => script.replace(/<[^>]+>/gu, ' ').toLocaleLowerCase(locale).replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
   if (new Set(canonical).size !== canonical.length) throw new Error('NARRATION_SCRIPT_DUPLICATE_BEATS');
   const words = canonical.map(script => new Set(script.split(' ').filter(word => word.length > 2)));
   for (let index = 1; index < words.length; index++) {
@@ -35,7 +35,7 @@ export function narrationText(scripts: readonly string[], locale: string = 'en-U
     const similarity = union ? intersection / union : 1;
     if (similarity >= 0.72) throw new Error(`NARRATION_SCRIPT_SEMANTIC_LOOP:${index}:${similarity.toFixed(2)}`);
   }
-  return cleaned.join(' ');
+  return cleaned.join('\n\n');
 }
 
 export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_NARRATION', async () => {
@@ -65,11 +65,17 @@ export const narration = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_04_
     const providerReceiptPath = `${stagedSource}.provider.json`;
     fs.mkdirSync(audioDir, { recursive: true });
     try {
+      const voiceSettings = s.channelSnapshot?.profile.narration.voiceSettings;
       await c.deps.narrate({
         text,
         outputPath: stagedSource,
-        voiceId: s.channelSnapshot?.profile.narration.defaultVoiceId,
-        modelId: s.channelSnapshot?.profile.narration.defaultModelId,
+        voiceId: s.channelSnapshot?.profile.narration.defaultVoiceId ?? (ch === 'brecha' ? 'nPczCjzI2devNBz1zQrb' : undefined),
+        modelId: s.channelSnapshot?.profile.narration.defaultModelId ?? 'eleven_multilingual_v2',
+        stability: voiceSettings?.stability,
+        similarityBoost: voiceSettings?.similarityBoost,
+        style: voiceSettings?.style,
+        useSpeakerBoost: voiceSettings?.useSpeakerBoost,
+        speed: voiceSettings?.speed,
         locale
       });
       if (!validMedia(c, stagedSource, 'audio')) throw new Error('NARRATION_SOURCE_INVALID_MEDIA');

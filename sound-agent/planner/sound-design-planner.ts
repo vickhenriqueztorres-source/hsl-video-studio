@@ -47,27 +47,29 @@ export class SoundDesignPlanner {
         } : undefined
       };
 
-      // 3. Dense & Subtle SFX Layers (Calibrated gains -16 dB to -28 dB)
+      // 3. Subtle & Cinematic Documentary SFX Layers (Tasteful, non-distracting)
       const layers: AudioLayerPlan[] = [];
       let layerCounter = 1;
 
-      // (A) ENTRANCE PUNCH: Braam / Sub-Drop / Bass Impact discreto no frame 0
+      // (A) ENTRANCE PUNCH: Only at intro or major dramatic turning point
       const isIntro = i === 0;
-      const isClimax = i === scenes.length - 1;
-      const entranceCategory = isClimax ? 'cinematic/booms' : isIntro ? 'cinematic/braams' : 'cinematic/impacts';
-      const entranceSfx = this.sfxSelector.select({ category: entranceCategory });
-      layers.push({
-        layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
-        type: 'impact',
-        category: 'scene_entrance_punch',
-        file: entranceSfx.localPath,
-        startFrame: scene.startFrame,
-        durationFrames: isIntro ? 90 : 45,
-        volumeDb: isIntro ? -15.0 : -17.0, // Sub-presença sem agredir o ouvido
-        frequencyRole: 'low'
-      });
+      const isClimax = scene.visualCues.some(c => c.type === 'climax');
+      if (isIntro || isClimax) {
+        const entranceCategory = isIntro ? 'cinematic/braams' : 'cinematic/impacts';
+        const entranceSfx = this.sfxSelector.select({ category: entranceCategory });
+        layers.push({
+          layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
+          type: 'impact',
+          category: 'scene_entrance_punch',
+          file: entranceSfx.localPath,
+          startFrame: scene.startFrame,
+          durationFrames: isIntro ? 75 : 40,
+          volumeDb: isIntro ? -22.0 : -24.0,
+          frequencyRole: 'low'
+        });
+      }
 
-      // (B) CONTINUOUS ATMOSPHERE / DRONE: Textura sutil de fundo
+      // (B) CONTINUOUS ATMOSPHERE / DRONE: Subtle, immersive background bed
       const atmosSfx = this.sfxSelector.select({ category: 'cinematic/loops' });
       layers.push({
         layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
@@ -76,49 +78,28 @@ export class SoundDesignPlanner {
         file: atmosSfx.localPath,
         startFrame: scene.startFrame,
         endFrame: scene.endFrame,
-        volumeDb: -28.0, // Cama suave
+        volumeDb: -32.0, // Cama suave e discreta que não compete com a narração
         frequencyRole: 'mid',
         reverb: 'large_hall'
       });
 
-      // (C) KINETIC TYPOGRAPHY / MOTION GRAPHICS CUES (Frame 8, 16, 30)
-      const click1 = this.sfxSelector.select({ category: 'ui', keywords: ['click', 'switch'] });
-      layers.push({
-        layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
-        type: 'foley',
-        category: 'ui_text_eyebrow_reveal',
-        file: click1.localPath,
-        startFrame: scene.startFrame + 8,
-        durationFrames: 12,
-        volumeDb: -20.0, // Click nítido e discreto
-        frequencyRole: 'high'
-      });
+      // (C) KINETIC TYPOGRAPHY / UI: Only if explicitly required by scene metadata
+      const hasExplicitUi = scene.visualCues.some(c => c.soundNeeded?.includes('ui') || c.type === 'ui');
+      if (hasExplicitUi) {
+        const click = this.sfxSelector.select({ category: 'ui', keywords: ['click'] });
+        layers.push({
+          layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
+          type: 'foley',
+          category: 'ui_subtle_foley',
+          file: click.localPath,
+          startFrame: scene.startFrame + 15,
+          durationFrames: 10,
+          volumeDb: -28.0,
+          frequencyRole: 'high'
+        });
+      }
 
-      const click2 = this.sfxSelector.select({ category: 'ui', keywords: ['click', 'tick'] });
-      layers.push({
-        layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
-        type: 'foley',
-        category: 'ui_accent_line_expand',
-        file: click2.localPath,
-        startFrame: scene.startFrame + 18,
-        durationFrames: 12,
-        volumeDb: -21.0,
-        frequencyRole: 'high'
-      });
-
-      const popHit = this.sfxSelector.select({ category: 'cinematic/impacts' });
-      layers.push({
-        layerId: `layer_${(layerCounter++).toString().padStart(3, '0')}`,
-        type: 'impact',
-        category: 'ui_headline_pop_hit',
-        file: popHit.localPath,
-        startFrame: scene.startFrame + 30,
-        durationFrames: 25,
-        volumeDb: -18.0,
-        frequencyRole: 'mid'
-      });
-
-      // (D) VISUAL CUES EXPLICITOS
+      // (D) CONTEXTUAL VISUAL CUES (Physical actions, subtle whooshes and structural strain)
       for (const cue of scene.visualCues) {
         if (cue.type === 'action' || cue.soundNeeded?.includes('foley') || cue.soundNeeded?.includes('keyboard') || cue.soundNeeded?.includes('door')) {
           const isDoor = cue.soundNeeded?.includes('door');
@@ -131,7 +112,7 @@ export class SoundDesignPlanner {
             file: foleySfx.localPath,
             startFrame: cue.frame,
             endFrame: Math.min(scene.endFrame, cue.frame + 45),
-            volumeDb: -22.0,
+            volumeDb: -26.0,
             frequencyRole: 'mid',
             variations: 3
           });
@@ -146,7 +127,7 @@ export class SoundDesignPlanner {
             file: transSfx.localPath,
             startFrame: Math.max(scene.startFrame, cue.frame - 30),
             endFrame: cue.frame,
-            volumeDb: isWhoosh ? -18.0 : -17.0,
+            volumeDb: isWhoosh ? -24.0 : -22.0,
             frequencyRole: 'high',
             reverse: false
           });
@@ -160,41 +141,27 @@ export class SoundDesignPlanner {
             category: isBoom ? 'ominous_boom' : 'impact_strike',
             file: impactSfx.localPath,
             startFrame: cue.frame,
-            durationFrames: 50,
-            volumeDb: -14.0, // Impacto controlado
+            durationFrames: 45,
+            volumeDb: -20.0,
             frequencyRole: isBoom ? 'low' : 'mid'
           });
         }
       }
 
-      // (E) SCENE EXIT TRANSITIONS (Triple Calçamento Cinematográfico)
+      // (E) SCENE EXIT TRANSITIONS: Subtle swells only at act boundaries
       const transitions: SceneTransitionPlan[] = [];
-      if (i < scenes.length - 1) {
-        const supportSfx = this.sfxSelector.select({ category: 'cinematic/loops' });
+      const isActBoundary = (i > 0 && (i + 1) % 8 === 0) || i === scenes.length - 2;
+      if (isActBoundary) {
         const riserSfx = this.sfxSelector.select({ category: 'cinematic/tension' });
-        const anchorSfx = this.sfxSelector.select({ category: 'cinematic/impacts' });
-
         transitions.push({
           transitionId: `trans_${(i + 1).toString().padStart(3, '0')}`,
           type: 'music_transition',
-          method: 'triple_calcar',
-          supportTrack: {
-            file: supportSfx.localPath,
-            startFrame: Math.max(0, scene.endFrame - 20),
-            endFrame: scene.endFrame + 10,
-            volumeDb: -26.0
-          },
+          method: 'subtle_swell',
           riserTrack: {
             file: riserSfx.localPath,
             startFrame: Math.max(0, scene.endFrame - 25),
             endFrame: scene.endFrame,
-            volumeDb: -18.0
-          },
-          anchorTrack: {
-            file: anchorSfx.localPath,
-            startFrame: scene.endFrame,
-            durationFrames: 20,
-            volumeDb: -16.0
+            volumeDb: -24.0
           }
         });
       }

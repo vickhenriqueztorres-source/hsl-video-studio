@@ -87,9 +87,62 @@ export const CATALOG:ThemeIdea[]=HSL_CATALOG;
 
 function clean(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
 export function tokens(value:string){return [...new Set(clean(value).split(/\s+/).filter(x=>x.length>2&&!STOP.has(x)).map(x=>SYNONYMS[x]??x))];}
-export function similarity(a:string,b:string){const aa=tokens(a),bb=tokens(b);if(!aa.length||!bb.length)return 0;const right=new Set(bb),intersection=aa.filter(x=>right.has(x)).length,containment=intersection/Math.min(aa.length,bb.length),jaccard=intersection/new Set([...aa,...bb]).size;return Number(Math.max(containment*.82+jaccard*.18,jaccard).toFixed(4));}
+function segmentMatch(a: string, b: string): number {
+  const segsA = a.split(/[·\n]+/).map(s => s.trim()).filter(Boolean);
+  const segsB = b.split(/[·\n]+/).map(s => s.trim()).filter(Boolean);
+  let maxScore = 0;
+  for (const sA of segsA) {
+    const cleanA = clean(sA);
+    if (!cleanA || cleanA.length < 5) continue;
+    for (const sB of segsB) {
+      const cleanB = clean(sB);
+      if (!cleanB || cleanB.length < 5) continue;
+      if (cleanA === cleanB) return 1.0;
+      if (cleanA.length > 15 && cleanB.length > 15 && (cleanA.includes(cleanB) || cleanB.includes(cleanA))) return 1.0;
+      const tokA = tokens(sA);
+      const tokB = tokens(sB);
+      if (tokA.length >= 3 && tokB.length >= 3) {
+        const inter = tokA.filter(t => tokB.includes(t)).length;
+        const cont = inter / Math.min(tokA.length, tokB.length);
+        if (cont > maxScore) maxScore = cont;
+      }
+    }
+  }
+  return Number(maxScore.toFixed(4));
+}
+
+export function similarity(a:string,b:string){
+  const segScore = segmentMatch(a, b);
+  if (segScore >= 0.75) return segScore;
+  const aa=tokens(a),bb=tokens(b);
+  if(!aa.length||!bb.length)return segScore;
+  const right=new Set(bb),intersection=aa.filter(x=>right.has(x)).length,containment=intersection/Math.min(aa.length,bb.length),jaccard=intersection/new Set([...aa,...bb]).size;
+  const tokenScore = Number(Math.max(containment*.82+jaccard*.18,jaccard).toFixed(4));
+  return Math.max(segScore, tokenScore);
+}
 const readJson=(file:string):any=>{try{return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));}catch{return null;}};
 const registryFile=(root:string)=>path.join(root,'runs','.catalog','theme-registry.json');
+const dynamicCatalogFile=(root:string)=>path.join(root,'runs','.catalog','dynamic-themes.json');
+
+export function dynamicThemes(channel:ChannelId='hsl',root=REPO_ROOT):ThemeIdea[]{
+  const file=dynamicCatalogFile(root);
+  const data=readJson(file);
+  const items:Array<ThemeIdea & {channelId?:ChannelId}> = data?.items??[];
+  return items.filter(item=>(item.channelId??'hsl')===channel);
+}
+
+export function saveDynamicThemes(themes:ThemeIdea[],channel:ChannelId='hsl',root=REPO_ROOT):number{
+  const file=dynamicCatalogFile(root);
+  const current:Array<ThemeIdea & {channelId?:ChannelId}> = readJson(file)?.items??[];
+  const existingTitles = new Set(current.map(c=>clean(c.title)));
+  const toAdd = themes.filter(t=>!existingTitles.has(clean(t.title))).map(t=>({...t,channelId:channel}));
+  if(!toAdd.length)return 0;
+  const updated = [...current,...toAdd];
+  fs.mkdirSync(path.dirname(file),{recursive:true});
+  fs.writeFileSync(file,JSON.stringify({updatedAt:new Date().toISOString(),items:updated},null,2)+'\n');
+  return toAdd.length;
+}
+
 function stored(root:string):ThemeRecord[]{return readJson(registryFile(root))?.items??[];}
 function hasVideo(root:string,id:string){const dir=path.join(root,'deliveries',id);if(!fs.existsSync(dir))return false;const scan=(folder:string):boolean=>fs.readdirSync(folder,{withFileTypes:true}).some(e=>e.isDirectory()?scan(path.join(folder,e.name)):/\.mp4$/i.test(e.name));return scan(dir);}
 export function themeRecords(root=REPO_ROOT):ThemeRecord[]{
@@ -120,7 +173,7 @@ export function themeRecords(root=REPO_ROOT):ThemeRecord[]{
   return [...found.values()].sort((a,b)=>a.episodeId.localeCompare(b.episodeId));
 }
 
-export function findDuplicate(theme:string,channelOrRoot?:ChannelId|string,root=REPO_ROOT,threshold=.6){
+export function findDuplicate(theme:string,channelOrRoot?:ChannelId|string,root=REPO_ROOT,threshold=.48){
   let channel:ChannelId|undefined=undefined;
   let effectiveRoot=root;
   if(channelOrRoot==='hsl'||channelOrRoot==='brecha'){
@@ -147,8 +200,10 @@ export function suggestThemes(channelOrRoot:ChannelId|string='hsl',rootOrLimit:s
     effectiveRoot=channelOrRoot;
     if(typeof rootOrLimit==='number')effectiveLimit=rootOrLimit;
   }
-  const catalog=channel==='brecha'?BRECHA_CATALOG:HSL_CATALOG;
-  return catalog.filter(idea=>!findDuplicate(`${idea.theme} ${idea.title} ${idea.entity}`,channel,effectiveRoot)).slice(0,effectiveLimit);
+  const staticCatalog=channel==='brecha'?BRECHA_CATALOG:HSL_CATALOG;
+  const dynamic=dynamicThemes(channel,effectiveRoot);
+  const catalog=[...staticCatalog,...dynamic];
+  return catalog.filter(idea=>!findDuplicate(`${idea.title} · ${idea.theme} · ${idea.entity}`,channel,effectiveRoot)).slice(0,effectiveLimit);
 }
 
 export function reserveTheme(episodeId:string,theme:string,channelOrRoot:ChannelId|string='hsl',root=REPO_ROOT){
@@ -179,3 +234,10 @@ export function ideaForTheme(theme:string,channel:ChannelId='hsl'){
   const catalog=channel==='brecha'?BRECHA_CATALOG:HSL_CATALOG;
   return catalog.find(x=>x.theme===theme)??HSL_CATALOG.find(x=>x.theme===theme);
 }
+
+export function findThemeIdea(query:string,channel:ChannelId='hsl',root=REPO_ROOT):ThemeIdea|undefined{
+  const cleanQ=clean(query);
+  const catalog=[...(channel==='brecha'?BRECHA_CATALOG:HSL_CATALOG),...dynamicThemes(channel,root)];
+  return catalog.find(x=>clean(x.title).includes(cleanQ)||clean(x.theme).includes(cleanQ)||clean(x.entity).includes(cleanQ));
+}
+

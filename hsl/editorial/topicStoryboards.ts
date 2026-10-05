@@ -1,5 +1,7 @@
 import { HslNarrativeRole, HslVisualMode, EpisodeTopicInput, MotionIntent } from '../core/types';
 import { resolveCanonicalVisualMode } from '../../spec/hsl-spec';
+export { getBlastFurnaceBeatData } from './blastFurnaceStoryboard';
+export { getDataCenterDieselBeatData } from './dataCenterDieselStoryboard';
 
 export interface BeatStoryboardData {
   narrativeRole: HslNarrativeRole;

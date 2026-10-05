@@ -37,6 +37,15 @@ export const packaging = (c: Context): NodeFn => s => withStage(c, s, 'STAGE_10_
     const src = path.join(p.run, f);
     if (fs.existsSync(src)) copyFile(src, path.join(c.root, 'deliveries', s.episodeId, 'publication', f));
   }
+  const creditsPath = path.join(p.run, 'publication', 'footage-credits.md');
+  const usedFootage=(s.footageArtifacts??[]).filter(item=>item.editorialStatus==='approved');
+  if (usedFootage.length) {
+    fs.mkdirSync(path.dirname(creditsPath), { recursive: true });
+    const lines = ['# Créditos de filmagens reais', '', ...[...new Set(usedFootage.map(item => `- ${item.creditLine}`))], '',
+      'Os trechos foram recortados, enquadrados, convertidos para 1080p/30 fps e usados sem o áudio original.', ''];
+    fs.writeFileSync(creditsPath, lines.join('\n'), 'utf8');
+    copyFile(creditsPath, path.join(c.root, 'deliveries', s.episodeId, 'publication', 'footage-credits.md'));
+  }
   return {
     update: { packaging: pkg, assetServer: server },
     skipped: !!valid,

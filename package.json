@@ -109,6 +109,8 @@
     "hsl:motion:test": "ts-node graph/motion/tests/motion.test.ts && ts-node graph/motion-audio/tests/motionAudio.test.ts && ts-node graph/production/__tests__/authoredMotion.test.ts",
     "hsl:firefly:test": "ts-node -T scripts/testFireflyP0.ts",
     "hsl:firefly:session": "ts-node -T graph/production/fireflySession.ts",
+    "hsl:firefly:save": "ts-node -T scripts/fireflySessionStore.ts save",
+    "hsl:firefly:restore": "ts-node -T scripts/fireflySessionStore.ts restore",
     "hsl:dashboard": "ts-node -T graph/console/server.ts",
     "hsl:skyscraper": "ts-node scripts/generateSkyscraperEpisode.ts",
     "hsl:grid": "ts-node scripts/generateGridFrequencyEpisode.ts",

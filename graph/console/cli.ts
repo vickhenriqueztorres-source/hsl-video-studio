@@ -13,7 +13,8 @@ import {checkAntigravityAccount,loginAntigravity} from '../ide/antigravityAccoun
 import {liveProgress,formatProgress} from './progress';
 import {safeLog} from '../production/telemetry';
 import {episodes,overview} from './model';
-import {findDuplicate,nextEpisodeId,reserveTheme,suggestThemes,themeRecords} from './themeRegistry';
+import {findDuplicate,findThemeIdea,nextEpisodeId,reserveTheme,suggestThemes,themeRecords} from './themeRegistry';
+import {generateThemesWithIde} from './themeGenerator';
 import {startDashboard} from './server';
 import {selectMatrixStorage} from './storageMode';
 import {activeLockPid,activeProduction} from './activeProduction';
@@ -35,7 +36,7 @@ const banner=()=>{const width=Math.min(76,Math.max(48,(output.columns||80)-4));
   console.log(M+B+'\n  ╭'+'─'.repeat(width)+'╮');for(const [index,value] of rows.entries()){const row=width>=68&&index>=2&&index<=7?value.padEnd(40):value;const left=Math.floor((width-row.length)/2);console.log('  │'+' '.repeat(left)+row+' '.repeat(width-left-row.length)+'│');}console.log('  ╰'+'─'.repeat(width)+'╯'+X);console.log(`  ${DIM}CLI executa · Mapa observa · Checkpoints recuperáveis${X}`);
 };
 const line=(text:string)=>console.log(`  ${text}`);
-async function runTs(script:string,args:string[],accepted=[0],extraEnv:NodeJS.ProcessEnv={}){const result=await spawnTool(process.execPath,[ts,path.join(REPO_ROOT,script),...args],{cwd:REPO_ROOT,env:{...process.env,HSL_GRAPH_PROGRESS:'1',...extraEnv},timeoutMs:24*60*60*1000,onStdout:s=>output.write(M+s+X),onStderr:s=>output.write(RED+s+X)});if(!accepted.includes(result.exitCode??1))requireSuccess(result,'HSL_MATRIX');return result.exitCode??1;}
+async function runTs(script:string,args:string[],accepted=[0],extraEnv:NodeJS.ProcessEnv={}){const result=await spawnTool(process.execPath,[ts,'-T',path.join(REPO_ROOT,script),...args],{cwd:REPO_ROOT,env:{...process.env,HSL_GRAPH_PROGRESS:'1',...extraEnv},timeoutMs:24*60*60*1000,onStdout:s=>output.write(M+s+X),onStderr:s=>output.write(RED+s+X)});if(!accepted.includes(result.exitCode??1))requireSuccess(result,'HSL_MATRIX');return result.exitCode??1;}
 function monitor(episode:string){let busy=false,stopped=false,last='',lastPrint=0,seen=new Set<string>();
   const tick=async()=>{if(busy||stopped)return;busy=true;try{const p=await liveProgress(episode);if(stopped)return;const summary=formatProgress(p);if(summary!==last||Date.now()-lastPrint>10000){line(`${M}${episode}  ${summary}${X}`);last=summary;lastPrint=Date.now();}
     const fresh=p.logs.filter(e=>!seen.has(JSON.stringify(e)));for(const e of (seen.size?fresh:fresh.slice(-5)))line(`${DIM}${new Date(e.at).toLocaleTimeString('pt-BR')} · ${e.node} · ${e.message}${X}`);p.logs.forEach(e=>seen.add(JSON.stringify(e)));
@@ -130,10 +131,19 @@ function showThemes(){
     tema:x.theme.slice(0,75)
   })));
 }
-function showSuggestions(channel:ChannelId='hsl',limit=3){
-  const ideas=suggestThemes(channel,REPO_ROOT,limit);
+async function showSuggestions(channel:ChannelId='hsl',limit=3,generate=false){
+  if(generate){
+    line(`${M}Invocando Antigravity IDE para gerar temas virais inéditos (${channel.toUpperCase()})...${X}`);
+    const res = await generateThemesWithIde(channel, limit, REPO_ROOT);
+    line(`${M}Temas gerados via ${res.source.toUpperCase()} (${res.savedCount} salvos no catálogo).${X}`);
+  }
+  let ideas=suggestThemes(channel,REPO_ROOT,limit);
   const label=channel==='brecha'?'BRECHA':'HSL';
-  if(!ideas.length){line(`${AMBER}O catálogo de ${label} não contém temas inéditos.${X}`);return[];}
+  if(!ideas.length){
+    line(`${AMBER}Catálogo de ${label} sem temas inéditos pendentes. Invocando Antigravity IDE...${X}`);
+    const res = await generateThemesWithIde(channel, limit, REPO_ROOT);
+    ideas = res.themes.slice(0, limit);
+  }
   console.log(`\n${M}  PRÓXIMOS TEMAS INÉDITOS (${label})${X}`);
   ideas.forEach((x,i)=>{line(`${WHITE}[${i+1}]${X} ${x.theme}`);line(`${M}    Nome automático: ${x.title}${X}`);line(`${DIM}    ${x.thesis}${X}`);});
   return ideas;
@@ -145,7 +155,9 @@ async function newEpisode(rl:readline.Interface, args:string[]=[]){
   let minutesArg: string | undefined = undefined;
   let modeArg: string | undefined = undefined;
   let authoredArg: boolean | undefined = undefined;
+  let footageArg: boolean | undefined = undefined;
 
+  const positional: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--channel' && args[i+1]) channelArg = (args[++i].toLowerCase() === 'brecha' ? 'brecha' : 'hsl');
@@ -154,17 +166,57 @@ async function newEpisode(rl:readline.Interface, args:string[]=[]){
     else if (a === '--theme' && args[i+1]) chosenArg = args[++i];
     else if (a === '--mode' && args[i+1]) modeArg = args[++i];
     else if (a === '--authored') authoredArg = true;
-    else if (!channelArg && ['brecha', 'hsl'].includes(a.toLowerCase())) channelArg = a.toLowerCase() as ChannelId;
-    else if (!chosenArg && /^[1-3]$/.test(a)) chosenArg = a;
-    else if (!minutesArg && /^\d+$/.test(a)) minutesArg = a;
+    else if (a === '--no-authored') authoredArg = false;
+    else if (a === '--footage') footageArg = true;
+    else if (a === '--no-footage') footageArg = false;
+    else if (a === '--footage-mode' && args[i+1]) footageArg = args[++i] === 'auto';
+    else if (!a.startsWith('--')) positional.push(a);
+  }
+
+  for (const pos of positional) {
+    if (!channelArg && ['brecha', 'hsl'].includes(pos.toLowerCase())) {
+      channelArg = pos.toLowerCase() as ChannelId;
+    } else if (!chosenArg) {
+      chosenArg = pos;
+    } else if (!minutesArg && /^\d+$/.test(pos)) {
+      minutesArg = pos;
+    } else if (!modeArg && ['1', '2', '3', '4'].includes(pos)) {
+      modeArg = pos;
+    }
   }
 
   const channel = channelArg ?? (await askChannel(rl));
-  const ideas=showSuggestions(channel,3);if(!ideas.length)return;
-  const chosen = chosenArg ?? ((await rl.question(`\n  Digite apenas o número do tema (1-${ideas.length}) [1]: `)).trim() || '1');
-  if(!/^[1-3]$/.test(chosen)||!ideas[Number(chosen)-1]){line(`${RED}Escolha somente 1, 2 ou 3.${X}`);return;}
-  const idea=ideas[Number(chosen)-1],episodeId=nextEpisodeId(channel,REPO_ROOT);
-  const duplicate=findDuplicate(`${idea.theme} ${idea.title} ${idea.entity}`,channel,REPO_ROOT);if(duplicate){line(`${RED}TEMA BLOQUEADO:${X} similaridade ${Math.round(duplicate.score*100)}% com ${duplicate.record.episodeId}`);line(`${DIM}${duplicate.record.theme}${X}`);return;}
+  let ideas = await showSuggestions(channel, 3);
+  if (!ideas.length) return;
+
+  console.log(`\n  ${WHITE}[G]${X} ${M}Gerar novos temas virais com Antigravity IDE${X}`);
+  let chosen = chosenArg ?? ((await rl.question(`\n  Digite o número do tema (1-${ideas.length}) ou [G] para gerar novos [1]: `)).trim() || '1');
+
+  if (chosen.toLowerCase() === 'g') {
+    line(`\n  ${M}Invocando Antigravity IDE para criar 3 pautas inéditas de alta viralidade...${X}`);
+    const gen = await generateThemesWithIde(channel, 3, REPO_ROOT);
+    ideas = gen.themes.slice(0, 3);
+    console.log(`\n${M}  NOVOS TEMAS GERADOS POR ANTIGRAVITY IDE (${channel.toUpperCase()}):${X}`);
+    ideas.forEach((x,i)=>{line(`${WHITE}[${i+1}]${X} ${x.theme}`);line(`${M}    Nome: ${x.title}${X}`);line(`${DIM}    ${x.thesis}${X}`);});
+    chosen = (await rl.question(`\n  Digite apenas o número do tema gerado (1-${ideas.length}) [1]: `)).trim() || '1';
+  }
+
+  let idea = (chosenArg && !/^[1-9]\d*$/.test(chosenArg)) ? findThemeIdea(chosenArg, channel, REPO_ROOT) : undefined;
+  if (idea) {
+    line(`${M}Tema localizado no catálogo (${channel.toUpperCase()}): ${idea.title}${X}`);
+  } else if (/^[1-9]\d*$/.test(chosen) && ideas[Number(chosen) - 1]) {
+    idea = ideas[Number(chosen) - 1];
+  } else {
+    line(`${RED}Escolha inválida.${X}`);
+    return;
+  }
+  const episodeId = nextEpisodeId(channel, REPO_ROOT);
+  const duplicate = findDuplicate(`${idea.title} · ${idea.theme} · ${idea.entity}`, channel, REPO_ROOT);
+  if (duplicate) {
+    line(`${RED}TEMA BLOQUEADO:${X} similaridade ${Math.round(duplicate.score * 100)}% com ${duplicate.record.episodeId}`);
+    line(`${DIM}${duplicate.record.theme}${X}`);
+    return;
+  }
   if(fs.existsSync(path.join(REPO_ROOT,'runs',episodeId))){line(`${RED}${episodeId} já existe.${X}`);return;}
   line(`${M}Canal: ${channel.toUpperCase()}${X}`);
   line(`${M}Episódio: ${episodeId}${X}`);
@@ -178,8 +230,11 @@ async function newEpisode(rl:readline.Interface, args:string[]=[]){
   else if(mode==='3'){line(`${M}Produção completa 100% autoral selecionada: quadros 16:9 + squad de motion Remotion 2D/3D + pós-produção.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--media-policy','stills','--max-generations','0'];}
   else if(mode==='4'){line(`${AMBER}O grafo vai planejar e gerar as imagens primeiro.${X}`);line(`${AMBER}Antes do Kling, ele mostrará a quantidade exata e pedirá autorização.${X}`);const ok=modeArg?'PRODUZIR':(await rl.question('  Digite PRODUZIR para iniciar as etapas sem custo Kling: ')).trim();if(ok!=='PRODUZIR'){line('Cancelado.');return;}extra=['--media-policy','firefly-hybrid','--max-generations','0'];}
   else{line('Modo inválido.');return;}
-  const authored = authoredArg ?? ((await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s');
+  const authored = authoredArg ?? (modeArg === '3' ? true : ((await rl.question('  Ativar squad de motion autoral 2D/3D? [s/N]: ')).trim().toLowerCase()==='s'));
   if(authored)extra.push('--motion-mode','authored','--motion-scenes','3','--motion-require-3d');
+  const footage = footageArg ?? (modeArg === '3' ? false : ((await rl.question('  Ativar busca de vídeos reais na internet (Pexels/Wikimedia)? [S/n]: ')).trim().toLowerCase() !== 'n'));
+  if(footage) extra.push('--footage-mode', 'auto');
+  else extra.push('--footage-mode', 'off');
   reserveTheme(episodeId,`${idea.title} · ${idea.theme}`,channel,REPO_ROOT);line(`${M}Tema reservado no catálogo (${channel.toUpperCase()}): ${episodeId}${X}`);
   const storage=selectMatrixStorage();
   if(storage.mode==='off')line(`${AMBER}Google Drive indisponível (${storage.reason}); esta execução usará armazenamento local.${X}`);
@@ -242,7 +297,8 @@ async function resumeEpisode(rl:readline.Interface,provided?:string,extraArgs:st
         args=['run','--channel',ch,'--episode',episode,'--from','media_plan_prepare','--media-policy','stills','--storage',storage.mode,'--prune','dry-run'];
         paid=false;
       }else if(choice==='2'){
-        await runTs('graph/production/lib/firefly/session.ts',['--open-login'],[0]);
+        await runTs('graph/production/fireflySession.ts',['login'],[0]);
+        return;
       }else{
         return;
       }
@@ -284,22 +340,23 @@ async function openDrive(){const id=process.env.HSL_DRIVE_FOLDER_ID;if(!id){line
 async function checkKling(){await runTs('graph/production/klingSupervisor.ts',['check'],[0,2]);}
 function help(){console.log(`
   ${WHITE}COMANDOS DIRETOS${X}
-  npm run hsl:matrix -- novo       cria episódio com bloqueio de tema repetido
-  npm run hsl:matrix -- sugerir    mostra três temas inéditos
-  npm run hsl:matrix -- continuar  retoma um checkpoint
-  npm run hsl:matrix -- status     mostra progresso, contadores e pausas
-  npm run hsl:matrix -- imagens    gera a fila pendente pelo Codex
-  npm run hsl:matrix -- episodios  lista o acervo
-  npm run hsl:matrix -- temas      mostra o catálogo antirrepetição
-  npm run hsl:matrix -- mapa       abre o observador web
-  npm run hsl:matrix -- kling      executa o fiscal técnico sem gerar vídeo
-  npm run hsl:matrix -- logs       acompanha logs e progresso em tempo real
-  npm run hsl:matrix -- contas      entra ou troca contas Codex / Antigravity
-  npm run hsl:matrix -- elevenlabs gerencia as chaves de narração
-  npm run hsl:matrix -- doctor     verifica contas e ferramentas
+  npm run hsl:matrix -- novo            cria episódio com bloqueio de tema repetido
+  npm run hsl:matrix -- sugerir         mostra próximos temas inéditos
+  npm run hsl:matrix -- sugerir --gerar gera novos temas virais via Antigravity IDE
+  npm run hsl:matrix -- continuar       retoma um checkpoint
+  npm run hsl:matrix -- status          mostra progresso, contadores e pausas
+  npm run hsl:matrix -- imagens         gera a fila pendente pelo Codex
+  npm run hsl:matrix -- episodios       lista o acervo
+  npm run hsl:matrix -- temas           mostra o catálogo antirrepetição
+  npm run hsl:matrix -- mapa            abre o observador web
+  npm run hsl:matrix -- kling           executa o fiscal técnico sem gerar vídeo
+  npm run hsl:matrix -- logs            acompanha logs e progresso em tempo real
+  npm run hsl:matrix -- contas           entra ou troca contas Codex / Antigravity
+  npm run hsl:matrix -- elevenlabs      gerencia as chaves de narração
+  npm run hsl:matrix -- doctor          verifica contas e ferramentas
 `);}
 
-async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl,args);else if(['sugerir','suggest'].includes(cmd)){const ch=args[0]?.toLowerCase()==='brecha'?'brecha':args[0]?.toLowerCase()==='hsl'?'hsl':undefined;if(ch)showSuggestions(ch);else{showSuggestions('hsl');showSuggestions('brecha');}}else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0],args.slice(1));else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
+async function dispatch(command:string,rl:readline.Interface,args:string[]=[]){const cmd=command.toLowerCase();if(['novo','new'].includes(cmd))await newEpisode(rl,args);else if(['sugerir','suggest'].includes(cmd)){const shouldGen=args.some(a=>['--gerar','--ide','-g'].includes(a.toLowerCase()));const ch=args.find(a=>['brecha','hsl'].includes(a.toLowerCase())) as ChannelId|undefined;if(ch)await showSuggestions(ch,3,shouldGen);else{await showSuggestions('hsl',3,shouldGen);await showSuggestions('brecha',3,shouldGen);}}else if(['continuar','resume'].includes(cmd))await resumeEpisode(rl,args[0],args.slice(1));else if(cmd==='status')await showStatus(args[0]??latestEpisode());else if(['logs','acompanhar'].includes(cmd))await watchEpisode(rl,args[0]??await askEpisode(rl));else if(cmd==='elevenlabs')await elevenLabsMenu(rl);else if(['contas','accounts'].includes(cmd))await accounts(rl);else if(cmd==='antigravity'||cmd==='codex'){if(args[0])await accountAction(rl,cmd,args[0]);else await accounts(rl);}else if(['imagens','images'].includes(cmd))await generateImages(rl,args[0]);else if(['episodios','list'].includes(cmd))showEpisodes();else if(['temas','themes'].includes(cmd))showThemes();else if(['mapa','dashboard'].includes(cmd)){rl.close();await startDashboard();return'open';}else if(cmd==='drive')await openDrive();else if(cmd==='kling')await checkKling();else if(cmd==='doctor')await doctor();else if(['ajuda','help','--help','-h'].includes(cmd))help();else line(`${RED}Comando desconhecido: ${command}${X}`);return'continue';}
 
 export async function main(argv=process.argv.slice(2)){banner();
   if(argv.length){const directRl=createConsoleReadline();try{await dispatch(argv[0],directRl,argv.slice(1));}finally{directRl.close();}return;}
@@ -312,6 +369,6 @@ export async function main(argv=process.argv.slice(2)){banner();
   ${WHITE}[5]${X} Gerar imagens pendentes   ${WHITE}[D]${X} Abrir Google Drive
   ${WHITE}[K]${X} Fiscal técnico do Kling   ${WHITE}[L]${X} Logs ao vivo
   ${WHITE}[A]${X} Contas Codex / Antigravity  ${WHITE}[E]${X} Chaves ElevenLabs
-  ${WHITE}[0]${X} Sair`);const choice=(await rl.question(`${M}\n  matrix> ${X}`)).trim().toLowerCase();if(choice==='0')break;if(/^hsl[\\_ -]*episode/i.test(choice)){line(`${AMBER}O ID é automático. Escolha [1] Criar novo episódio.${X}`);continue;}const command:{[key:string]:string}={1:'novo',2:'sugerir',3:'continuar',4:'status',5:'imagens',6:'mapa',7:'episodios',8:'temas',9:'doctor',d:'drive',k:'kling',l:'logs',a:'contas',e:'elevenlabs'};const selected=command[choice]??choice;try{if(selected==='status')await showStatus(await askEpisode(rl));else if(selected==='sugerir'){const ch=await askChannel(rl);showSuggestions(ch);}else if(await dispatch(selected,rl)==='open')return;}catch(error){line(`${RED}${error instanceof Error?error.message:String(error)}${X}`);line('O comando parou. O Matrix continua aberto; corrija a causa e use Continuar episódio.');}}
+  ${WHITE}[0]${X} Sair`);const choice=(await rl.question(`${M}\n  matrix> ${X}`)).trim().toLowerCase();if(choice==='0')break;if(/^hsl[\\_ -]*episode/i.test(choice)){line(`${AMBER}O ID é automático. Escolha [1] Criar novo episódio.${X}`);continue;}const command:{[key:string]:string}={1:'novo',2:'sugerir',3:'continuar',4:'status',5:'imagens',6:'mapa',7:'episodios',8:'temas',9:'doctor',d:'drive',k:'kling',l:'logs',a:'contas',e:'elevenlabs'};const selected=command[choice]??choice;try{if(selected==='status')await showStatus(await askEpisode(rl));else if(selected==='sugerir'){const ch=await askChannel(rl);console.log(`\n  ${WHITE}[1]${X} Ver temas do catálogo atual\n  ${WHITE}[2]${X} ${M}Gerar novos temas virais com Antigravity IDE${X}`);const opt=(await rl.question('  Opção [1]: ')).trim()||'1';await showSuggestions(ch,3,opt==='2');}else if(await dispatch(selected,rl)==='open')return;}catch(error){line(`${RED}${error instanceof Error?error.message:String(error)}${X}`);line('O comando parou. O Matrix continua aberto; corrija a causa e use Continuar episódio.');}}
 }finally{rl.close();}}
 if(require.main===module)main().catch(e=>{console.error(`${RED}${e instanceof Error?e.message:e}${X}`);process.exitCode=1;});

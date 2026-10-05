@@ -9,6 +9,7 @@ const aliases:Record<string,string>={narration:'narration_stage',sound_design:'s
 const normalized=(id:string)=>aliases[id]??id;
 const legacyOnly=new Set(['fan_out_frames','image_frames','fan_out_videos','firefly_videos']);
 const authoredOnly=new Set(['motion_plan','narration_lock','motion_dispatch','motion_review_wait','motion_join','archive_motion']);
+const footageOnly=new Set(['footage_plan','footage_acquire','footage_review','footage_resolve']);
 const read=(file:string)=>{try{return JSON.parse(fs.readFileSync(file,'utf8'))}catch{return null}};
 export const progressBar=(percent:number,width=22)=>{const n=Math.round(Math.max(0,Math.min(100,percent))*width/100);return'█'.repeat(n)+'░'.repeat(width-n)};
 
@@ -17,6 +18,7 @@ export function deriveProgress(root:string,episode:string,v:any={},next:string[]
   const journal=tailJson(path.join(run,'graph','history.jsonl'));
   let applicable=NODE_ORDER.filter(id=>v.options?.graph?.mediaMode==='legacy'?!id.startsWith('image_generate')&&!id.startsWith('image_review')&&!id.startsWith('visual_prompts')&&(!id.startsWith('firefly_')||id==='firefly_videos')&&!['archive_images','archive_firefly'].includes(id):!legacyOnly.has(id));
   if(v.options?.graph?.motionMode!=='authored')applicable=applicable.filter(id=>!authoredOnly.has(id));
+  if((v.options?.graph?.footage?.mode??'off')==='off')applicable=applicable.filter(id=>!footageOnly.has(id));
   const policy=v.mediaPlan?.policy??v.options?.graph?.mediaPolicy;
   if(policy&&policy!=='firefly-hybrid')applicable=applicable.filter(id=>!['firefly_session_prepare','firefly_session_wait','firefly_guide','kling_budget_wait','firefly_dispatch','firefly_intake_wait','firefly_recovery_wait','firefly_finalize','archive_firefly'].includes(id));
   if(policy==='local-motion')for(const id of ['fan_out_videos','firefly_videos'] as const)if(!applicable.includes(id))applicable.push(id);

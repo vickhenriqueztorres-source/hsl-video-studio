@@ -77,7 +77,7 @@ export function extractAntigravityJson(stdout: string): unknown | undefined {
 export async function runAntigravity(prepared: PreparedTask): Promise<DriverResult> {
   const cli = findCli('agy') ?? findCli('antigravity');
   if (!cli) return { skipped: true, reason: 'agy/antigravity nao encontrado no PATH (ENOENT).' };
-  const help = await runProcess(cli, ['--help'], prepared.repoRoot, 30_000, prepared.logPath);
+  const help = await runProcess(cli, ['--help'], prepared.repoRoot, 60_000, prepared.logPath);
   const flags = help.stdout + help.stderr;
   if (help.timedOut || help.errorCode || !flags.includes('--print') || !flags.includes('--output-format')) {
     return { skipped: true, reason: 'Antigravity indisponivel em modo headless compativel; consulte run.log.' };
@@ -108,8 +108,14 @@ export async function runAntigravity(prepared: PreparedTask): Promise<DriverResu
     stdin: JSON.stringify({ event: 'user', message: { role: 'user', content: prompt } }) + '\n',
   }) : await runProcess(cli, args, prepared.repoRoot, prepared.timeoutMs, prepared.logPath);
   if (stdoutMode && !result.timedOut) {
-    const output = extractAntigravityJson(result.stdout);
+    let output = extractAntigravityJson(result.stdout);
     if (output !== undefined) {
+      if (typeof output === 'object' && output !== null && !Array.isArray(output) && '$schema' in output) {
+        try {
+          const schemaObj = JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8'));
+          if (!schemaObj.required?.includes('$schema')) delete (output as Record<string, unknown>).$schema;
+        } catch {}
+      }
       fs.writeFileSync(prepared.outputPath, JSON.stringify(output, null, 2) + '\n');
       const validate = compileJsonSchema(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
       if (!validate(output)) fs.appendFileSync(prepared.logPath, `[stdout-validation] ${JSON.stringify(validate.errors)}\n`);

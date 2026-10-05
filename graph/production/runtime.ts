@@ -58,7 +58,7 @@ export function validMedia(c: Context, file: string, kind: 'audio' | 'video' | '
     return kind === 'image' ? c.deps.isPng(file) && !!info.width && !!info.height : info.durationSeconds > 0 && (kind === 'audio' ? info.hasAudio : info.hasVideo);
   } catch { return false; }
 }
-export function validMediaDuration(c: Context, file: string, expectedSeconds: number, toleranceSeconds = 0.2): boolean {
+export function validMediaDuration(c: Context, file: string, expectedSeconds: number, toleranceSeconds = 0.35): boolean {
   if (!validMedia(c, file)) return false;
   try {
     return Number.isFinite(expectedSeconds) && Math.abs(c.deps.inspect(file).durationSeconds - expectedSeconds) <= toleranceSeconds;

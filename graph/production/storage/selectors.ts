@@ -14,6 +14,15 @@ export const selectFirefly=(root:string,s:State)=>[
   ...existing(files(path.join(root,'runs',s.episodeId,'firefly')).filter(x=>x.endsWith('.json')||x.split(path.sep).includes('qa'))).map(x=>classifyStatePath(root,s,x,'save')),
   ...existing((s.videos??[]).map(x=>x.path+'.provenance.json')).map(x=>classifyStatePath(root,s,x,'save')),
 ];
+export const selectFootage=(root:string,s:State)=>{
+  const run=path.join(root,'runs',s.episodeId,'footage');
+  const documentation=files(run).filter(x=>/\.json$/i.test(x));
+  const media=[...(s.footageArtifacts??[]).flatMap(x=>[x.originalPath,x.videoPath]),...files(run).filter(x=>!documentation.includes(x))];
+  return[
+    ...existing([...new Set(documentation)]).map(x=>classifyStatePath(root,s,x,'save')),
+    ...existing([...new Set(media)]).map(x=>classifyStatePath(root,s,x,'intermediate')),
+  ];
+};
 export const selectMotion=(root:string,s:State)=>existing([...new Set([
   ...(s.motionArtifacts??[]).flatMap(x=>[x.videoPath,x.previewPath,x.receiptPath,x.sourceManifestPath]),
   path.join(root,'runs',s.episodeId,'motion','plan.json'),path.join(root,'runs',s.episodeId,'motion','alignment.json'),path.join(root,'runs',s.episodeId,'motion','narration-lock.json'),
@@ -27,6 +36,10 @@ export const selectCompliance=(root:string,s:State):StorageCandidate[]=>{
   const deliver=existing([s.finalVideo?.outPath,s.finalVideo?.deliveryPath,s.finalVideo?.runPath,path.join(run,'run-manifest.json'),path.join(run,'graph','compliance.json'),...files(path.join(run,'thumbnails')),...files(path.join(run,'publication')), ...files(delivery)]);
   // storage-index.json is mirrored after the other results are persisted. It
   // cannot contain its own MD5 without changing that MD5 on every write.
-  const saves=existing([s.scenePlanPath,s.visualPromptsPath,s.imageQueuePath,s.soundDesign?.audioPlanPath,s.sfxPlanPath,s.sfxQaPath,path.join(run,'checkpoints','langgraph-checkpoints.sqlite'),path.join(run,'media-plan.json'),path.join(run,'media-scene-plan.json'),path.join(run,'firefly','ledger-export.json'),path.join(run,'firefly','authorization.json')]);
-  return[...deliver.map(x=>classifyStatePath(root,s,x,'deliverable')),...saves.map(x=>classifyStatePath(root,s,x,'save'))];
+  const footageFiles=files(path.join(run,'footage'));
+  const footageSaves=footageFiles.filter(x=>/\.json$/i.test(x));
+  const footageMedia=footageFiles.filter(x=>!footageSaves.includes(x));
+  const saves=existing([s.scenePlanPath,s.visualPromptsPath,s.imageQueuePath,s.soundDesign?.audioPlanPath,s.sfxPlanPath,s.sfxQaPath,s.footageManifestPath,s.footageCandidatesPath,path.join(run,'checkpoints','langgraph-checkpoints.sqlite'),path.join(run,'media-plan.json'),path.join(run,'media-scene-plan.json'),path.join(run,'firefly','ledger-export.json'),path.join(run,'firefly','authorization.json'),...footageSaves]);
+  const intermediates=existing([...(s.footageArtifacts??[]).flatMap(x=>[x.originalPath,x.videoPath]),...footageMedia]);
+  return[...deliver.map(x=>classifyStatePath(root,s,x,'deliverable')),...saves.map(x=>classifyStatePath(root,s,x,'save')),...intermediates.map(x=>classifyStatePath(root,s,x,'intermediate'))];
 };

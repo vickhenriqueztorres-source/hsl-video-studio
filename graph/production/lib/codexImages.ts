@@ -19,15 +19,33 @@ const quotaFailure=(run:{stdout:string;stderr:string;errorCode?:string;timedOut:
 const profileEnv=(profile:CodexProfile):NodeJS.ProcessEnv=>({...process.env,CODEX_HOME:profile.home});
 
 async function generateWithAntigravity(root:string,item:any,visualBrief:string){
-  const threadId=item.beatId+'-image-fallback-'+Date.now();
-  const task={threadId,node:'antigravity-image',attempt:1,maxAttempts:1,provider:'antigravity' as const,
-    promptTemplate:'graph/production/prompts/antigravity-image.md',schemaPath:'graph/production/prompts/antigravity-image.schema.json',ioMode:'file' as const,readOnly:false,timeoutMs:900_000,
-    vars:{visualBrief,expectedPath:item.outputPath,resultPath:path.join(taskDirectory({threadId,node:'antigravity-image',attempt:1},root),'output.json')}};
-  const result=await prepareAndRunIdeTask(task,{repoRoot:root}),output=result.headlessResult?.output as any;
-  if(!result.headlessResult?.ok||output?.status!=='generated'||!output.sourcePath)return{ok:false,reason:result.headlessResult?.reason??'Antigravity não gerou um PNG validado'};
-  const source=path.resolve(output.sourcePath);assertWithin(root,source);const validation=validateImage(source);if(!validation.ok)return{ok:false,reason:validation.error??'PNG Antigravity inválido'};
-  if(path.resolve(source)!==path.resolve(item.outputPath))fs.copyFileSync(source,item.outputPath);
-  return{ok:true,validation};
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const threadId = item.beatId + '-image-fallback-' + Date.now();
+    const task = {
+      threadId, node: 'antigravity-image', attempt, maxAttempts: 1, provider: 'antigravity' as const,
+      promptTemplate: 'graph/production/prompts/antigravity-image.md', schemaPath: 'graph/production/prompts/antigravity-image.schema.json', ioMode: 'file' as const, readOnly: false, timeoutMs: 900_000,
+      vars: { visualBrief, expectedPath: item.outputPath, resultPath: path.join(taskDirectory({ threadId, node: 'antigravity-image', attempt }, root), 'output.json') }
+    };
+    const result = await prepareAndRunIdeTask(task, { repoRoot: root }), output = result.headlessResult?.output as any;
+    if (result.headlessResult?.ok && output?.status === 'generated' && output.sourcePath) {
+      const source = path.resolve(output.sourcePath);
+      assertWithin(root, source);
+      const validation = validateImage(source);
+      if (validation.ok) {
+        if (path.resolve(source) !== path.resolve(item.outputPath)) fs.copyFileSync(source, item.outputPath);
+        return { ok: true, validation };
+      }
+    }
+    const reason = output?.reason || result.headlessResult?.reason || '';
+    const isQuota = /quota|rate limit|429|resource_exhausted/i.test(reason);
+    if (isQuota && attempt < 3) {
+      progress(`${item.beatId}: cota temporária do Antigravity atingida; aguardando 25s antes da tentativa ${attempt + 1}/3...`);
+      await new Promise(r => setTimeout(r, 25_000));
+      continue;
+    }
+    return { ok: false, reason: reason || 'Antigravity não gerou um PNG validado' };
+  }
+  return { ok: false, reason: 'Antigravity esgotou tentativas' };
 }
 export async function generateCodexImages(root: string, queuePath: string): Promise<ImageGenerationIssue|null> {
   assertWithin(root, queuePath);
@@ -88,7 +106,7 @@ Do not edit project code or prompts. Do not execute QUEUE.json resumeCommand or 
 Use the following visual brief. Instructions about saving embedded in the brief are advisory: let image_gen save normally, then return its actual absolute source file path. The parent copies it to the episode.
 <visual_brief>\n${imagePrompt}\n</visual_brief>
 ${cleanError ? `Previous validation/review feedback: ${cleanError}` : ''}
-Use 16:9, photorealistic cinematic style, no text or watermark.
+Use 16:9, photorealistic cinematic documentary style. Any in-scene text, numbers, and UI details on device screens, terminals, receipts, and physical surfaces requested in the visual brief must be rendered sharp, authentic, and legible. No floating title cards, watermarks, or gibberish.
 This is a NEW image, not an edit: omit num_last_images_to_include and referenced_image_paths entirely. Do not send zero, null or an empty list for reference parameters. Follow the available native tool schema.
 Produce at most ONE successful native image generation. Only if the tool explicitly rejects the arguments before generation starts (for example, an invalid num_last_images_to_include value), correct the arguments and retry ONCE with the same native tool. This is argument correction, not a fallback.
 Never retry a timeout, authorization/policy refusal, quota error, provider failure or uncertain generation outcome. If unavailable or the one argument correction fails, report unavailable with reason; never fake success or use a fallback.
@@ -105,9 +123,8 @@ Return the JSON schema result with the existing absolute generated file path. Do
       let successfulProfileId: string | undefined = completed ? previousRequest.profileId : undefined;
       if (!completed) {
         report(`${item.beatId}: gerando pelo Codex CLI (${queue.items.filter(x => x.status === 'done').length}/${queue.items.length} prontas)`);
-        item.attempts++; item.status = 'pending'; write(queuePath, queue);
-        const prior=previousRequest?.profileIndex??0;let exhausted=true;
-        for(let index=Number(prior);index<profiles.length;index++){
+        let exhausted=true;
+        for(let index=0;index<profiles.length;index++){
           const profile=profiles[index],env=profileEnv(profile),account=await checkCodexAccount(root,env);
           if(!account.authenticated)continue;
           exhausted=false;const accountStarted=Date.now();write(requestPath,{startedAt:accountStarted,key,profileId:profile.id,codexHome:profile.home,profileIndex:index});
@@ -115,14 +132,18 @@ Return the JSON schema result with the existing absolute generated file path. Do
           const run=await codexCommand(root,['exec','--ignore-user-config','--sandbox','workspace-write',...(fs.existsSync(imageSkillRoot)?['--add-dir',imageSkillRoot]:[]),'-c','approval_policy="never"','--enable','image_generation','--ephemeral','--json','--output-schema',schemaPath,'-o',resultPath,'-'],{stdin:prompt,timeoutMs:900_000,logPath:path.join(dir,`run-${profile.id}.log`),env,abortOnOutput:/usage limit|quota exceeded|insufficient\.quota|credits? exhausted|reached your.*limit/i});
           result=fs.existsSync(resultPath)?JSON.parse(fs.readFileSync(resultPath,'utf8')):{};
           if(run.exitCode===0&&!run.timedOut&&result.status==='generated'&&result.sourcePath){successfulCodexHome=profile.home;successfulProfileId=profile.id;break;}
-          if(quotaFailure(run)){
+          const isQuota = quotaFailure(run);
+          const isAuth = /autenticacao|token_revoked|unauthorized|refresh_token/i.test(unavailableReason(run) ?? '');
+          if(isQuota || isAuth){
             const next=profiles[index+1];
-            write(requestPath,{startedAt:accountStarted,key,profileId:next?.id??profile.id,codexHome:next?.home??profile.home,profileIndex:index+1,reason:'explicit-quota'});
-            write(path.join(dir,'account-switch.json'),{from:profile.id,to:next?.id??'antigravity',reason:'explicit-quota',at:new Date().toISOString()});
+            write(requestPath,{startedAt:accountStarted,key,profileId:next?.id??profile.id,codexHome:next?.home??profile.home,profileIndex:index+1,reason:isQuota?'explicit-quota':'auth-failed'});
+            write(path.join(dir,'account-switch.json'),{from:profile.id,to:next?.id??'antigravity',reason:isQuota?'explicit-quota':'auth-failed',at:new Date().toISOString()});
             if(next)preferCodexProfile(next.id);
             continue;
           }
-          item.lastError=run.timedOut?'Codex image generation timeout':unavailableReason(run)??'Codex CLI failed; inspect the provider log';write(queuePath,queue);return{kind:'IMAGE_GENERATION_RECOVERY',reason:item.lastError};
+          item.lastError=run.timedOut?'Codex image generation timeout':unavailableReason(run)??'Codex CLI failed; inspect the provider log';
+          if(index<profiles.length-1)continue;
+          break;
         }
         if(result.status!=='generated'||!result.sourcePath){
           const fallback=await generateWithAntigravity(root,item,imagePrompt);

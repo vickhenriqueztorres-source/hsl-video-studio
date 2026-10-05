@@ -22,10 +22,20 @@ export class MusicSelector {
   }
 
   private loadCatalog(): void {
-    const manifestPath = path.join(this.rootDir, 'public', 'audio', 'music', 'music-catalog-manifest.json');
-    if (fs.existsSync(manifestPath)) {
-      const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      this.tracks = data.tracks || [];
+    const candidatePaths = [
+      path.join(this.rootDir, 'public', 'audio', 'music', 'music-catalog-manifest.json'),
+      path.join(this.rootDir, 'assets', 'audio-library', 'music', 'music-catalog-manifest.json')
+    ];
+    for (const manifestPath of candidatePaths) {
+      if (fs.existsSync(manifestPath)) {
+        try {
+          const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          if (data.tracks && data.tracks.length > 0) {
+            this.tracks = data.tracks;
+            break;
+          }
+        } catch {}
+      }
     }
   }
 
@@ -39,15 +49,20 @@ export class MusicSelector {
       return matching[0];
     }
 
-    // Fallback to first track or dummy fallback
-    return this.tracks[0] || {
-      title: 'Cinematic Atmosphere Theme',
-      canonicalName: 'epic_orchestra_01.wav',
-      category: 'cinematic/epic',
-      mood: 'epic',
-      localPath: 'cinematic/epic/epic_orchestra_01.wav',
-      fullPath: path.join(this.rootDir, 'public', 'audio', 'music', 'cinematic', 'epic', 'epic_orchestra_01.wav'),
-      durationSeconds: 120
+    if (this.tracks.length > 0) {
+      return this.tracks[0];
+    }
+
+    // Fallback garantido para faixa de suspense real presente no repositório
+    const existingMusic = path.join(this.rootDir, 'assets', 'audio-library', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
+    return {
+      title: 'Cinematic Suspense Theme',
+      canonicalName: 'suspense_oppressive_gloom.mp3',
+      category: 'cinematic/suspense',
+      mood: 'suspense',
+      localPath: 'cinematic/suspense/suspense_oppressive_gloom.mp3',
+      fullPath: existingMusic,
+      durationSeconds: 180
     };
   }
 }

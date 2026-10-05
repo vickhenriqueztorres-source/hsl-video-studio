@@ -8,7 +8,9 @@ import type { ImageGenerationIssue } from './lib/codexImages';
 import type { MediaPlan, MediaPolicy } from './lib/mediaPlan';
 import type { KlingAuthorization, KlingBudget } from './lib/firefly/ledger';
 import type { ChannelId, RunChannelSnapshot, RunContract } from '../../channels/types';
+import type { FootageArtifact, FootageBrief, FootageOptions, FootageVisualReview } from '../footage/contracts';
 import { resolveRunChannelSnapshot } from '../../channels/registry';
+import { resolveFootageOptions, validateFootageOptions } from '../footage/planner';
 export const STATE_VERSION = 2;
 export type MediaMode = 'legacy' | 'real';
 export interface GraphOptions {
@@ -20,16 +22,17 @@ export interface GraphOptions {
   motionMode: 'legacy' | 'authored'; motionMaxScenes: number; motionRequire3d: boolean;
   video: { takeSeconds: 5; splitOver: 5.5 };
   storageMode:'off'|'drive'; prune:'dry-run'|'apply'; keepLocalDeliverables:number;
+  footage: FootageOptions;
 }
 export type Options = MasterPipelineOptions & { channel?: ChannelId; graph: GraphOptions };
-export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string; provider?: 'firefly-kling'|'local-ffmpeg'|'remotion-authored'|'none'; sha256?: string; recipeHash?: string }
+export interface AssetResult { beatId: string; path: string; status: 'ok' | 'failed' | 'skipped'; attempts: number; error?: string; provider?: 'firefly-kling'|'local-ffmpeg'|'remotion-authored'|'licensed-footage'|'none'; sha256?: string; recipeHash?: string }
 export interface AuthoredMotionSceneBrief { beatId:string; visualObjective:string; causalRelations:string[]; factualConstraints:string[]; require3d:boolean }
 export interface AuthoredMotionPlan { schema:'hsl.authored-motion-plan/v1'; inputHash:string; scenes:AuthoredMotionSceneBrief[] }
 export interface AuthoredMotionArtifact { beatId:string; videoPath:string; sha256:string; receiptPath:string; sourceManifestPath:string; sourceDirectory:string; previewPath:string; durationInFrames:number; fps:number; width:number; height:number; engine:'remotion-authored'; inputHash:string; approved:true; verified:true; rendered:true }
 export interface VisualPrompt { beatId: string; imagePrompt: string; videoPrompt: string; cameraMotion: string; durationSeconds: number; firstFrameFrom: 'image' | 'none'; negative?: string; continuityRefs?: string[] }
 export interface PromptReview { score: number; issues: { beatId: string; message: string }[]; iteration: number; skipped?: boolean }
 export interface ImageQueueItem { beatId: string; promptPath: string; outputPath: string; promptHash?:string; status: 'pending'|'done'|'rejected'; attempts: number; lastError?: string; generatedBy?:'codex-imagegen'|'antigravity-imagegen' }
-export interface ImageQueue { episodeId: string; threadId: string; generator:'codex-imagegen'; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText:true }; items:ImageQueueItem[]; resumeCommand:string }
+export interface ImageQueue { episodeId: string; threadId: string; generator:'codex-imagegen'; spec: { aspect:'16:9'; minWidth:1920; format:'png'; noText?:boolean }; items:ImageQueueItem[]; resumeCommand:string }
 export interface ImageReviewItem { beatId:string; score:number; fidelity:string; hasText:boolean; issues:string[]; imageHash:string }
 export interface ImageReview { items:ImageReviewItem[]; skipped?:boolean; reason?:string; round:number }
 export interface VideoTake {
@@ -83,6 +86,11 @@ export const ProductionState = Annotation.Root({
   motionIssue: nullable<{beatId:string;status:'review_required'|'provider_unavailable'|'runtime_unavailable';reason:string;receiptPath:string}>(),
   narrationLock: nullable<{audioPath:string;audioSha256:string;durationSeconds:number;alignmentPath:string;alignmentSha256:string}>(),
   mediaPlan: nullable<MediaPlan>(), klingBudget: nullable<KlingBudget>(), klingAuthorization: nullable<KlingAuthorization>(),
+  footageBriefs: Annotation<FootageBrief[]>({ reducer: (_, b) => b, default: () => [] }),
+  footageArtifacts: Annotation<FootageArtifact[]>({ reducer: (_, b) => b, default: () => [] }),
+  footageFailures: Annotation<{beatId:string;reason:string}[]>({ reducer: (_, b) => b, default: () => [] }),
+  footageReviews: Annotation<FootageVisualReview[]>({ reducer: (_, b) => b, default: () => [] }),
+  footageManifestPath: nullable<string>(), footageCandidatesPath: nullable<string>(),
   fireflyIssue: nullable<{kind: string; reason: string; take?:string; receiptPath?:string; retryPolicy?:string}>(),
   environment: nullable<{ agentDir: string; profileDir: string; sessionValid?: boolean }>(),
   visualPrompts: Annotation<VisualPrompt[]>({ reducer: (_, b) => b, default: () => [] }),
@@ -124,7 +132,7 @@ export function threadId(episodeId: string, channelId?: string) {
   }
   return `${clean}@v${STATE_VERSION}`;
 }
-export function initialState(options: MasterPipelineOptions & { channel?: ChannelId; graph?: Partial<Omit<GraphOptions, 'gates'>> & { gates?: Partial<GraphOptions['gates']> } } = {}): Update {
+export function initialState(options: MasterPipelineOptions & { channel?: ChannelId; graph?: Partial<Omit<GraphOptions, 'gates'|'footage'>> & { gates?: Partial<GraphOptions['gates']>; footage?: Partial<FootageOptions> } } = {}): Update {
   const channelId: ChannelId = (options.channel || (options.episodeId?.startsWith('BRECHA_') ? 'brecha' : 'hsl')) as ChannelId;
   const channelSnapshot = resolveRunChannelSnapshot(channelId);
 
@@ -162,10 +170,13 @@ export function initialState(options: MasterPipelineOptions & { channel?: Channe
     maxGenerations: 0, promptReviewThreshold: 75, promptReviewMaxIterations: 6, imageReviewThreshold:75, storageMode:'off',prune:'dry-run',keepLocalDeliverables:1,...options.graph,
     motionMode: options.graph?.motionMode ?? 'legacy', motionMaxScenes: options.graph?.motionMaxScenes ?? 3, motionRequire3d: options.graph?.motionRequire3d ?? true,
     gates: { render: false, publish: false, ...options.graph?.gates }, images: { provider: 'codex' },
-    video: { takeSeconds: 5 as const, splitOver: 5.5 as const } } as GraphOptions;
+    video: { takeSeconds: 5 as const, splitOver: 5.5 as const },
+    footage: resolveFootageOptions(options.graph?.footage) } as GraphOptions;
   graph.mediaPolicy ??= graph.mediaMode === 'legacy' ? 'local-motion' : 'firefly-hybrid';
   if (!['stills','local-motion','firefly-hybrid'].includes(graph.mediaPolicy)) throw new Error('MEDIA_POLICY_INVALID');
   if (graph.mediaPolicy === 'firefly-hybrid' && graph.mediaMode === 'legacy') throw new Error('MEDIA_POLICY_LEGACY_CONFLICT');
+  validateFootageOptions(graph.footage);
+  if(graph.mediaMode==='legacy'&&graph.footage.mode!=='off')throw new Error('FOOTAGE_REQUIRES_REAL_MEDIA_MODE');
   for (const value of [graph.assetConcurrency, graph.renderConcurrency]) if (!Number.isSafeInteger(value) || value < 1) throw new Error('Concurrency deve ser inteiro positivo');
   if (graph.beats !== undefined && (!Number.isSafeInteger(graph.beats) || graph.beats < 1)) throw new Error('beats deve ser inteiro positivo');
   if (!Number.isSafeInteger(graph.maxGenerations) || graph.maxGenerations < 0) throw new Error('maxGenerations deve ser inteiro não negativo');

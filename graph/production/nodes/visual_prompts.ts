@@ -7,12 +7,24 @@ import type {State, VisualPrompt, PromptReview} from '../state';
 import {PHOTOGRAPHIC_CONTRACT_VERSION} from '../../../hsl/startframe/photographicPrompt';
 
 const promptFile = (c: Context, s: State) => path.join(paths(c, s).run, 'visual-prompts.json');
-export const photographicBeats=(s:State)=>s.scenePlan?.beats.filter(beat=>beat.mediaProvider!=='remotion-authored')??[];
-const sourceHash = (s: State) => createHash('sha256').update(JSON.stringify({
-  contract: PHOTOGRAPHIC_CONTRACT_VERSION, brief: s.topicInput, plan: s.scenePlan,
-  template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts.md'), 'utf8'),
-  repairTemplate: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-repair.md'), 'utf8'),
-})).digest('hex');
+export const photographicBeats=(s:State)=>s.scenePlan?.beats.filter(beat=>!['remotion-authored','licensed-footage'].includes(beat.mediaProvider??''))??[];
+export const resolveChannelContext = (s: State): { channelId: 'hsl' | 'brecha'; channelContext: string } => {
+  const isBrecha = (s.channelId === 'brecha') || (s.channelSnapshot?.channelId === 'brecha') || s.episodeId.startsWith('BRECHA_');
+  const channelId = isBrecha ? 'brecha' : 'hsl';
+  const channelContext = isBrecha
+    ? 'CANAL: BRECHA | IDIOMA DE TELAS E TEXTOS DIEGÉTICOS: PORTUGUÊS BRASILEIRO (pt-BR). Todas as interfaces cotidianas (smartphones, maquininhas de cartão, recibos, comprovantes, caixas eletrônicos, boletos) DEVEM conter textos exatos entre aspas em português do Brasil.'
+    : 'CHANNEL: HSL (Hidden Systems Lab) | IN-SCENE DIEGETIC TEXT LANGUAGE: STRICTLY ENGLISH (en-US). All visible text on industrial control monitors, SCADA dashboards, telemetry displays, analog/digital gauges, server racks, piping stencils, shipping manifests, and technical reports MUST be strictly in English. ZERO PORTUGUESE WORDS ALLOWED IN IN-SCENE DIEGETIC TEXT.';
+  return { channelId, channelContext };
+};
+
+export const sourceHash = (s: State) => {
+  const { channelId } = resolveChannelContext(s);
+  return createHash('sha256').update(JSON.stringify({
+    contract: PHOTOGRAPHIC_CONTRACT_VERSION, channelId, brief: s.topicInput, plan: s.scenePlan,
+    template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts.md'), 'utf8'),
+    repairTemplate: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-repair.md'), 'utf8'),
+  })).digest('hex');
+};
 function matchesPlan(beats: VisualPrompt[] | undefined, s: State): boolean {
   const required=photographicBeats(s);
   if (!beats || beats.length !== required.length) return false;
@@ -43,9 +55,10 @@ export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
   // Retry only rejected beats so a correction cannot regress prompts already accepted.
   const repairIds = s.promptReview && s.promptReview.score < s.options.graph.promptReviewThreshold && s.visualPrompts.length
     ? affectedBeatIds(s) : [];
+  const { channelId, channelContext } = resolveChannelContext(s);
   // Provider-specific task folders prevent stale results across planners/briefs.
   for (const provider of ['antigravity', 'codex'] as const) {
-    const repairHash = repairIds.length ? createHash('sha256').update(JSON.stringify({repairIds, issues:s.promptReview?.issues, prompts:s.visualPrompts})).digest('hex') : '';
+    const repairHash = repairIds.length ? createHash('sha256').update(JSON.stringify({channelId, repairIds, issues:s.promptReview?.issues, prompts:s.visualPrompts})).digest('hex') : '';
     const selectedPlan = {...s.scenePlan,beats:photographicBeats(s).filter(b=>!repairIds.length||repairIds.includes(b.beatId))};
     const result = await c.deps.ide({threadId: s.episodeId,
       node: repairIds.length
@@ -58,7 +71,12 @@ export const visualPromptsPrepare = (c: Context): NodeFn => async s => {
         affectedBeatIds: JSON.stringify(repairIds), affectedScenePlan: JSON.stringify(selectedPlan),
         currentPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput),
         reviewIssues: JSON.stringify(s.promptReview?.issues ?? []),
-      } : {scenePlan: JSON.stringify(selectedPlan), episodeBrief: JSON.stringify(s.topicInput), reviewIssues: JSON.stringify(s.promptReview?.issues ?? [])},
+        channelContext,
+      } : {
+        scenePlan: JSON.stringify(selectedPlan), episodeBrief: JSON.stringify(s.topicInput),
+        reviewIssues: JSON.stringify(s.promptReview?.issues ?? []),
+        channelContext,
+      },
     }, {repoRoot: c.root});
     if (result.headlessResult?.ok) {
       const value = result.headlessResult.output as {beats: VisualPrompt[]};
@@ -92,14 +110,15 @@ export const visualPromptsWait = (c: Context): NodeFn => s => {
 export const visualPromptsReviewPrepare = (c: Context): NodeFn => async s => {
   if (s.options.graph.mediaMode === 'legacy') return {__status: 'skipped'};
   if(!photographicBeats(s).length)return{__status:'skipped'};
-  const signature = createHash('sha256').update(JSON.stringify({source: sourceHash(s), prompts: s.visualPrompts,
+  const { channelId, channelContext } = resolveChannelContext(s);
+  const signature = createHash('sha256').update(JSON.stringify({channelId, source: sourceHash(s), prompts: s.visualPrompts,
     template: fs.readFileSync(path.join(__dirname, '../../prompts/visual-prompts-review.md'), 'utf8')})).digest('hex');
   let lastReason: string | undefined;
   for (const provider of ['antigravity', 'codex'] as const) {
     const result = await c.deps.ide({threadId: s.episodeId, node: `visual-prompts-review-${signature.slice(0, 12)}-${provider}`,
       attempt: s.promptIteration || 1, provider, ioMode: 'stdout', readOnly: true, maxAttempts: 2,
       promptTemplate: 'graph/prompts/visual-prompts-review.md', schemaPath: 'graph/prompts/visual-prompts-review.schema.json',
-      vars: {visualPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput), scenePlan: JSON.stringify(s.scenePlan)},
+      vars: {visualPrompts: JSON.stringify(s.visualPrompts), episodeBrief: JSON.stringify(s.topicInput), scenePlan: JSON.stringify(s.scenePlan), channelContext},
     }, {repoRoot: c.root});
     if (result.headlessResult?.ok) {
       const review = result.headlessResult.output as Omit<PromptReview, 'iteration'>;

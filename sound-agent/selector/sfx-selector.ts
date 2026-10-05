@@ -21,10 +21,20 @@ export class SfxSelector {
   }
 
   private loadCatalog(): void {
-    const manifestPath = path.join(this.rootDir, 'public', 'audio', 'sfx', 'sfx-catalog-manifest.json');
-    if (fs.existsSync(manifestPath)) {
-      const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      this.items = data.items || [];
+    const candidatePaths = [
+      path.join(this.rootDir, 'public', 'audio', 'sfx', 'sfx-catalog-manifest.json'),
+      path.join(this.rootDir, 'assets', 'audio-library', 'sfx', 'sfx-catalog-manifest.json')
+    ];
+    for (const manifestPath of candidatePaths) {
+      if (fs.existsSync(manifestPath)) {
+        try {
+          const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          if (data.items && data.items.length > 0) {
+            this.items = data.items;
+            break;
+          }
+        } catch {}
+      }
     }
   }
 

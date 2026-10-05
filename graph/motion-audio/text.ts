@@ -10,12 +10,13 @@ export function normalizeWord(value: string): string {
   return value.normalize('NFKC').toLocaleLowerCase('und').replace(/[’]/gu, "'");
 }
 
-/** Tokenization is punctuation-independent and keeps offsets into the literal script. */
+/** Tokenization is punctuation-independent, ignores SSML tags, and keeps offsets into the literal script. */
 export function tokenizeScript(script: string): readonly ScriptWord[] {
   const words: ScriptWord[] = [];
+  const sanitized = script.replace(/<[^>]+>/gu, match => ' '.repeat(match.length));
   const matcher = /[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu;
   let match: RegExpExecArray | null;
-  while ((match = matcher.exec(script)) !== null) {
+  while ((match = matcher.exec(sanitized)) !== null) {
     words.push({
       index: words.length,
       text: match[0],

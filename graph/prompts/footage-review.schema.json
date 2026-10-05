@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["beatId", "score", "showsRealCameraFootage", "semanticallyMatches", "textOrWatermark", "misleadingSpecificity", "issues"],
+  "properties": {
+    "beatId": {"type": "string"},
+    "score": {"type": "number", "minimum": 0, "maximum": 100},
+    "showsRealCameraFootage": {"type": "boolean"},
+    "semanticallyMatches": {"type": "boolean"},
+    "textOrWatermark": {"type": "boolean"},
+    "misleadingSpecificity": {"type": "boolean"},
+    "issues": {"type": "array", "items": {"type": "string"}}
+  }
+}

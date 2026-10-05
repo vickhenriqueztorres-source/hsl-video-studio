@@ -29,6 +29,9 @@ Atualizado em: 2026-08-21
 | `HslVisualPlanBuilder` | atribui Remotion, real, Kling e tipografia por cena | plano 16:9 completo |
 | `RemotionSystemsAgent` | cria mapas, fluxos, camadas, dados e timelines | composicoes originais |
 | `LicensedAssetAgent` | controla origem, licenca e uso de material real | procedencia valida |
+| `FootageDirectorAgent` | seleciona oportunidades de B-roll real sem ocupar diagramas ou motion autoral | briefs por beat dentro do teto editorial |
+| `FootageRightsGate` | aceita apenas fontes e licencas implementadas, preservando origem, criador e comprovantes | recibo de direitos verificavel |
+| `FootageAcquisitionService` | busca, baixa e conforma material Pexels, Pixabay, Commons, NASA e Internet Archive para a timeline | MP4 1080p/30 fps mudo com hashes e receita |
 | `KlingVisualizationAgent` | gera atmosfera, escala e reconstrucoes | MP4 ilustrativo validado |
 | `AiReconstructionQaAgent` | verifica fisica, continuidade e falsa evidencia | QA aprovado |
 | `ProvenanceDisclosureGate` | confere claim, fonte, licenca e rotulo | 100% das cenas classificadas |

@@ -36,7 +36,20 @@ export function reviewBatches(inputs:ReviewInput[]){
 export const imageReviewPrepare=(c:Context):NodeFn=>async s=>{
   if(s.options.graph.mediaMode==='legacy')return{__status:'skipped'};
   const round=(s.imageReviewRounds??0)+1,queue=readJson<ImageQueue>(s.imageQueuePath!);if(!queue||queue.items.some(x=>x.status!=='done'))throw new Error('IMAGE_REVIEW_REQUIRES_VALID_QUEUE');
-  const inputs=queue.items.map(item=>({beatId:item.beatId,prompt:fs.readFileSync(item.promptPath,'utf8'),imagePath:item.outputPath,imageHash:createHash('sha256').update(fs.readFileSync(item.outputPath)).digest('hex'),continuityRefs:s.visualPrompts?.find(p=>p.beatId===item.beatId)?.continuityRefs,narration:s.scenePlan?.beats.find(b=>b.beatId===item.beatId)?.voiceoverScript,episodeBrief:s.topicInput}));
+  const validBeatIds = new Set(queue.items.map(x => x.beatId));
+  const inputs=queue.items.map(item=>{
+    const rawRefs = s.visualPrompts?.find(p=>p.beatId===item.beatId)?.continuityRefs;
+    const filteredRefs = rawRefs ? rawRefs.filter(id => validBeatIds.has(id)) : undefined;
+    return {
+      beatId:item.beatId,
+      prompt:fs.readFileSync(item.promptPath,'utf8'),
+      imagePath:item.outputPath,
+      imageHash:createHash('sha256').update(fs.readFileSync(item.outputPath)).digest('hex'),
+      continuityRefs: filteredRefs && filteredRefs.length ? filteredRefs : undefined,
+      narration:s.scenePlan?.beats.find(b=>b.beatId===item.beatId)?.voiceoverScript,
+      episodeBrief:s.topicInput
+    };
+  });
   const batches=reviewBatches(inputs),items:ImageReviewItem[]=[];
   for(const [index,batch] of batches.entries()){
     emitLive(c.root,s.episodeId,{node:'image_review_prepare',kind:'progress',message:`Revisando lote ${index+1}/${batches.length}`,current:index,total:batches.length});

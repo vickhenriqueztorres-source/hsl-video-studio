@@ -19,46 +19,74 @@ export const RemotionCinematicAudioBed: React.FC = () => {
           src={staticFile('audio/music/cinematic/suspense/suspense_unseen_horrors.mp3')}
           volume={(f) => {
             // Dynamic Ducking during voice presence
-            return dbToLinear(-24);
+            return dbToLinear(-26);
           }}
         />
-        {/* SFX Layer: layer_001 (ambience | room_tone | mid) */} 
+        {/* SFX Layer: layer_001 (impact | scene_entrance_punch | low) */} 
+        <Sequence from={0} durationInFrames={90}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/braams/braam_hit_02.wav')}
+            volume={0.1778}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_002 (drone | tension_drone_bed | mid) */} 
         <Sequence from={0} durationInFrames={180}>
           <Audio
-            src={staticFile('audio/sfx/foley/household/foley_household_01.wav')}
-            volume={0.0251}
+            src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_02.wav')}
+            volume={0.0398}
           />
         </Sequence>
-        {/* SFX Layer: layer_002 (foley | foley_keyboard | mid) */} 
-        <Sequence from={36} durationInFrames={60}>
+        {/* SFX Layer: layer_003 (foley | ui_text_eyebrow_reveal | high) */} 
+        <Sequence from={8} durationInFrames={12}>
           <Audio
-            src={staticFile('audio/sfx/foley/household/foley_household_02.wav')}
-            volume={0.0794}
-          />
-        </Sequence>
-        {/* SFX Layer: layer_003 (creative | riser | high) */} 
-        <Sequence from={110} durationInFrames={30}>
-          <Audio
-            src={staticFile('audio/sfx/cinematic/tension/tension_riser_01.wav')}
+            src={staticFile('audio/sfx/ui/ui_click_01.wav')}
             volume={0.1000}
           />
         </Sequence>
-        {/* SFX Layer: layer_004 (impact | ominous_boom | low) */} 
-        <Sequence from={180} durationInFrames={30}>
+        {/* SFX Layer: layer_004 (foley | ui_accent_line_expand | high) */} 
+        <Sequence from={18} durationInFrames={12}>
           <Audio
-            src={staticFile('audio/sfx/cinematic/booms/boom_explosion_01.wav')}
+            src={staticFile('audio/sfx/ui/ui_click_64.wav')}
+            volume={0.0891}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_005 (impact | ui_headline_pop_hit | mid) */} 
+        <Sequence from={30} durationInFrames={25}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/impacts/impact_strike_32.wav')}
+            volume={0.1259}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_006 (foley | foley_keyboard | mid) */} 
+        <Sequence from={36} durationInFrames={45}>
+          <Audio
+            src={staticFile('audio/sfx/foley/household/foley_household_11.wav')}
+            volume={0.0794}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_007 (riser | riser | high) */} 
+        <Sequence from={110} durationInFrames={30}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/tension/tension_riser_01.wav')}
+            volume={0.1413}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_008 (impact | ominous_boom | low) */} 
+        <Sequence from={180} durationInFrames={50}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/booms/boom_explosion_05.wav')}
             volume={0.1995}
           />
         </Sequence>
         {/* Transition: trans_001 (triple_calcar) */}
-        <Sequence from={165} durationInFrames={30}>
-          <Audio src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_01.wav')} volume={dbToLinear(-28)} />
+        <Sequence from={160} durationInFrames={30}>
+          <Audio src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_05.wav')} volume={dbToLinear(-26)} />
         </Sequence>
-        <Sequence from={170} durationInFrames={10}>
-          <Audio src={staticFile('audio/sfx/cinematic/tension/tension_riser_02.wav')} volume={dbToLinear(-18)} />
+        <Sequence from={155} durationInFrames={25}>
+          <Audio src={staticFile('audio/sfx/cinematic/tension/tension_riser_05.wav')} volume={dbToLinear(-18)} />
         </Sequence>
-        <Sequence from={180} durationInFrames={15}>
-          <Audio src={staticFile('audio/sfx/cinematic/impacts/impact_strike_01.wav')} volume={dbToLinear(-16)} />
+        <Sequence from={180} durationInFrames={20}>
+          <Audio src={staticFile('audio/sfx/cinematic/impacts/impact_strike_74.wav')} volume={dbToLinear(-16)} />
         </Sequence>
       </Sequence>
 
@@ -71,39 +99,67 @@ export const RemotionCinematicAudioBed: React.FC = () => {
           src={staticFile('audio/music/cinematic/emotional/emotional_heartbreaking.mp3')}
           volume={(f) => {
             // Dynamic Ducking during voice presence
-            return dbToLinear(-24);
+            return dbToLinear(-26);
           }}
         />
-        {/* SFX Layer: layer_001 (ambience | room_tone | mid) */} 
+        {/* SFX Layer: layer_001 (impact | scene_entrance_punch | low) */} 
+        <Sequence from={0} durationInFrames={45}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/impacts/impact_strike_35.wav')}
+            volume={0.1413}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_002 (drone | tension_drone_bed | mid) */} 
         <Sequence from={0} durationInFrames={180}>
           <Audio
-            src={staticFile('audio/sfx/foley/household/foley_household_03.wav')}
-            volume={0.0251}
+            src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_01.wav')}
+            volume={0.0398}
           />
         </Sequence>
-        {/* SFX Layer: layer_002 (foley | foley_paper | mid) */} 
-        <Sequence from={60} durationInFrames={60}>
+        {/* SFX Layer: layer_003 (foley | ui_text_eyebrow_reveal | high) */} 
+        <Sequence from={8} durationInFrames={12}>
           <Audio
-            src={staticFile('audio/sfx/foley/household/foley_household_04.wav')}
-            volume={0.0794}
-          />
-        </Sequence>
-        {/* SFX Layer: layer_003 (whoosh | whoosh | high) */} 
-        <Sequence from={140} durationInFrames={30}>
-          <Audio
-            src={staticFile('audio/sfx/cinematic/whooshes/whoosh_swoosh_01.wav')}
+            src={staticFile('audio/sfx/ui/ui_click_17.wav')}
             volume={0.1000}
           />
         </Sequence>
-        {/* Transition: trans_002 (triple_calcar) */}
-        <Sequence from={165} durationInFrames={30}>
-          <Audio src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_02.wav')} volume={dbToLinear(-28)} />
+        {/* SFX Layer: layer_004 (foley | ui_accent_line_expand | high) */} 
+        <Sequence from={18} durationInFrames={12}>
+          <Audio
+            src={staticFile('audio/sfx/ui/ui_click_65.wav')}
+            volume={0.0891}
+          />
         </Sequence>
-        <Sequence from={170} durationInFrames={10}>
+        {/* SFX Layer: layer_005 (impact | ui_headline_pop_hit | mid) */} 
+        <Sequence from={30} durationInFrames={25}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/impacts/impact_strike_61.wav')}
+            volume={0.1259}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_006 (foley | foley_paper | mid) */} 
+        <Sequence from={60} durationInFrames={45}>
+          <Audio
+            src={staticFile('audio/sfx/foley/household/foley_household_09.wav')}
+            volume={0.0794}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_007 (whoosh | whoosh | high) */} 
+        <Sequence from={140} durationInFrames={30}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/whooshes/whoosh_swoosh_03.wav')}
+            volume={0.1259}
+          />
+        </Sequence>
+        {/* Transition: trans_002 (triple_calcar) */}
+        <Sequence from={160} durationInFrames={30}>
+          <Audio src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_04.wav')} volume={dbToLinear(-26)} />
+        </Sequence>
+        <Sequence from={155} durationInFrames={25}>
           <Audio src={staticFile('audio/sfx/cinematic/tension/tension_riser_03.wav')} volume={dbToLinear(-18)} />
         </Sequence>
-        <Sequence from={180} durationInFrames={15}>
-          <Audio src={staticFile('audio/sfx/cinematic/impacts/impact_strike_02.wav')} volume={dbToLinear(-16)} />
+        <Sequence from={180} durationInFrames={20}>
+          <Audio src={staticFile('audio/sfx/cinematic/impacts/impact_strike_58.wav')} volume={dbToLinear(-16)} />
         </Sequence>
       </Sequence>
 
@@ -116,20 +172,48 @@ export const RemotionCinematicAudioBed: React.FC = () => {
           src={staticFile('audio/music/cinematic/epic/epic_impact_moderato.mp3')}
           volume={(f) => {
             // Dynamic Ducking during voice presence
-            return dbToLinear(-24);
+            return dbToLinear(-26);
           }}
         />
-        {/* SFX Layer: layer_001 (ambience | room_tone | mid) */} 
-        <Sequence from={0} durationInFrames={180}>
+        {/* SFX Layer: layer_001 (impact | scene_entrance_punch | low) */} 
+        <Sequence from={0} durationInFrames={45}>
           <Audio
-            src={staticFile('audio/sfx/foley/household/foley_household_05.wav')}
-            volume={0.0251}
+            src={staticFile('audio/sfx/cinematic/booms/boom_explosion_04.wav')}
+            volume={0.1413}
           />
         </Sequence>
-        {/* SFX Layer: layer_002 (impact | ominous_boom | low) */} 
-        <Sequence from={120} durationInFrames={30}>
+        {/* SFX Layer: layer_002 (drone | tension_drone_bed | mid) */} 
+        <Sequence from={0} durationInFrames={180}>
           <Audio
-            src={staticFile('audio/sfx/cinematic/booms/boom_explosion_02.wav')}
+            src={staticFile('audio/sfx/cinematic/loops/loop_atmosphere_03.wav')}
+            volume={0.0398}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_003 (foley | ui_text_eyebrow_reveal | high) */} 
+        <Sequence from={8} durationInFrames={12}>
+          <Audio
+            src={staticFile('audio/sfx/ui/ui_click_78.wav')}
+            volume={0.1000}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_004 (foley | ui_accent_line_expand | high) */} 
+        <Sequence from={18} durationInFrames={12}>
+          <Audio
+            src={staticFile('audio/sfx/ui/ui_click_72.wav')}
+            volume={0.0891}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_005 (impact | ui_headline_pop_hit | mid) */} 
+        <Sequence from={30} durationInFrames={25}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/impacts/impact_strike_80.wav')}
+            volume={0.1259}
+          />
+        </Sequence>
+        {/* SFX Layer: layer_006 (impact | ominous_boom | low) */} 
+        <Sequence from={120} durationInFrames={50}>
+          <Audio
+            src={staticFile('audio/sfx/cinematic/booms/boom_explosion_03.wav')}
             volume={0.1995}
           />
         </Sequence>

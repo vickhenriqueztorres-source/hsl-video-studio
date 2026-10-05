@@ -20,6 +20,8 @@ import {
 import { spawnSync } from 'child_process';
 import { DialogLevelingAgent, LoudnessQaAgent } from '../hsl/postproduction/narrationAudioRuntime';
 import { HslSoundFxRuntime, SoundFxScene } from '../hsl/postproduction/soundFxRuntime';
+import { SceneAudioMixer } from '../graph/audio/sceneAudioMixer';
+import type { AudioPlan } from '../sound-agent/types/audio-plan.types';
 
 interface BridgeOptions {
   stage: string;
@@ -561,29 +563,46 @@ async function executeStage(opts: BridgeOptions) {
       if (!fs.existsSync(tempVisualPath)) throw new Error(`Trilha visual ausente em ${tempVisualPath}`);
       if (!fs.existsSync(narrationDest)) throw new Error(`Narração ausente em ${narrationDest}`);
 
-      console.log(`    [Stage 09] Gerando trilha de sound design Kenney CC0 (SFX)...`);
-      const scenes: SoundFxScene[] = scenePlan.beats.map(b => ({
-        scene_id: b.beatId,
-        episode_id: opts.episodeId,
-        chapter_id: `ACT_${b.actNumber}`,
-        planned_duration_seconds: b.durationSeconds,
-        narrative_function: `${b.narrativeRole || ''} ${b.voiceoverScript || ''}`,
-        visual_subject: b.promptSubject || b.cinematicPrompt || '',
-        micro_events: [],
-        remotion_choreography: []
-      }));
-
+      console.log(`    [Stage 09] Gerando trilha de sound design e ambiência por cena (SFX & Ambience)...`);
+      const audioPlanPath = path.resolve(episodeDir, 'audio-plan.json');
       const sfxOutputDir = path.resolve(episodeDir, 'audio');
-      const sfxRuntime = new HslSoundFxRuntime();
-      const sfxResult = sfxRuntime.run({
-        scenes,
-        outputDirectory: sfxOutputDir,
-        fps: 30
-      });
-
       const sfxTrackPath = path.resolve(sfxOutputDir, 'sfx-track.wav');
-      fs.copyFileSync(sfxResult.bedPath, sfxTrackPath);
-      console.log(`    [Stage 09] Trilha SFX gerada: ${sfxTrackPath} (QA: ${sfxResult.qa.status})`);
+
+      let audioPlan: AudioPlan | null = null;
+      if (fs.existsSync(audioPlanPath)) {
+        try {
+          audioPlan = JSON.parse(fs.readFileSync(audioPlanPath, 'utf8'));
+        } catch {}
+      }
+
+      if (audioPlan && Array.isArray(audioPlan.scenes) && audioPlan.scenes.length > 0) {
+        console.log(`    [Stage 09] AudioPlan detectado com ${audioPlan.scenes.length} cenas. Renderizando cama dinâmica com SceneAudioMixer...`);
+        const mixer = new SceneAudioMixer(root);
+        const mixResult = mixer.mix(audioPlan, sfxTrackPath, scenePlan.totalDurationSeconds);
+        console.log(`    [Stage 09] Trilha SFX & Ambiência gerada: ${sfxTrackPath} (${mixResult.ambientLayersMixed} camas de fundo, ${mixResult.pointSfxMixed} efeitos pontuais, QA: ${mixResult.qa.status})`);
+      } else {
+        console.log(`    [Stage 09] Fallback para HslSoundFxRuntime (modo Kenney CC0)...`);
+        const scenes: SoundFxScene[] = scenePlan.beats.map(b => ({
+          scene_id: b.beatId,
+          episode_id: opts.episodeId,
+          chapter_id: `ACT_${b.actNumber}`,
+          planned_duration_seconds: b.durationSeconds,
+          narrative_function: `${b.narrativeRole || ''} ${b.voiceoverScript || ''}`,
+          visual_subject: b.promptSubject || b.cinematicPrompt || '',
+          micro_events: [],
+          remotion_choreography: []
+        }));
+
+        const sfxRuntime = new HslSoundFxRuntime();
+        const sfxResult = sfxRuntime.run({
+          scenes,
+          outputDirectory: sfxOutputDir,
+          fps: 30
+        });
+
+        fs.copyFileSync(sfxResult.bedPath, sfxTrackPath);
+        console.log(`    [Stage 09] Trilha SFX gerada via runtime: ${sfxTrackPath} (QA: ${sfxResult.qa.status})`);
+      }
 
       const musicCandidates = [
         path.resolve(root, 'assets/audio-library/music/cinematic/suspense/suspense_oppressive_gloom.mp3'),

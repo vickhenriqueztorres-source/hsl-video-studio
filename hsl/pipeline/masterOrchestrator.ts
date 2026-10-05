@@ -8,6 +8,7 @@ import { HslImageFrameEngine } from '../core/hslImageFrameEngine';
 import { HslFireflyVideoEngine } from '../core/hslFireflyVideoEngine';
 import { ElevenLabsNarrationAdapter } from '../../adapters/elevenLabsNarrationAdapter';
 import { SoundDesignAgent } from '../../sound-agent/index';
+import { SceneAudioMixer } from '../../graph/audio/sceneAudioMixer';
 import { VideoAnalysisInput } from '../../sound-agent/types/scene-analysis.types';
 import { ThumbnailSeoEngine, EpisodePackagingInput } from '../packaging/thumbnailSeoEngine';
 import { validateBeforeRender } from '../core/hslValidationGatekeeper';
@@ -467,12 +468,44 @@ export async function runMasterEpisodePipeline(options?: MasterPipelineOptions) 
   // 9. FFMPEG MASTER AUDIO MUXER
   // ---------------------------------------------------------------------------
   manifest.startStage('STAGE_09_FFMPEG_MUX');
-  console.log('\n🔊 [9/11] FFmpeg Muxer: Combinando trilha visual, narração e ambiência...');
+  console.log('\n🔊 [9/11] FFmpeg Muxer: Combinando trilha visual, narração, música e SFX/ambiência...');
   const musicCandidate1 = path.resolve(root, 'assets', 'audio-library', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
   const musicCandidate2 = path.resolve(root, 'public', 'audio', 'music', 'cinematic', 'suspense', 'suspense_oppressive_gloom.mp3');
   const musicPath = fs.existsSync(musicCandidate1) ? musicCandidate1 : (fs.existsSync(musicCandidate2) ? musicCandidate2 : undefined);
 
-  const ffmpegArgs = musicPath
+  // Síntese e integração da cama SFX & Ambiência de fundo por cena
+  const sfxTrackPath = path.resolve(episodeDir, 'audio', 'sfx-track.wav');
+  if (fs.existsSync(audioPlanPath)) {
+    try {
+      console.log('    [Stage 09] Gerando trilha de sound design e ambiência por cena com SceneAudioMixer...');
+      const audioPlan = JSON.parse(fs.readFileSync(audioPlanPath, 'utf8'));
+      const mixer = new SceneAudioMixer(root);
+      const mixRes = mixer.mix(audioPlan, sfxTrackPath, scenePlan.totalDurationSeconds);
+      console.log(`    [Stage 09] Cama SFX concluída: ${mixRes.ambientLayersMixed} camas de fundo, ${mixRes.pointSfxMixed} efeitos pontuais (QA: ${mixRes.qa.status}).`);
+    } catch (err) {
+      console.warn('    [Stage 09] Aviso ao gerar SFX track:', err);
+    }
+  }
+
+  const hasSfx = fs.existsSync(sfxTrackPath) && fs.statSync(sfxTrackPath).size > 0;
+
+  const ffmpegArgs = (musicPath && hasSfx)
+    ? [
+        '-y', '-hide_banner', '-loglevel', 'error',
+        '-i', tempVisualPath,
+        '-stream_loop', '-1', '-i', musicPath,
+        '-i', narrationDest,
+        '-i', sfxTrackPath,
+        '-filter_complex', '[1:a]volume=0.04[bg];[2:a]asplit=2[voice][side];[bg][side]sidechaincompress=threshold=0.125:ratio=8:attack=20:release=500[ducked];[3:a]volume=0.70[sfx];[ducked][voice][sfx]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[aout]',
+        '-map', '0:v:0',
+        '-map', '[aout]',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-b:a', HSL_AUDIO_BITRATE,
+        '-shortest',
+        outputVideoPath
+      ]
+    : musicPath
     ? [
         '-y', '-hide_banner', '-loglevel', 'error',
         '-i', tempVisualPath,

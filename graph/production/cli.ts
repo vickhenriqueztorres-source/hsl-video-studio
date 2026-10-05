@@ -12,6 +12,7 @@ import { closeAssetServer } from './lib/assetServer';
 import { storageSummary } from './storage/index';
 import { checkCodexAccount } from '../ide/codexAccount';
 import {resolveMediaPolicy,planMedia} from './lib/mediaPlan';
+import {resolveFootageOptions} from '../footage/planner';
 import {prepareKlingReplacements} from './nodes/firefly_real';
 import {normalizePlanDuration} from './lib/plan';
 import {HslSceneDirectorAgent} from '../../hsl/core/hslSceneDirectorAgent';
@@ -26,10 +27,17 @@ export function parseArgs(argv: string[]) {
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
     if (key === '--offline' || key === '--test-render' || key==='--motion-require-3d') args[key] = true;
-    else if (['--channel','--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--motion-mode','--motion-scenes','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables','--count'].includes(key)) {
+    else if (['--channel','--episode','--topic','--entity','--mechanism','--constraint','--consequence','--thesis','--target-minutes','--gates','--asset-concurrency','--render-concurrency','--from','--decision','--until','--beats','--media-mode','--media-policy','--motion-mode','--motion-scenes','--max-generations','--prompt-review-attempts','--storage','--prune','--keep-local-deliverables','--count','--footage-mode','--footage-share'].includes(key)) {
       if (!argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error(`Falta valor: ${key}`);
       args[key] = argv[++i];
     } else throw new Error(`Argumento desconhecido: ${key}`);
+  }
+  if (args['--footage-mode'] && !['off', 'suggest', 'auto'].includes(String(args['--footage-mode']))) {
+    throw new Error('--footage-mode aceita off|suggest|auto');
+  }
+  if (args['--footage-share'] !== undefined) {
+    const share = Number(args['--footage-share']);
+    if (!Number.isFinite(share) || share < 0 || share > 0.5) throw new Error('--footage-share deve estar entre 0 e 0.5');
   }
   if (!['run', 'resume', 'status', 'history', 'mermaid','media-plan','replace-kling'].includes(command)) throw new Error(`Comando desconhecido: ${command}`);
   return { command, args, episodeId: String(args['--episode'] ?? 'HSL_EPISODE_001') };
@@ -89,7 +97,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       return 0;
     }
     // Shared paths in the reference prohibit simultaneous production processes.
-    const lockPath = path.join(REPO_ROOT, 'out', 'production-graph.lock');
+    const lockPath = path.join(REPO_ROOT, 'out', `production-graph-${episodeId}.lock`);
     fs.mkdirSync(path.dirname(lockPath), { recursive: true });
     if (fs.existsSync(lockPath)) {
       const pid = Number(fs.readFileSync(lockPath, 'utf8'));
@@ -111,7 +119,17 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if(args['--motion-scenes']!==undefined&&(!Number.isSafeInteger(Number(args['--motion-scenes']))||Number(args['--motion-scenes'])<1||Number(args['--motion-scenes'])>12))throw new Error('--motion-scenes deve ser inteiro entre 1 e 12');
     if(args['--max-generations']!==undefined&&(!Number.isSafeInteger(Number(args['--max-generations']))||Number(args['--max-generations'])<0))throw new Error('--max-generations deve ser inteiro não negativo');
     if(args['--prompt-review-attempts']!==undefined&&(!Number.isSafeInteger(Number(args['--prompt-review-attempts']))||Number(args['--prompt-review-attempts'])<1||Number(args['--prompt-review-attempts'])>12))throw new Error('--prompt-review-attempts deve ser inteiro entre 1 e 12');
-    const graphOptionUpdates:any={...(storage?{storageMode:storage}:{}),...(mediaModeArg?{mediaMode:mediaModeArg}:{}),...(motionModeArg?{motionMode:motionModeArg}:{}),...(args['--motion-scenes']!==undefined?{motionMaxScenes:Number(args['--motion-scenes'])}:{}),...(args['--motion-require-3d']?{motionRequire3d:true}:{}),...(args['--prune']?{prune}:{}),...(args['--keep-local-deliverables']?{keepLocalDeliverables:Number(args['--keep-local-deliverables'])}:{}),...(args['--max-generations']!==undefined?{maxGenerations:Number(args['--max-generations'])}:{}),...(args['--prompt-review-attempts']!==undefined?{promptReviewMaxIterations:Number(args['--prompt-review-attempts'])}:{})};
+    const footageModeArg=args['--footage-mode']?String(args['--footage-mode']):undefined;
+    const footageShareArg=args['--footage-share']!==undefined?Number(args['--footage-share']):undefined;
+    if(footageModeArg&&!['off','suggest','auto'].includes(footageModeArg))throw new Error('--footage-mode aceita off|suggest|auto');
+    if(footageShareArg!==undefined&&(!Number.isFinite(footageShareArg)||footageShareArg<0||footageShareArg>0.5))throw new Error('--footage-share deve estar entre 0 e 0.5');
+    const footageUpdates = (footageModeArg || footageShareArg !== undefined) ? {
+      footage: resolveFootageOptions({
+        ...(footageModeArg ? { mode: footageModeArg as any } : {}),
+        ...(footageShareArg !== undefined ? { maxTimelineShare: footageShareArg } : {}),
+      })
+    } : {};
+    const graphOptionUpdates:any={...(storage?{storageMode:storage}:{}),...(mediaModeArg?{mediaMode:mediaModeArg}:{}),...(motionModeArg?{motionMode:motionModeArg}:{}),...(args['--motion-scenes']!==undefined?{motionMaxScenes:Number(args['--motion-scenes'])}:{}),...(args['--motion-require-3d']?{motionRequire3d:true}:{}),...(args['--prune']?{prune}:{}),...(args['--keep-local-deliverables']?{keepLocalDeliverables:Number(args['--keep-local-deliverables'])}:{}),...(args['--max-generations']!==undefined?{maxGenerations:Number(args['--max-generations'])}:{}),...(args['--prompt-review-attempts']!==undefined?{promptReviewMaxIterations:Number(args['--prompt-review-attempts'])}:{}),...footageUpdates};
     if(mediaPolicyArg)graphOptionUpdates.mediaPolicy=mediaPolicyArg;
     if(command==='replace-kling') {
       const count=Number(args['--count']);
@@ -128,11 +146,13 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (gates.some(g => !['render', 'publish'].includes(g))) throw new Error('--gates aceita render,publish');
       const mediaMode=mediaModeArg??'real';
       input = initialState({episodeId,channel:resolvedChannel,topic:args['--topic']?String(args['--topic']):undefined,entity:args['--entity']?String(args['--entity']):undefined,mechanism:args['--mechanism']?String(args['--mechanism']):undefined,constraint:args['--constraint']?String(args['--constraint']):undefined,consequence:args['--consequence']?String(args['--consequence']):undefined,thesis:args['--thesis']?String(args['--thesis']):undefined,targetMinutes:args['--target-minutes']?Number(args['--target-minutes']):undefined,graph: { offline: !!args['--offline'], assetConcurrency: Number(args['--asset-concurrency'] ?? 1), renderConcurrency: Number(args['--render-concurrency'] ?? 1),
-        mediaMode:mediaMode as 'legacy'|'real',mediaPolicy:mediaPolicyArg as any,motionMode:(motionModeArg??'legacy') as 'legacy'|'authored',motionMaxScenes:Number(args['--motion-scenes']??3),motionRequire3d:!!args['--motion-require-3d'],beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??0),storageMode:storage as 'off'|'drive',prune:prune as 'dry-run'|'apply',keepLocalDeliverables:Number(args['--keep-local-deliverables']??1),gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
+        mediaMode:mediaMode as 'legacy'|'real',mediaPolicy:mediaPolicyArg as any,motionMode:(motionModeArg??'legacy') as 'legacy'|'authored',motionMaxScenes:Number(args['--motion-scenes']??3),motionRequire3d:!!args['--motion-require-3d'],beats:args['--beats']?Number(args['--beats']):undefined,testRender:!!args['--test-render'],maxGenerations:Number(args['--max-generations']??0),storageMode:storage as 'off'|'drive',prune:prune as 'dry-run'|'apply',keepLocalDeliverables:Number(args['--keep-local-deliverables']??1),
+        footage: resolveFootageOptions({ ...(footageModeArg ? { mode: footageModeArg as any } : {}), ...(footageShareArg !== undefined ? { maxTimelineShare: footageShareArg } : {}) }),
+        gates: { render: gates.includes('render'), publish: gates.includes('publish') } } });
     } else {
       if (!snapshot.next.length) {
-        if (snapshot.values.productionStatus === 'COMPLIANCE_FAILED') {
-          await rewind(graph, REPO_ROOT, episodeId, 'compliance_stage', graphOptionUpdates, resolvedChannel);
+        if (snapshot.values.productionStatus === 'COMPLIANCE_FAILED' || snapshot.values.productionStatus === 'BLOCKED_PRE_RENDER') {
+          await rewind(graph, REPO_ROOT, episodeId, snapshot.values.productionStatus === 'COMPLIANCE_FAILED' ? 'compliance_stage' : 'gatekeeper_stage', graphOptionUpdates, resolvedChannel);
           snapshot = await graph.getState(config);
         } else if (snapshot.values.productionStatus === 'COMPLETED') {
           console.log(`\n  Episódio ${episodeId} já está 100% concluído! Entregáveis em deliveries/${episodeId}/`);

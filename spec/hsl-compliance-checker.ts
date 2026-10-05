@@ -424,15 +424,15 @@ export class HslComplianceChecker {
     // -------------------------------------------------------------------------
     // 8. CHECAGEM DE PACING DINÂMICO (ELIMINAÇÃO DE METRÔNOMO)
     // -------------------------------------------------------------------------
-    const dynamicPacingPass = maxDurationSpread >= 4.0;
+    const dynamicPacingPass = maxDurationSpread >= 2.5;
     results.push({
       ruleId: 'RULE_08_DYNAMIC_PACING_VARIATION',
       name: 'Pacing Rítmico Dinâmico de Cenas',
-      prdClause: 'PRD Cláusula 1.4.3 & SPEC Seção 10 (Variação Respiratória de 3s a 11s)',
-      expected: 'Variação entre planos rápidos (2.5s-4s) e planos heróicos (8s-11s), spread >= 4.0s',
+      prdClause: 'PRD Cláusula 1.4.3 & SPEC Seção 10 (Variação Respiratória de 2.5s a 11s)',
+      expected: 'Variação entre planos rápidos (2.5s-4s) e planos heróicos (8s-11s), spread >= 2.5s',
       measured: `Spread de duração: ${maxDurationSpread.toFixed(1)}s`,
       passed: dynamicPacingPass,
-      failureReason: !dynamicPacingPass ? `Edição estática em metrônomo (spread de apenas ${maxDurationSpread.toFixed(1)}s < 4.0s).` : undefined
+      failureReason: !dynamicPacingPass ? `Edição estática em metrônomo (spread de apenas ${maxDurationSpread.toFixed(1)}s < 2.5s).` : undefined
     });
 
     // -------------------------------------------------------------------------

@@ -12,6 +12,9 @@ export interface NarrationGenerateOptions {
   readonly modelId?: string;
   readonly stability?: number;
   readonly similarityBoost?: number;
+  readonly style?: number;
+  readonly speed?: number;
+  readonly useSpeakerBoost?: boolean;
   readonly locale?: string;
 }
 
@@ -47,7 +50,7 @@ export class ElevenLabsNarrationAdapter {
   }
 
   public async generateSpeech(options: NarrationGenerateOptions): Promise<string> {
-    const targetVoiceId = options.voiceId || this.voiceId;
+    const targetVoiceId = options.voiceId || (options.locale === 'pt-BR' ? ElevenLabsConfig.brechaVoiceId : this.voiceId);
     const targetModelId = options.modelId || this.modelId;
     const destPath = options.outputPath || path.resolve(process.cwd(), 'public', 'audio', 'narration.mp3');
     fs.mkdirSync(path.dirname(destPath), {recursive: true});
@@ -70,8 +73,9 @@ export class ElevenLabsNarrationAdapter {
       voice_settings: {
         stability: options.stability ?? ElevenLabsConfig.voiceSettings.stability,
         similarity_boost: options.similarityBoost ?? ElevenLabsConfig.voiceSettings.similarity_boost,
-        style: ElevenLabsConfig.voiceSettings.style,
-        use_speaker_boost: ElevenLabsConfig.voiceSettings.use_speaker_boost
+        style: options.style ?? ElevenLabsConfig.voiceSettings.style,
+        speed: options.speed ?? (ElevenLabsConfig.voiceSettings as any).speed ?? 1.0,
+        use_speaker_boost: options.useSpeakerBoost ?? ElevenLabsConfig.voiceSettings.use_speaker_boost
       }
     });
 
@@ -89,9 +93,13 @@ export class ElevenLabsNarrationAdapter {
       }
     }
 
+    if (this.keyPool.length > 0 && lastError && process.env.ALLOW_EDGETTS_FALLBACK !== '1') {
+      throw new Error(`ELEVENLABS_TTS_FAILED: ${lastError.message}`);
+    }
+
     try {
       const edgeVoice = options.locale === 'pt-BR' ? 'pt-BR-AntonioNeural' : 'en-US-ChristopherNeural';
-      this.generateEdgeSpeech(options.text, destPath, options.locale);
+      this.generateEdgeSpeech(options.text, destPath, options.locale, options.speed);
       writeReceipt(destPath, options.text, 'edge-tts', edgeVoice, 'edge-tts');
       console.log(`[EdgeTTS] Narração gerada: ${destPath}`);
       return destPath;
@@ -100,26 +108,50 @@ export class ElevenLabsNarrationAdapter {
     }
   }
 
-  private generateEdgeSpeech(text: string, destPath: string, locale?: string) {
+  private generateEdgeSpeech(text: string, destPath: string, locale?: string, speed?: number) {
     const tempTextPath = path.resolve(path.dirname(destPath), `.edge-tts-${randomUUID()}.txt`);
     fs.writeFileSync(tempTextPath, text, 'utf8');
     const edgeVoice = locale === 'pt-BR' ? 'pt-BR-AntonioNeural' : 'en-US-ChristopherNeural';
+    const rateArg: string[] = [];
+    if (speed !== undefined && speed !== 1.0) {
+      const pct = Math.round((speed - 1) * 100);
+      rateArg.push(`--rate=${pct >= 0 ? '+' : ''}${pct}%`);
+    } else if (locale === 'pt-BR') {
+      rateArg.push('--rate=-10%');
+    }
     try {
-      const result = spawnSync('python', ['-m', 'edge_tts', '--voice', edgeVoice, '--file', tempTextPath, '--write-media', destPath], {encoding: 'utf8'});
+      const result = spawnSync('python', ['-m', 'edge_tts', '--voice', edgeVoice, ...rateArg, '--file', tempTextPath, '--write-media', destPath], {encoding: 'utf8'});
       if (result.status !== 0 || !fs.existsSync(destPath) || fs.statSync(destPath).size <= 1000) throw new Error(result.stderr || result.stdout || `exit ${result.status}`);
     } finally { try { fs.unlinkSync(tempTextPath); } catch {} }
   }
 
   private async generateChunkedSpeech(fullText: string, finalDest: string, voiceId: string, modelId: string, options: NarrationGenerateOptions): Promise<string> {
+    const paragraphs = fullText.split(/\n\s*\n/);
     const chunks: string[] = [];
     let currentChunk = '';
-    for (const sentence of fullText.split(/(?<=[.?!])\s+/)) {
-      if ((currentChunk + ' ' + sentence).length > 2500) {
+
+    for (const para of paragraphs) {
+      const trimmedPara = para.trim();
+      if (!trimmedPara) continue;
+
+      if (trimmedPara.length > 2500) {
+        for (const sentence of trimmedPara.split(/(?<=[.?!])\s+/)) {
+          if ((currentChunk + ' ' + sentence).length > 2500) {
+            if (currentChunk.trim()) chunks.push(currentChunk.trim());
+            currentChunk = sentence;
+          } else {
+            currentChunk += (currentChunk ? ' ' : '') + sentence;
+          }
+        }
+      } else if ((currentChunk + '\n\n' + trimmedPara).length > 2500) {
         if (currentChunk.trim()) chunks.push(currentChunk.trim());
-        currentChunk = sentence;
-      } else currentChunk += (currentChunk ? ' ' : '') + sentence;
+        currentChunk = trimmedPara;
+      } else {
+        currentChunk += (currentChunk ? '\n\n' : '') + trimmedPara;
+      }
     }
     if (currentChunk.trim()) chunks.push(currentChunk.trim());
+
     const tmpDir = path.resolve(path.dirname(finalDest), `.narration-chunks-${randomUUID()}`);
     fs.mkdirSync(tmpDir, {recursive: true});
     const files: string[] = [];
@@ -128,12 +160,26 @@ export class ElevenLabsNarrationAdapter {
     try {
       for (let index = 0; index < chunks.length; index++) {
         const chunkFile = path.join(tmpDir, `chunk_${String(index).padStart(3, '0')}.mp3`);
-        await this.generateSpeech({text: chunks[index], outputPath: chunkFile, voiceId, modelId, stability: options.stability, similarityBoost: options.similarityBoost, locale: options.locale});
+        await this.generateSpeech({
+          text: chunks[index],
+          outputPath: chunkFile,
+          voiceId,
+          modelId,
+          stability: options.stability,
+          similarityBoost: options.similarityBoost,
+          style: options.style,
+          speed: options.speed,
+          useSpeakerBoost: options.useSpeakerBoost,
+          locale: options.locale
+        });
         const receipt = readReceipt(chunkFile);
         if (!receipt) throw new Error(`NARRATION_CHUNK_RECEIPT_MISSING:${index}`);
         if (receipt.provider === 'edge-tts') {
+          if (this.keyPool.length > 0 && process.env.ALLOW_EDGETTS_FALLBACK !== '1') {
+            throw new Error(`ELEVENLABS_CHUNK_FAILED: Chunk ${index} fell back to edge-tts`);
+          }
           try { if (fs.existsSync(finalDest)) fs.unlinkSync(finalDest); } catch {}
-          this.generateEdgeSpeech(fullText, finalDest, options.locale);
+          this.generateEdgeSpeech(fullText, finalDest, options.locale, options.speed);
           writeReceipt(finalDest, fullText, 'edge-tts', edgeVoice, 'edge-tts');
           return finalDest;
         }

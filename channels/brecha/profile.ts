@@ -8,23 +8,26 @@ export const brechaProfile: ChannelProfile = {
   locale: 'pt-BR',
   editorial: {
     format: 'documentario_defesa_cotidiana_forense',
-    targetDurationMinutes: [10, 12],
+    targetDurationMinutes: [9, 14],
     wordsPerMinuteRange: [150, 165],
     structure: [
-      'SUPERFICIE_COTIDIANA',
-      'ANOMALIA',
-      'RECONSTRUCAO',
-      'EVIDENCIA',
-      'SISTEMA_INVISIVEL',
-      'MOMENTO_DA_BRECHA',
-      'CONSEQUENCIA',
-      'ACAO_DEFENSIVA'
+      'ATO_1_ANOMALIA_PERFEITA_HOOK',
+      'ATO_2_ARQUITETURA_CONFIANCA',
+      'ATO_3_PONTO_INFLEXAO_FISSURA',
+      'ATO_4_AUTOPSIA_SISTEMA',
+      'ATO_5_ANTIDOTO_CONTRA_ATAQUE'
     ],
-    requiredSignature: 'Momento da Brecha',
+    requiredSignature: 'A Fenda / O Antídoto',
     principles: [
-      'IA representa. Evidência confirma.',
+      'IA representa. Evidência confirma. O drama humano comanda.',
       'Toda fraude começa por uma brecha.',
-      'Não culpabilizar a vítima: explicar por que parecia verdadeiro no momento.',
+      'O protagonista é a mente humana sob pressão, não a ferramenta.',
+      'Ironia dramática como motor de retenção (Método Hitchcock).',
+      'Ponto de Inflexão orgânico: contraste dramático sem congelamento didático.',
+      'O mecanismo só entra sob demanda emocional.',
+      'Evidência é cena do crime (CSI investigativo).',
+      'Cadência musical na narração (150-165 WPM).',
+      'Agência com dignidade no fechamento: protocolo prático dos primeiros 30 minutos.',
       'Coral exclusivo para o ponto explorado/revelado (5% a 12% do frame).',
       'Zero ambiente de laboratório hacker com neon, chuva de código ou capuz.'
     ],
@@ -52,7 +55,7 @@ export const brechaProfile: ChannelProfile = {
       dataMonospace: 'IBM Plex Mono, monospace'
     },
     textures: ['formica_clara', 'granito_cinza', 'azulejo_comum', 'cimento_fino', 'plastico_fosco', 'papel_timbrado', 'grao_cinematografico_leve'],
-    cameraLanguage: 'documentário de defesa cotidiana brasileira; iluminação crua, neutra e funcional (fluorescente de cozinha/portaria, dia nublado, lâmpada de teto comum sem golden hour ou pôr do sol); materiais autênticos como fórmica clara e granito; presença humana periférica ou ausente com o objeto ou evidência documental como protagonista; dinamismo de corte (19-35 mudanças no primeiro minuto inspirado em fern); enquadramentos sóbrios e planos detalhe funcionais',
+    cameraLanguage: 'documentário de defesa cotidiana brasileira; iluminação crua, neutra e funcional (fluorescente de cozinha/portaria, dia nublado, lâmpada de teto comum sem golden hour ou pôr do sol); materiais autênticos como fórmica clara e granito; presença humana periférica ou ausente com o objeto ou evidência documental como protagonista; dinamismo de corte (19-35 mudanças no primeiro minuto inspirado em fern); enquadramentos sóbrios e planos detalhe funcionais; hiper-realismo com textos e interfaces diegéticas ativas: telas de smartphones, apps bancários, visores de maquininhas e recibos devem conter textos, valores e notificações verossímeis em português brasileiro (sempre nítidos e descritos no plano visual)',
     reconstructionLabelRequired: true,
     characterPolicy: {
       presence: 'periferica_ou_ausente',
@@ -63,11 +66,18 @@ export const brechaProfile: ChannelProfile = {
   },
   narration: {
     locale: 'pt-BR',
-    tone: 'conversacional, natural, jovem e direta, como alguém explicando uma vulnerabilidade cotidiana para um amigo',
+    tone: 'médio-grave, dicção impecável, tom factual, calmo e deliberado, perfil pericial forense com sobriedade investigativa',
     pacing: 'natural brasileiro, pausas nas revelacoes',
-    defaultVoiceId: '2CECaLAGTS5NRGxgbcxr', // Davi Andrei - Conversacional Jovem Brasileiro
+    defaultVoiceId: 'nPczCjzI2devNBz1zQrb', // Brian - Voz Oficial (Brecha)
     defaultModelId: 'eleven_multilingual_v2',
-    currencyRules: 'spoken_words'
+    currencyRules: 'spoken_words',
+    voiceSettings: {
+      stability: 0.40,
+      similarityBoost: 0.75,
+      style: 0.30,
+      speed: 0.88,
+      useSpeakerBoost: true
+    }
   },
   motion: {
     style: 'documentario causal com prova forense; Remotion explicativo sem rede decorativa',

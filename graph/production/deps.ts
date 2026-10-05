@@ -21,6 +21,7 @@ import { generateCodexImages } from './lib/codexImages';
 import { checkCodexAccounts } from '../ide/codexAccount';
 import { driveCheckAuth, driveUploadVerified, driveVerify } from './storage/drive';
 import { DialogLevelingAgent, LoudnessQaAgent } from '../../hsl/postproduction/narrationAudioRuntime';
+import { acquireFootage } from '../footage/acquire';
 export function realDependencies(root: string) {
   return {
     plan: HslSceneDirectorAgent.planEpisodeFromScratch.bind(HslSceneDirectorAgent),
@@ -56,6 +57,8 @@ export function realDependencies(root: string) {
       return result.authenticated?{authenticated:true}:{authenticated:false,reason:result.reason};
     },
     generateImages: (queue: string) => generateCodexImages(root, queue),
+    acquireFootage: (episodeId: string, briefs: Parameters<typeof acquireFootage>[2], options: Parameters<typeof acquireFootage>[3]) =>
+      acquireFootage(root, episodeId, briefs, options, { inspect: inspectMediaWithFfprobe }),
     driveCheckAuth: () => driveCheckAuth(root),
     driveUploadVerified: (manifest: string, result: string) => driveUploadVerified(root, manifest, result),
     driveVerify: (manifest: string, result: string) => driveVerify(root, manifest, result),

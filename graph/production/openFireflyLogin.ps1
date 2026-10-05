@@ -11,15 +11,13 @@ if (-not (Test-Path -LiteralPath $ChromePath -PathType Leaf)) {
   throw "Google Chrome não encontrado em $ChromePath"
 }
 New-Item -ItemType Directory -Force -Path $ProfileDir | Out-Null
-$quotedProfile = '"' + $ProfileDir + '"'
-$quotedUrl = '"' + $Url + '"'
 $ErrorActionPreference = 'Stop'
 $browser = Start-Process -FilePath $ChromePath -PassThru -ArgumentList @(
-  "--user-data-dir=$quotedProfile",
+  "--user-data-dir=$ProfileDir",
   '--new-window',
   '--no-first-run',
   '--no-default-browser-check',
-  $quotedUrl
+  $Url
 )
 $receipt = @{
   schema = 'hsl.firefly-login.v1'

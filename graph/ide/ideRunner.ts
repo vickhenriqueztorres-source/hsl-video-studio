@@ -81,12 +81,18 @@ export function prepareIdeTask(task: IdeTask, context: RunnerContext = {}, error
 
 /** Read-only: safe in the interrupt node, including on every re-entry. */
 export function validateIdeOutput(prepared: PreparedTask, driver: DriverResult = {}, durationMs = 0): IdeResult {
-  const validate = compileJsonSchema(JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8')));
+  const schemaObj = JSON.parse(fs.readFileSync(prepared.schemaPath, 'utf8'));
+  const validate = compileJsonSchema(schemaObj);
   const outputPath = driver.outputPath ?? prepared.outputPath;
   let output: unknown;
   let errors: string[] = [];
   try {
     output = JSON.parse(fs.readFileSync(outputPath, 'utf8').replace(/^\uFEFF/, ''));
+    if (output && typeof output === 'object' && !Array.isArray(output) && '$schema' in output) {
+      if (!schemaObj.properties || !('$schema' in schemaObj.properties)) {
+        delete (output as Record<string, unknown>).$schema;
+      }
+    }
     if (!validate(output)) errors = (validate.errors ?? []).map(e => `${e.instancePath || '/'} ${e.message} ${JSON.stringify(e.params)}`);
   } catch (error) { errors = [`output.json ausente ou invalido: ${error instanceof Error ? error.message : String(error)}`]; }
   if (driver.timedOut) errors.push(driver.reason ?? 'Timeout da IDE.');

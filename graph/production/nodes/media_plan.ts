@@ -1,13 +1,16 @@
 import path from 'node:path';
 import { assertMediaPlan, planMedia, resolveMediaPolicy, validateMediaPlan } from '../lib/mediaPlan';
 import { audit, Context, NodeFn, paths, writeJson } from '../runtime';
+import {resolveFootageOptions} from '../../footage/planner';
 
 /** Runs after scene_plan has normalized or sliced the authoritative state plan. */
 export const mediaPlanPrepare = (c: Context): NodeFn => s => {
   if (!s.scenePlan) throw new Error('MEDIA_PLAN_SCENE_PLAN_MISSING');
   const authored=new Set(s.motionPlan?.scenes.map(scene=>scene.beatId)??[]);
+  const footageEnabled=resolveFootageOptions(s.options.graph.footage).mode==='auto';
+  const footage=new Set(footageEnabled?(s.footageArtifacts??[]).filter(artifact=>artifact.editorialStatus==='approved').map(artifact=>artifact.beatId):[]);
   if(s.options.graph.motionMode==='authored'&&!authored.size)throw new Error('AUTHORED_MOTION_PLAN_MISSING');
-  const { scenePlan, mediaPlan } = planMedia(s.scenePlan, resolveMediaPolicy(s),authored);
+  const { scenePlan, mediaPlan } = planMedia(s.scenePlan, resolveMediaPolicy(s),authored,footage);
   validateMediaPlan(scenePlan, mediaPlan);
   const run = paths(c, s).run;
   const effectivePath = path.join(run, 'media-scene-plan.json');
@@ -18,7 +21,8 @@ export const mediaPlanPrepare = (c: Context): NodeFn => s => {
   const scenePlanPath = full ? s.scenePlanPath ?? paths(c, s).plan : effectivePath;
   if (full && scenePlanPath !== effectivePath) writeJson(scenePlanPath, scenePlan);
   audit(c, s.episodeId, { type: 'media-plan', hash: mediaPlan.hash, policy: mediaPlan.policy,
-    providers: { 'firefly-kling': mediaPlan.fireflyBeatIds, 'local-ffmpeg': mediaPlan.localMotionBeatIds, 'remotion-authored':mediaPlan.authoredBeatIds??[], none: mediaPlan.stillBeatIds },
+    providers: { 'firefly-kling': mediaPlan.fireflyBeatIds, 'local-ffmpeg': mediaPlan.localMotionBeatIds,
+      'remotion-authored':mediaPlan.authoredBeatIds??[], 'licensed-footage':mediaPlan.footageBeatIds??[], none: mediaPlan.stillBeatIds },
     totalFrames: mediaPlan.totalFrames, totalTakes: mediaPlan.totalTakes, scenePlanPath,
   });
   return { scenePlan, scenePlanPath, mediaPlan };

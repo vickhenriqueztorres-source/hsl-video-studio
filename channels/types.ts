@@ -45,6 +45,14 @@ export interface VisualPolicy {
   };
 }
 
+export interface VoiceSettingsPolicy {
+  readonly stability?: number;
+  readonly similarityBoost?: number;
+  readonly style?: number;
+  readonly speed?: number;
+  readonly useSpeakerBoost?: boolean;
+}
+
 export interface NarrationPolicy {
   readonly locale: 'en-US' | 'pt-BR';
   readonly tone: string;
@@ -53,6 +61,7 @@ export interface NarrationPolicy {
   readonly defaultModelId?: string;
   readonly pronunciationDictionaryPath?: string;
   readonly currencyRules: 'spoken_words' | 'literal';
+  readonly voiceSettings?: VoiceSettingsPolicy;
 }
 
 export interface MotionPolicy {

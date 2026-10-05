@@ -11,6 +11,13 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const runtime = path.join(REPO_ROOT,'out','firefly-session');
   const logPath = path.join(runtime,'session.log');
   if (command === 'login') {
+    const script = path.join(environment.agentDir, 'scripts', 'interactive_login.py');
+    const fs = require('fs');
+    if (fs.existsSync(script)) {
+      const { spawnSync } = require('child_process');
+      const res = spawnSync(environment.python, [script], { stdio: 'inherit', env: { ...process.env, FIREFLY_CHROME_PROFILE_DIR: environment.profileDir } });
+      return res.status ?? 0;
+    }
     await openLoginChrome(environment,logPath);
     console.log('Autentique no Chrome Firefly aberto. Depois execute npm run hsl:firefly:session -- probe ou Continuar episódio no Matrix.');
     return 0;
